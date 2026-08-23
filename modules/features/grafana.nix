@@ -32,4 +32,10 @@ in
   };
 
   networking.proxyBackendPorts = [ 3000 ];
+
+  # Fix: Ensure data directory ownership on activation
+  system.activationScripts.grafana-data-dir.text = ''
+    ${pkgs.coreutils}/bin/chown grafana:grafana /var/lib/grafana
+    ${pkgs.coreutils}/bin/chmod 755 /var/lib/grafana
+  '';
 }

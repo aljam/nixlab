@@ -14,15 +14,7 @@ in
   # Ensure readarr user is in media group
   users.users.readarr.extraGroups = [ "media" ];
 
-  # Fix permissions properly
-  systemd.services.readarr = {
-    serviceConfig = {
-      SupplementaryGroups = [ "media" ];
-      ReadWritePaths = [ "/var/lib/readarr" ];
-    };
-  };
-
-  # Set permissions on activation (runs as root)
+  # Fix permissions on activation (runs as root during rebuild)
   system.activationScripts.readarr-permissions.text = ''
     ${pkgs.coreutils}/bin/chown -R readarr:media /var/lib/readarr 2>/dev/null || true
     ${pkgs.coreutils}/bin/chmod -R 775 /var/lib/readarr 2>/dev/null || true

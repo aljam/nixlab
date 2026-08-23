@@ -49,6 +49,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Reclaim disk space for Nix
+        uses: wimpysworld/nothing-but-nix@v1
+
       - name: Install Nix
         uses: cachix/install-nix-action@v31
         with:

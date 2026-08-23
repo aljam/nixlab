@@ -19,4 +19,9 @@ in
     ${pkgs.coreutils}/bin/chown -R readarr:media /var/lib/readarr 2>/dev/null || true
     ${pkgs.coreutils}/bin/chmod -R 775 /var/lib/readarr 2>/dev/null || true
   '';
+
+  # Fix: Remove the problematic ExecStartPre from the NixOS module
+  systemd.services.readarr = {
+    serviceConfig.ExecStartPre = null;
+  };
 }

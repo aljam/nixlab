@@ -44,11 +44,6 @@ jobs:
           - r730
           - r730xd
           - r820
-        exclude:
-          - host: ${{ github.event_name == 'pull_request' && 'oryx' || '' }}
-          - host: ${{ github.event_name == 'pull_request' && 'r730' || '' }}
-          - host: ${{ github.event_name == 'pull_request' && 'r730xd' || '' }}
-          - host: ${{ github.event_name == 'pull_request' && 'r820' || '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -57,6 +52,7 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@v4
 
       - name: Build host
+        if: github.event_name == 'push' || matrix.host == 'navi'
         run: |
           nix build \
             ".#nixosConfigurations.${{ matrix.host }}.config.system.build.toplevel" \

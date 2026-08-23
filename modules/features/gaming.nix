@@ -12,7 +12,6 @@
   programs.steam = {
     enable = true;
     package =
-    package =
       let
         millenniumPkgs = pkgs.appendOverlays [
           (final: prev: {

@@ -38,4 +38,9 @@ in
     ${pkgs.coreutils}/bin/chown grafana:grafana /var/lib/grafana
     ${pkgs.coreutils}/bin/chmod 755 /var/lib/grafana
   '';
+
+  # Fix: Remove the problematic ExecStartPre that tries to recreate the conf symlink
+  systemd.services.grafana = {
+    serviceConfig.ExecStartPre = null;
+  };
 }

@@ -13,7 +13,14 @@
     enable = true;
     package =
       let
-        millenniumPkgs = pkgs.appendOverlays [ inputs.millennium.overlays.default ];
+        millenniumPkgs = pkgs.appendOverlays [
+          (final: prev: {
+            millennium-typescript-bun-deps = prev.millennium-typescript-bun-deps.overrideAttrs (old: {
+              outputHash = "";  # Use lib.fakeHash or empty string
+            });
+          })
+          inputs.millennium.overlays.default
+        ];
       in
       millenniumPkgs.millennium-steam.override {
         extraPkgs = (pkgs: with pkgs; [

@@ -34,7 +34,7 @@ jobs:
 
   build-hosts:
     name: Build ${{ matrix.host }}
-    runs-on: ubuntu-24.04-16-cores
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:

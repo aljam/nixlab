@@ -1,4 +1,3 @@
-# modules/features/grafana.nix
 { config, lib, pkgs, ... }:
 
 let
@@ -33,14 +32,10 @@ in
 
   networking.proxyBackendPorts = [ 3000 ];
 
-  # Fix: Ensure data directory ownership on activation
   system.activationScripts.grafana-data-dir.text = ''
     ${pkgs.coreutils}/bin/chown grafana:grafana /var/lib/grafana
     ${pkgs.coreutils}/bin/chmod 755 /var/lib/grafana
   '';
 
-  # Fix: Remove the problematic ExecStartPre that tries to recreate the conf symlink
-  systemd.services.grafana = {
-    serviceConfig.ExecStartPre = null;
-  };
+  systemd.services.grafana.serviceConfig.ExecStartPre = lib.mkForce [];
 }

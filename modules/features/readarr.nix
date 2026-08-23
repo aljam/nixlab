@@ -11,17 +11,12 @@ in
     group = "media";
   };
 
-  # Ensure readarr user is in media group
   users.users.readarr.extraGroups = [ "media" ];
 
-  # Fix permissions on activation (runs as root during rebuild)
   system.activationScripts.readarr-permissions.text = ''
     ${pkgs.coreutils}/bin/chown -R readarr:media /var/lib/readarr 2>/dev/null || true
     ${pkgs.coreutils}/bin/chmod -R 775 /var/lib/readarr 2>/dev/null || true
   '';
 
-  # Fix: Remove the problematic ExecStartPre from the NixOS module
-  systemd.services.readarr = {
-    serviceConfig.ExecStartPre = null;
-  };
+  systemd.services.readarr.serviceConfig.ExecStartPre = lib.mkForce [];
 }

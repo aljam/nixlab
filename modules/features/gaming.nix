@@ -16,7 +16,7 @@
         millenniumPkgs = pkgs.appendOverlays [
           (final: prev: {
             millennium-typescript-bun-deps = prev.millennium-typescript-bun-deps.overrideAttrs (old: {
-              outputHash = "";  # Use lib.fakeHash or empty string
+              outputHash = "sha256-mAM2qhb0TOzPosejOcG2VegDkbEmY3JF8lkKgDpVjA0=";  # Use lib.fakeHash or empty string
             });
           })
           inputs.millennium.overlays.default

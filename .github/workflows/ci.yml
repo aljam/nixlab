@@ -44,7 +44,11 @@ jobs:
           - r730
           - r730xd
           - r820
-
+        exclude:
+          - host: ${{ github.event_name == 'pull_request' && 'oryx' || '' }}
+          - host: ${{ github.event_name == 'pull_request' && 'r730' || '' }}
+          - host: ${{ github.event_name == 'pull_request' && 'r730xd' || '' }}
+          - host: ${{ github.event_name == 'pull_request' && 'r820' || '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6

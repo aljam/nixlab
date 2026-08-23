@@ -11,38 +11,20 @@ in
     group = "media";
   };
 
-  # Generate config.xml declaratively with correct port
-  environment.etc."readarr/config.xml".text = ''
-    <Config>
-      <BindAddress>${bindAddr}</BindAddress>
-      <Port>8787</Port>
-      <SslPort>6868</SslPort>
-      <EnableSsl>False</EnableSsl>
-      <LaunchBrowser>True</LaunchBrowser>
-      <ApiKey>71a5fa0bb47d49c88c263cc4954f3b88</ApiKey>
-      <AuthenticationMethod>Forms</AuthenticationMethod>
-      <AuthenticationRequired>Enabled</AuthenticationRequired>
-      <Branch>develop</Branch>
-      <LogLevel>debug</LogLevel>
-      <SslCertPath></SslCertPath>
-      <SslCertPassword></SslCertPassword>
-      <UrlBase></UrlBase>
-      <InstanceName>Readarr</InstanceName>
-    </Config>
-  '';
+  # Ensure readarr user is in media group
+  users.users.readarr.extraGroups = [ "media" ];
 
-  # Ensure correct permissions and copy config on every start
+  # Fix permissions properly
   systemd.services.readarr = {
     serviceConfig = {
-      ExecStartPre = [
-        # Fix directory permissions
-        "${pkgs.writeShellScript "readarr-perms" ''
-          chown -R readarr:media /var/lib/readarr
-          chmod 775 /var/lib/readarr
-          cp -f /etc/readarr/config.xml /var/lib/readarr/config.xml
-          chown readarr:media /var/lib/readarr/config.xml
-        ''}"
-      ];
+      SupplementaryGroups = [ "media" ];
+      ReadWritePaths = [ "/var/lib/readarr" ];
     };
   };
+
+  # Set permissions on activation (runs as root)
+  system.activationScripts.readarr-permissions.text = ''
+    ${pkgs.coreutils}/bin/chown -R readarr:media /var/lib/readarr 2>/dev/null || true
+    ${pkgs.coreutils}/bin/chmod -R 775 /var/lib/readarr 2>/dev/null || true
+  '';
 }

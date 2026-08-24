@@ -23,7 +23,7 @@
     authentication = lib.mkOverride 10 ''
       local all all peer
       host all all 127.0.0.1/32 scram-sha-256
-      host all all ${bindAddr}/32 scram-sha-256
+      host all all ${config.servicesBindAddress}/32 scram-sha-256
     '';
 
     ensureDatabases = [ "webscraper" "admin" ];
@@ -45,6 +45,6 @@
     initialEmail = "admin@derezzed.info";
     initialPasswordFile = config.sops.secrets.pgadmin_password.path;
     port = 5050;
-    settings.DEFAULT_SERVER = bindAddr;
+    settings.DEFAULT_SERVER = config.servicesBindAddress;
   };
 }

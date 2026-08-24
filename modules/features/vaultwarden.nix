@@ -13,7 +13,7 @@
   services.vaultwarden = {
     enable = true;
     config = {
-      rocketAddress = config.servicesBindAddress;
+      rocketAddress = config.networking.servicesBindAddress;
       rocketPort = 8222;
       domain = "https://vault.${config.networking.domain}";
       signupsAllowed = false;

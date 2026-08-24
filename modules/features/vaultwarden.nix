@@ -2,9 +2,6 @@
 # Only accessible via HAProxy gateway (192.168.1.1)
 { config, lib, pkgs, ... }:
 
-let
-  bindAddr = config.servicesHostIP or "127.0.0.1";
-in
 {
   networking.proxyBackendPorts = [ 8222 ];
 
@@ -16,7 +13,7 @@ in
   services.vaultwarden = {
     enable = true;
     config = {
-      rocketAddress = bindAddr;
+      rocketAddress = config.servicesBindAddress;
       rocketPort = 8222;
       domain = "https://vault.${config.networking.domain}";
       signupsAllowed = false;

@@ -1,7 +1,13 @@
 { config, lib, ... }:
 
+
 let
   backendPorts = config.networking.proxyBackendPorts;
+  prometheusScrapeSources = [
+    config.networking.fleet.r730.ip
+    config.networking.fleet.r730xd.ip
+    config.networking.fleet.r820.ip
+  ];
 in
 {
   networking.firewall.extraInputRules =
@@ -11,7 +17,7 @@ in
       } accept comment "HAProxy backend access"
     '')
     + ''
-      ip saddr ${config.networking.fleet.r730xd.ip}
+      ip saddr ${prometheusScrapeSources}
       tcp dport 9100
       accept comment "Prometheus node exporter scrape"
     '';

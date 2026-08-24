@@ -22,7 +22,6 @@
           { Radarr = { href = "https://radarr.${config.networking.domains.primary}"; description = "Movies"; icon = "radarr.png"; }; }
           { Prowlarr = { href = "https://prowlarr.${config.networking.domains.primary}"; description = "Indexers"; icon = "prowlarr.png"; }; }
           { Bazarr = { href = "https://bazarr.${config.networking.domains.primary}"; description = "Subtitles Automation"; icon = "bazarr.png"; }; }
-          { Readarr = { href = "https://readarr.${config.networking.domains.primary}"; description = "Books Automation"; icon = "readarr.png"; }; }
           { Lidarr = { href = "https://lidarr.${config.networking.domains.primary}"; description = "Music Automation"; icon = "lidarr.png"; }; }
           { qBittorrent = { href = "https://qb.${config.networking.domains.primary}"; description = "Torrents"; icon = "qbittorrent.png"; }; }
           { Autobrr = { href = "https://autobrr.${config.networking.domains.primary}"; description = "IRC Torrent Filters"; icon = "autobrr.png"; }; }

@@ -38,7 +38,6 @@
     "d /var/lib/radarr 0755 media media -"
     "d /var/lib/sonarr 0755 media media -"
     "d /var/lib/lidarr 0755 media media -"
-    "d /var/lib/readarr 0755 media media -"
     "d /var/lib/bazarr 0755 media media -"
     "d /var/lib/seerr 0755 media media -"
     "d /var/lib/audiobookshelf 0755 media media -"

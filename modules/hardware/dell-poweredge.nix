@@ -29,20 +29,22 @@
 
           # Fallback if sensors fails
           if [ -z "$CPU_TEMP" ] || [ "$CPU_TEMP" -lt 0 ]; then
-            CPU_TEMP=50
+            CPU_TEMP=45
           fi
 
-          # Aggressive fan curve for proper cooling
-          if [ "$CPU_TEMP" -lt 35 ]; then
-            FAN_HEX="0x19"    # 25% - quiet idle
+          # Quiet fan curve - prioritize low noise
+          if [ "$CPU_TEMP" -lt 40 ]; then
+            FAN_HEX="0x0F"    # 15% - very quiet idle
           elif [ "$CPU_TEMP" -lt 50 ]; then
-            FAN_HEX="0x32"    # 50% - normal load
-          elif [ "$CPU_TEMP" -lt 65 ]; then
-            FAN_HEX="0x4B"    # 75% - heavy load
-          elif [ "$CPU_TEMP" -lt 75 ]; then
-            FAN_HEX="0x64"    # 100% - hot
+            FAN_HEX="0x19"    # 25% - quiet
+          elif [ "$CPU_TEMP" -lt 60 ]; then
+            FAN_HEX="0x28"    # 40% - moderate
+          elif [ "$CPU_TEMP" -lt 70 ]; then
+            FAN_HEX="0x3C"    # 60% - noticeable but acceptable
+          elif [ "$CPU_TEMP" -lt 80 ]; then
+            FAN_HEX="0x50"    # 80% - loud but needed
           else
-            FAN_HEX="0x64"    # 100% - critical
+            FAN_HEX="0x64"    # 100% - emergency cooling
           fi
 
           ${pkgs.ipmitool}/bin/ipmitool raw 0x30 0x30 0x02 0xff $FAN_HEX > /dev/null 2>&1 || true
@@ -53,8 +55,6 @@
       ExecStop = pkgs.writeShellScript "dell-fans-stop" ''
         # Return to automatic control on stop
         ${pkgs.ipmitool}/bin/ipmitool raw 0x30 0x30 0x01 0x01 > /dev/null 2>&1 || true
-        # Set fans to 100% briefly before returning to auto (safety)
-        ${pkgs.ipmitool}/bin/ipmitool raw 0x30 0x30 0x02 0xff 0x64 > /dev/null 2>&1 || true
       '';
     };
   };

@@ -6,7 +6,6 @@
     ../features/radarr.nix
     ../features/sonarr.nix
     ../features/lidarr.nix
-    ../features/readarr.nix
     ../features/bazarr.nix
     ../features/seerr.nix
     ../features/audiobookshelf.nix

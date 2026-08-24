@@ -17,7 +17,7 @@
     enable = true;
     settings = {
       server = {
-        http_addr = config.servicesBindAddress;
+        http_addr = config.networking.servicesBindAddress;
         http_port = 3000;
       };
       security = {

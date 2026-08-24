@@ -1,8 +1,5 @@
 { config, pkgs, lib, ... }:
 
-let
-  bindAddr = config.servicesHostIP;
-in
 {
   networking.proxyBackendPorts = [ 5050 ];
 
@@ -17,7 +14,7 @@ in
     settings = {
       listen_addresses = lib.mkForce (lib.concatStringsSep "," [
         "127.0.0.1"
-        bindAddr
+        config.servicesBindAddress
       ]);
 
       password_encryption = "scram-sha-256";

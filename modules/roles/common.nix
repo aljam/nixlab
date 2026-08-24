@@ -9,14 +9,17 @@
     ../features/networking-options.nix
   ];
 
-  options.servicesHostIP = lib.mkOption {
+  options.networking.servicesBindAddress = lib.mkOption {
     type = lib.types.str;
-    # Prefer the host’s fleet IP; fall back to localhost for desktop machines
-    default = config.networking.fleet.${hostname}.ip or "127.0.0.1";
+    default =
+      let
+        host = config.networking.hostName;
+      in
+      if lib.hasAttrByPath [ host "ip" ] config.networking.fleet
+      then config.networking.fleet.${host}.ip
+      else "127.0.0.1";
     description = ''
-      IP address that backend services (pgAdmin, Grafana, Arr apps, …)
-      bind to so HAProxy can reach them.  Derived automatically from
-      fleet.<hostname>.ip when present.
+      Address used by services that must be reachable by the local HAProxy instance.
     '';
   };
 

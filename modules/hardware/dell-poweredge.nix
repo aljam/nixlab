@@ -12,49 +12,86 @@
     description = "Dell PowerEdge Dynamic CPU Fan Control";
     wantedBy = [ "multi-user.target" ];
     after = [ "multi-user.target" ];
+
     serviceConfig = {
       Type = "simple";
       Restart = "on-failure";
       RestartSec = "5s";
       ExecStartPre = "${pkgs.coreutils}/bin/sleep 5";
-      ExecStart = pkgs.writeShellScript "dell-fans-loop" ''
-        PATH=${lib.makeBinPath [ pkgs.ipmitool pkgs.lm_sensors pkgs.gawk pkgs.coreutils ]}
 
-        # Switch Dell iDRAC to manual fan mode
-        ${pkgs.ipmitool}/bin/ipmitool raw 0x30 0x30 0x01 0x00 > /dev/null 2>&1 || true
+      ExecStart = pkgs.writeShellScript "dell-fans-loop" ''
+        PATH=${lib.makeBinPath [
+          pkgs.ipmitool
+          pkgs.lm_sensors
+          pkgs.gawk
+          pkgs.coreutils
+        ]}
+
+        # Enable manual fan control.
+        ${pkgs.ipmitool}/bin/ipmitool raw 0x30 0x30 0x01 0x00 \
+          > /dev/null 2>&1 || true
+
+        LAST_FAN_HEX=""
 
         while true; do
-          # Get highest CPU core temp
-          CPU_TEMP=$(${pkgs.lm_sensors}/bin/sensors | ${pkgs.gawk}/bin/awk '/Core [0-9]+/ {gsub(/[^0-9.]/,"",$3); if($3>max) max=$3} END{print int(max)}')
+          CPU_TEMP=$(
+            ${pkgs.lm_sensors}/bin/sensors |
+              ${pkgs.gawk}/bin/awk '
+                /Core [0-9]+/ {
+                  gsub(/[^0-9.]/, "", $3)
+                  if ($3 > max) max = $3
+                }
+                END {
+                  if (max != "") print int(max)
+                }
+              '
+          )
 
-          # Fallback if sensors fails
+          # Conservative fallback if lm_sensors returns no usable value.
           if [ -z "$CPU_TEMP" ] || [ "$CPU_TEMP" -lt 0 ]; then
             CPU_TEMP=45
           fi
 
-          # Quiet fan curve - prioritize low noise
-          if [ "$CPU_TEMP" -lt 40 ]; then
-            FAN_HEX="0x0F"    # 15% - very quiet idle
-          elif [ "$CPU_TEMP" -lt 50 ]; then
-            FAN_HEX="0x19"    # 25% - quiet
-          elif [ "$CPU_TEMP" -lt 60 ]; then
-            FAN_HEX="0x28"    # 40% - moderate
-          elif [ "$CPU_TEMP" -lt 70 ]; then
-            FAN_HEX="0x3C"    # 60% - noticeable but acceptable
+          # Quieter curve:
+          #   <45 C  -> 18%
+          #   <55 C  -> 22%
+          #   <65 C  -> 30%
+          #   <72 C  -> 45%
+          #   <80 C  -> 65%
+          #   >=80 C -> 100%
+          #
+          # Values are percentages represented as hexadecimal PWM values.
+          if [ "$CPU_TEMP" -lt 45 ]; then
+            FAN_HEX="0x12"   # 18%
+          elif [ "$CPU_TEMP" -lt 55 ]; then
+            FAN_HEX="0x16"   # 22%
+          elif [ "$CPU_TEMP" -lt 65 ]; then
+            FAN_HEX="0x1E"   # 30%
+          elif [ "$CPU_TEMP" -lt 72 ]; then
+            FAN_HEX="0x2D"   # 45%
           elif [ "$CPU_TEMP" -lt 80 ]; then
-            FAN_HEX="0x50"    # 80% - loud but needed
+            FAN_HEX="0x41"   # 65%
           else
-            FAN_HEX="0x64"    # 100% - emergency cooling
+            FAN_HEX="0x64"   # 100%
           fi
 
-          ${pkgs.ipmitool}/bin/ipmitool raw 0x30 0x30 0x02 0xff $FAN_HEX > /dev/null 2>&1 || true
+          # Only issue an IPMI command when the selected speed changes.
+          if [ "$FAN_HEX" != "$LAST_FAN_HEX" ]; then
+            ${pkgs.ipmitool}/bin/ipmitool raw \
+              0x30 0x30 0x02 0xff "$FAN_HEX" \
+              > /dev/null 2>&1 || true
 
-          ${pkgs.coreutils}/bin/sleep 5
+            LAST_FAN_HEX="$FAN_HEX"
+          fi
+
+          ${pkgs.coreutils}/bin/sleep 10
         done
       '';
+
       ExecStop = pkgs.writeShellScript "dell-fans-stop" ''
-        # Return to automatic control on stop
-        ${pkgs.ipmitool}/bin/ipmitool raw 0x30 0x30 0x01 0x01 > /dev/null 2>&1 || true
+        # Return control to the iDRAC thermal algorithm.
+        ${pkgs.ipmitool}/bin/ipmitool raw 0x30 0x30 0x01 0x01 \
+          > /dev/null 2>&1 || true
       '';
     };
   };

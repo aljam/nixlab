@@ -8,6 +8,8 @@ let
   gateway = config.networking.fleet.proxy.ip or "192.168.1.1";
 in
 {
+  imports = [ ../features/node-exporter.nix ];
+  
   networking.interfaces.eno1.ipv4.addresses = [{
     address = config.networking.fleet.${config.networking.hostName}.ip;
     prefixLength = 24;

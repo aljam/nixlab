@@ -16,4 +16,10 @@
       "nvme"
     ];
   };
+
+  networking.firewall.extraInputRules = lib.mkAfter ''
+    ip saddr ${config.networking.fleet.r730xd.ip}
+    tcp dport 9100
+    accept comment "Prometheus scrape node exporter"
+  '';
 }

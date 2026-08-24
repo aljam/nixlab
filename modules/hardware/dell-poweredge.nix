@@ -8,13 +8,10 @@
     coreutils
   ];
 
-  # Ensure sensors works first
-  hardware.sensors.enable = true;
-
   systemd.services.dell-fans = {
     description = "Dell PowerEdge Dynamic CPU Fan Control";
     wantedBy = [ "multi-user.target" ];
-    after = [ "multi-user.target" "sensors.service" ];
+    after = [ "multi-user.target" ];
     serviceConfig = {
       Type = "simple";
       Restart = "on-failure";

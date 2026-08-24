@@ -1,8 +1,5 @@
 { config, lib, pkgs, ... }:
 
-let
-  bindAddr = config.servicesHostIP or "127.0.0.1";
-in
 {
   sops.secrets."grafana-admin-password" = {
     owner = "grafana";
@@ -20,7 +17,7 @@ in
     enable = true;
     settings = {
       server = {
-        http_addr = bindAddr;
+        http_addr = config.servicesBindAddress;
         http_port = 3000;
       };
       security = {

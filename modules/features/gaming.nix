@@ -14,11 +14,6 @@
     package =
       let
         millenniumPkgs = pkgs.appendOverlays [
-          (final: prev: {
-            millennium-typescript-bun-deps = prev.millennium-typescript-bun-deps.overrideAttrs (old: {
-              outputHash = "sha256-iPdEl5GH0cXjn1EUdYutqxdMwdRXms+eXCEIwZ3xeLY=";
-            });
-          })
           inputs.millennium.overlays.default
         ];
       in

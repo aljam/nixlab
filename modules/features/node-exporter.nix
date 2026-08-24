@@ -2,7 +2,7 @@
 { config, lib, pkgs, ... }:
 
 {
-  networking.firewall.allowedTCPPorts = [ 9100 ];
+  networking.proxyBackendPorts = [ 9100 ];
 
   services.prometheus.exporters.node = {
     enable = true;

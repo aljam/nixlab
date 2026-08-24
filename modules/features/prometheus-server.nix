@@ -16,11 +16,15 @@
     scrapeConfigs = [
       {
         job_name = "prometheus";
-        static_configs = [{ targets = ["localhost:9090"]; }];
+        static_configs = [{ targets = [ "${config.networking.fleet.r730.ip}:9090"
+                                        "${config.networking.fleet.r730xd.ip}:9090"
+                                        "${config.networking.fleet.r820.ip}:9090" ]; }];
       }
       {
         job_name = "node";
-        static_configs = [{ targets = ["localhost:9100"]; }];
+        static_configs = [{ targets = [ "${config.networking.fleet.r730.ip}:9100"
+                                        "${config.networking.fleet.r730xd.ip}:9100"
+                                        "${config.networking.fleet.r820.ip}:9100" ]; }];
       }
     ];
   };

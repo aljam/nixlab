@@ -2,8 +2,6 @@
 { config, lib, pkgs, ... }:
 
 {
-  networking.proxyBackendPorts = [ 9100 ];
-
   services.prometheus.exporters.node = {
     enable = true;
     port = 9100;

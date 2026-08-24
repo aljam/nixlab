@@ -17,7 +17,7 @@ in
 
     services.audiobookshelf = {
       enable = true;
-      host = config.servicesBindAddress;
+      host = config.networking.servicesBindAddress;
       port = 13378;
     };
   };

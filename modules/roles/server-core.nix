@@ -8,7 +8,11 @@ let
   gateway = config.networking.fleet.proxy.ip or "192.168.1.1";
 in
 {
-  imports = [ ../features/node-exporter.nix ];
+  imports = [
+    ../features/node-exporter.nix
+    ../features/prometheus-alerts.nix
+    ../features/reverse-proxy-backends.nix
+  ];
   
   networking.interfaces.eno1.ipv4.addresses = [{
     address = config.networking.fleet.${config.networking.hostName}.ip;
@@ -37,13 +41,6 @@ in
     dockerCompat = true;
     dockerSocket.enable = true;
   };
-
-  # Monitoring stack
-  imports = [
-    ../features/node-exporter.nix
-    ../features/prometheus-alerts.nix
-    ../features/reverse-proxy-backends.nix
-  ];
 
   # Hardware monitoring
   services.smartd = {

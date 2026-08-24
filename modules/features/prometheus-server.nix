@@ -40,9 +40,4 @@
       }
     ];
   };
-
-  networking.firewall.extraInputRules = ''
-    ip saddr ${config.networking.servicesBindAddress} tcp dport 9100 accept
-  '';
-
 }

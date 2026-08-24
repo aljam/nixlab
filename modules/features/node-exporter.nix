@@ -2,12 +2,10 @@
 { config, lib, pkgs, ... }:
 
 {
-  networking.proxyBackendPorts = [ 9100 ];
+  networking.firewall.allowedTCPPorts = [ 9100 ];
 
   services.prometheus.exporters.node = {
     enable = true;
     port = 9100;
   };
-
-  # Firewall: Handled centrally by reverse-proxy-backends.nix
 }

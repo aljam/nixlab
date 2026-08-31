@@ -79,12 +79,16 @@ in
     for machine in [gateway, prometheus, attacker]:
         machine.wait_for_unit("multi-user.target")
 
-    backend_ip = backend.succeed("hostname -I").split()[0]
-    backend_url = f"http://{backend_ip}:${toString backendPort}/"
-    metrics_url = f"http://{backend_ip}:${toString exporterPort}/metrics"
+    # Reach the backend by name: the test driver puts every machine's vlan1
+    # address in /etc/hosts, so traffic leaves over the LAN interface and the
+    # source address is the one the firewall rules are written against. Using
+    # the machine's own `hostname -I` would pick up QEMU's 10.0.2.x NAT address
+    # on eth0 instead.
+    backend_url = "http://backend:${toString backendPort}/"
+    metrics_url = "http://backend:${toString exporterPort}/metrics"
 
     def reachable(machine, url):
-        return machine.succeed(f"curl -o /dev/null -sS --max-time 10 -w '%{{http_code}}' {url}")
+        machine.succeed(f"curl -fsS --max-time 10 -o /dev/null {url}")
 
     def unreachable(machine, url):
         machine.fail(f"curl -o /dev/null -fsS --max-time 10 {url}")

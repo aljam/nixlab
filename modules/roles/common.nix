@@ -83,7 +83,6 @@
         PasswordAuthentication = false;
         PermitRootLogin = "no";
         KbdInteractiveAuthentication = false;
-        UsePAM = false;
         AllowUsers = [ "aljam" ];
         AllowGroups = [ "wheel" ];
       };

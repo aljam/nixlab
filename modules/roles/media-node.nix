@@ -3,22 +3,23 @@
 {
   imports = [
     ../features/homepage.nix
-    ../features/radarr.nix
-    ../features/sonarr.nix
-    ../features/lidarr.nix
-    ../features/bazarr.nix
-    ../features/seerr.nix
-    ../features/audiobookshelf.nix
+    #../features/radarr.nix
+    #../features/sonarr.nix
+    #../features/lidarr.nix
+    #../features/bazarr.nix
+    #../features/seerr.nix
+    #../features/audiobookshelf.nix
     ../features/autobrr.nix
-    ../features/shoko.nix
-    ../features/torrents.nix
-    ../features/jellyfin.nix
+    #../features/shoko.nix
+    #../features/torrents.nix
+    #../features/jellyfin.nix
     ../features/recyclarr.nix
-    ../features/prowlarr.nix
+    #../features/prowlarr.nix
     ../features/vaultwarden.nix
     ../features/grafana.nix
     ../features/youtube.nix
     #../features/nas-mount.nix
+    ../features/servarr.nix
   ];
 
   # Media user and group
@@ -37,7 +38,5 @@
     "d /mnt/media/movies 2775 media media -"
     "d /mnt/media/tv     2775 media media -"
   ];
-  users.users = lib.genAttrs [ "radarr" "sonarr" "lidarr" "bazarr" "jellyfin" "qbittorrent" ]
-    (_: { extraGroups = [ "media" ]; });
 
 }

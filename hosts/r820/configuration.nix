@@ -11,6 +11,6 @@
   ];
 
   # Remote builder configuration
-  nix.settings.trusted-users = [ "root" "@wheel" "aljam" ];
+  nix.settings.trusted-users = [ "root" "aljam" ];
   nix.settings.allowed-users = [ "@users" ];
 }

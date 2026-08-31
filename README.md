@@ -21,50 +21,52 @@ nix flake check
 
 ## Hosts
 
-| Host    | Role                          | Hardware                    |
-|---------|-------------------------------|-----------------------------|
-| `navi`  | Desktop / daily driver        | AMD Ryzen, Hyprland, Steam  |
-| `oryx`  | Laptop / development          | System76                    |
-| `r730`  | Storage / ZFS / media         | Dell R730, ZFS              |
-| `r730xd`| Application server / services | Dell R730                   |
-| `r820`  | Edge / reverse proxy          | Dell R820                   |
+| Host    | Role                                      | Hardware              |
+|---------|-------------------------------------------|-----------------------|
+| `navi`  | Desktop / daily driver (Hyprland, Steam)  | AMD Ryzen desktop     |
+| `oryx`  | Laptop / development                      | System76 laptop       |
+| `r730`  | ZFS storage / PostgreSQL / distributed build | Dell PowerEdge R730 |
+| `r730xd`| Media server / applications (Jellyfin, *arr, Vaultwarden) | Dell R730 |
+| `r820`  | Edge services / reverse proxy backends    | Dell PowerEdge R820   |
+
+**Note:** HAProxy reverse proxy runs externally on pfSense (192.168.1.1), not on r820.
 
 ## Architecture
 
 ```
 nixlab/
-├── flake.nix              # Entry point: inputs, outputs, specialArgs
+├── flake.nix              # Entry point: mkHost helper, inputs, outputs
 ├── flake.lock             # Pinned dependencies
 ├── hosts/                 # Per-host configurations
-│   ├── navi/
-│   ├── oryx/
-│   ├── r730/
-│   ├── r730xd/
-│   └── r820/
+│   ├── navi/              # Desktop (hyprland, gaming, emulation)
+│   ├── oryx/              # Laptop (System76, portable)
+│   ├── r730/              # Storage server (ZFS, PostgreSQL, remote-builder)
+│   ├── r730xd/            # Media/apps (Jellyfin, servarr, vaultwarden, prometheus)
+│   └── r820/              # Edge (reverse-proxy-backends, grafana)
 ├── modules/               # Reusable NixOS modules
-│   ├── features/          # Optional features (autobrr, monitoring, etc.)
-│   ├── hardware/          # Hardware-specific modules
-│   └── roles/             # Role-based configurations (mail, ai-node, etc.)
+│   ├── features/          # Optional features (~30 flat .nix files)
+│   ├── hardware/          # Hardware modules (dell-poweredge, navi-desktop, system76-laptop)
+│   └── roles/             # Role modules (common, server-core, desktop-node, media-node, storage-node, ai-node, mail-node)
 ├── secrets/               # SOPS-encrypted secrets
-│   └── secrets.yaml
-├── tests/                 # NixOS tests and assertions
+│   └── secrets.yaml       # Single encrypted file for all hosts
+├── tests/                 # NixOS tests
 │   └── firewall.nix       # Security property tests
 └── users/                 # User configurations
 ```
 
 ## Documentation
 
-- [Architecture](docs/ARCHITECTURE.md) - Flake structure, module organization, evaluation model
-- [Secrets](docs/SECRETS.md) - SOPS setup, encryption, adding new secrets
-- [Runbook](docs/RUNBOOK.md) - Common operations, rebuild commands, troubleshooting
-- [Networking](docs/NETWORKING.md) - Network topology, subnets, firewall rules
+- [Architecture](docs/ARCHITECTURE.md) - Flake structure, mkHost, module organization
+- [Secrets](docs/SECRETS.md) - SOPS with SSH Ed25519 keys, host-key recovery
+- [Runbook](docs/RUNBOOK.md) - Common operations, rollback, host-key recovery
+- [Networking](docs/NETWORKING.md) - 192.168.1.x topology, HAProxy on pfSense, firewall rules
 
 ## Development
 
 ### Prerequisites
 
 - NixOS with flakes enabled
-- Age key for SOPS (see [docs/SECRETS.md](docs/SECRETS.md))
+- Age key (host SSH Ed25519 key) for SOPS decryption
 - Access to the Cachix binary cache (see [CACHIX.md](CACHIX.md))
 
 ### Running Tests
@@ -80,11 +82,8 @@ nix build .#checks.x86_64-linux.firewall
 ### Formatting
 
 ```bash
-# Format all Nix files
+# Format all Nix files (nixfmt via treefmt)
 nix fmt
-
-# Format with nixfmt (RFC-style)
-nix run nixpkgs#nixfmt
 ```
 
 ### CI/CD
@@ -98,4 +97,4 @@ GitHub Actions runs on every push:
 
 ## License
 
-MIT - see [LICENSE.md](LICENSE.md)
+GPL-2.0 - see [LICENSE.md](LICENSE.md)

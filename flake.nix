@@ -50,7 +50,6 @@
     sops-nix,
     mailserver,
     nix-cachyos-kernel,
-    millennium,
     nur,
     ...
   }@inputs:

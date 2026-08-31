@@ -20,9 +20,7 @@
         static_configs = [
           {
             targets = [
-              "${config.networking.fleet.r730.ip}:9090"
               "${config.networking.fleet.r730xd.ip}:9090"
-              "${config.networking.fleet.r820.ip}:9090"
             ];
           }
         ];

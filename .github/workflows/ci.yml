@@ -36,7 +36,7 @@ jobs:
     name: Build ${{ matrix.host }}
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         host:
           - navi

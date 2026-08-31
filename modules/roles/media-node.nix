@@ -31,4 +31,13 @@
   };
 
   users.groups.media = {};
+
+  systemd.tmpfiles.rules = [
+    "d /mnt/media        2775 media media -"   # setgid so new files inherit `media`
+    "d /mnt/media/movies 2775 media media -"
+    "d /mnt/media/tv     2775 media media -"
+  ];
+  users.users = lib.genAttrs [ "radarr" "sonarr" "lidarr" "bazarr" "jellyfin" "qbittorrent" ]
+    (_: { extraGroups = [ "media" ]; });
+
 }

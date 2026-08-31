@@ -99,6 +99,20 @@
     in {
       formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixpkgs-fmt;
 
+      checks.${system} = {
+        # Fast and VM-free: checks the shape of every custom nftables input rule
+        # on every host. Runs anywhere, including in `nix flake check` on CI.
+        nftables-input-rules = import ./tests/nftables-input-rules.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+          hosts = self.nixosConfigurations;
+        };
+
+        # End-to-end: boots a gateway, a backend, a Prometheus server and an
+        # unprivileged LAN client, and proves the isolation actually holds.
+        firewall-isolation =
+          nixpkgs.legacyPackages.${system}.testers.runNixOSTest ./tests/firewall.nix;
+      };
+
       nixosConfigurations = {
 
         navi = mkHost {

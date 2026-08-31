@@ -31,11 +31,10 @@
 
     nix-flatpak.url = "github:gmodena/nix-flatpak";
 
-    hyprland = { url = "github:hyprwm/Hyprland"; inputs.nixpkgs.follows = "nixpkgs"; };
+    hyprland = {
+      url = "github:hyprwm/Hyprland"; 
+      inputs.nixpkgs.follows = "nixpkgs"; };
 
-    millennium = {
-      url = "github:SteamClientHomebrew/Millennium?dir=packages/nix";
-    };
     nur = {
       url = "github:nix-community/NUR";
       inputs.nixpkgs.follows = "nixpkgs";

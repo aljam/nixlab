@@ -31,21 +31,4 @@
   };
 
   users.groups.media = {};
-
-  # Common media directories
-  systemd.tmpfiles.rules = [
-    "d /var/lib/media 0755 media media -"
-    "d /var/lib/radarr 0755 media media -"
-    "d /var/lib/sonarr 0755 media media -"
-    "d /var/lib/lidarr 0755 media media -"
-    "d /var/lib/bazarr 0755 media media -"
-    "d /var/lib/seerr 0755 media media -"
-    "d /var/lib/audiobookshelf 0755 media media -"
-    "d /var/lib/autobrr 0755 media media -"
-    "d /var/lib/shoko 0755 media media -"
-    "d /var/lib/jellyfin 0755 media media -"
-    "d /var/lib/torrents 0755 media media -"
-    "d /var/lib/vaultwarden 0755 media media -"
-    "d /var/lib/grafana 0755 media media -"
-  ];
 }

@@ -1,9 +1,13 @@
 # nixlab
 
-Declarative NixOS infrastructure for a multi-server homelab. Managed via flakes, sops-nix for secrets, and GitHub Actions for CI.
+[![CI](https://github.com/Aljam/nixlab/actions/workflows/ci.yml/badge.svg)](https://github.com/Aljam/nixlab/actions/workflows/ci.yml)
+[![Security](https://github.com/Aljam/nixlab/actions/workflows/security.yml/badge.svg)](https://github.com/Aljam/nixlab/actions/workflows/security.yml)
+[![License](https://img.shields.io/github/license/Aljam/nixlab?label=license)](LICENSE.md)
+[![Flake](https://img.shields.io/badge/Nix-Flake-5277C3?logo=nixos&logoColor=white)](flake.nix)
+[![SOPS](https://img.shields.io/badge/secrets-SOPS%20%2B%20age-2F855A?logo=gnuprivacyguard&logoColor=white)](https://github.com/getsops/sops)
+[![Home Manager](https://img.shields.io/badge/Home-Manager-7EBB4B?logo=nixos&logoColor=white)](https://github.com/nix-community/home-manager)
 
-[![Nix](https://img.shields.io/badge/NixOS-unstable-blue)](https://nixos.org)
-[![SOPS](https://img.shields.io/badge/Secrets-SOPS-green)](https://github.com/Mic92/sops-nix)
+Declarative NixOS infrastructure for a multi-server homelab. Managed via flakes, sops-nix for secrets, and GitHub Actions for CI.
 
 ## Quick Start
 

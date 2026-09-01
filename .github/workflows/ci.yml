@@ -18,6 +18,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Step 1: Install Nix
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 2: Configure cachix (installs cachix CLI and configures caches)
       - uses: cachix/cachix-action@v15
         with:
           name: aljam
@@ -41,6 +47,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Step 1: Install Nix
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 2: Configure cachix
       - uses: cachix/cachix-action@v15
         with:
           name: aljam

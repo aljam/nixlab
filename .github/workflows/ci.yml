@@ -14,16 +14,14 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # Step 1: Install Nix
       - uses: cachix/install-nix-action@v31
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 2: Configure cachix (installs cachix CLI and configures caches)
       - uses: cachix/cachix-action@v15
         with:
           name: aljam
@@ -43,16 +41,24 @@ jobs:
       matrix:
         host: [navi, oryx, r820, r730, r730xd]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # Step 1: Install Nix
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/.ghcup
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          df -h
+
       - uses: cachix/install-nix-action@v31
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 2: Configure cachix
       - uses: cachix/cachix-action@v15
         with:
           name: aljam

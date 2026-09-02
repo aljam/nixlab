@@ -27,7 +27,7 @@
     ./disko-config.nix
     ../../modules/roles/server-core.nix
     ../../modules/roles/media-node.nix
-    ../../modules/hardware/dell-fans.nix
+    ../../modules/hardware/dell-poweredge.nix
   ];
 
   # Use stable kernel for server hardware

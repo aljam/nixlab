@@ -30,7 +30,7 @@ nix flake check
 | `navi`  | Desktop / daily driver (Hyprland, Steam)  | AMD Ryzen desktop     |
 | `oryx`  | Laptop / development                      | System76 laptop       |
 | `r730`  | ZFS storage / PostgreSQL / distributed build | Dell PowerEdge R730 |
-| `r730xd`| Media server / applications (Jellyfin, *arr, Vaultwarden) | Dell R730 |
+| `r730xd`| Media server / applications (Jellyfin, *arr, Vaultwarden) | Dell PowerEdge R730xd |
 | `r820`  | Edge services / reverse proxy backends    | Dell PowerEdge R820   |
 
 **Note:** HAProxy reverse proxy runs externally on pfSense (192.168.1.1), not on r820.

@@ -21,24 +21,35 @@
 #   ];
 # }
 
-{ config, lib, pkgs, ... }: 
+{ config, pkgs, lib, ... }:
 
 {
   imports = [
     ./hardware-configuration.nix
     ./disko-config.nix
-    ../../modules/roles/server-core.nix
     ../../modules/hardware/dell-poweredge.nix
+    ../../modules/roles/server-core.nix
+    ../../modules/roles/storage-node.nix
+    # ../../modules/roles/ai-node.nix
+    # ../../modules/features/nvidia-headless.nix
   ];
 
-  # Use stable kernel for server hardware
-  boot.kernelPackages = pkgs.linuxPackages_6_1;
+  networking.hostId = "acccc16e"; # Required for ZFS
 
-  # Server-specific optimizations
-  services.cpu-autofreq.enable = true;
-  services.thermald.enable = true;
+  boot.kernelPackages = pkgs.linuxPackages_6_1;  
 
-  # ZFS tuning for server workload
-  services.zfs.autoSnapshot.enable = true;
-  services.zfs.trim.enable = true;
+  # hardware.nvidia-container-toolkit.enable = true; # Passes the P40s into Docker
+
+  # hardware.nvidia = {
+  #   modesetting.enable = true; # Overrides the headless module default
+  #   nvidiaPersistenced = true; # Prevents power-state latency drops during AI training
+  # };
+
+  #nixpkgs.config.cudaSupport = true;
+
+  environment.systemPackages = with pkgs; [
+    cudatoolkit
+    linuxPackages.nvidia_x11
+  ];
+
 }

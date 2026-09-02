@@ -21,12 +21,13 @@
 #   ];
 # }
 
-{ config, lib, pkgs, ... }: {
+{ config, lib, pkgs, ... }: 
+
+{
   imports = [
     ./hardware-configuration.nix
     ./disko-config.nix
     ../../modules/roles/server-core.nix
-    ../../modules/roles/media-node.nix
     ../../modules/hardware/dell-poweredge.nix
   ];
 

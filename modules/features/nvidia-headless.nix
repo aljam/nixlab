@@ -12,35 +12,60 @@
   };
 
   hardware.nvidia = {
-    # Tesla P40 (Pascal) requires the legacy 535 driver
-    package = config.boot.kernelPackages.nvidiaPackages.legacy_535;
-    open = false; 
-    nvidiaSettings = false; 
+    # Tesla P40 (Pascal) - use production driver (535 is good, or try 550 for newer features)
+    package = config.boot.kernelPackages.nvidiaPackages.legacy_535;  # or .production
+    open = false;  # Proprietary driver (required for Pascal)
+    nvidiaSettings = false;
+    
+    # CRITICAL: Enable for proper GPU enumeration and container support
+    modesetting.enable = true;
+    
+    # Disable runtime PM (P40 doesn't support it)
     powerManagement.enable = false;
     powerManagement.finegrained = false;
     
-    # Defaults false for headless (R730xd), overridden to true for compute (R730)
-    modesetting.enable = lib.mkDefault false;
+    # Enable persistence mode for headless compute
+    nvidiaPersistenced.enable = true;
   };
 
+  # Blacklist nouveau (good)
   boot.blacklistedKernelModules = [ "nouveau" ];
 
-  # Kernel parameters for headless enterprise Pascal cards
+  # Kernel parameters - FIXED for proprietary driver
   boot.kernelParams = [
-    "pcie_aspm=off"
-    "nvidia-drm.modeset=0"
-    "nvidia.NVreg_OpenRmEnableUnsupportedGpus=1" # Forces P40 Pascal support
-    "nvidia.NVreg_PreserveVideoMemoryAllocations=1"
-    "console=tty0"           # Directs kernel messages to primary system console
-    "console=ttyS0,115200n8" # Enables iDRAC serial redirection
-    "fbcon=map:0"            # Forces framebuffer console to slot 0 (ASPEED)
+    "pcie_aspm=off"  # Disable ASPM (prevents PCIe link issues)
+    "nvidia-drm.modeset=1"  # Enable DRM modesetting (required for modesetting.enable = true)
+    "nvidia.NVreg_PreserveVideoMemoryAllocations=1"  # Preserve VRAM across suspend
+    # Removed: NVreg_OpenRmEnableUnsupportedGpus (only for open kernel modules)
+    # Removed: console=ttyS0 (only if you actually use serial console)
+    "fbcon=map:0"  # Keep framebuffer on ASPEED iGPU
   ];
 
-  systemd.services."getty@tty1".enable = true;
+  # Optional: Enable NVIDIA persistence daemon
+  systemd.services.nvidia-persistenced = {
+    enable = true;
+    wantedBy = [ "multi-user.target" ];
+  };
 
   environment.systemPackages = with pkgs; [
     nvtopPackages.full
     config.hardware.nvidia.package
     pciutils
+    # Useful for debugging
+    nvidia-settings
   ];
+
+  # Optional: Set persistence mode at boot
+  systemd.services.nvidia-persistenced-start = {
+    description = "Enable NVIDIA persistence mode";
+    after = [ "nvidia-persistenced.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    script = ''
+      ${config.hardware.nvidia.package.bin}/bin/nvidia-smi -pm 1 || true
+    '';
+    wantedBy = [ "multi-user.target" ];
+  };
 }

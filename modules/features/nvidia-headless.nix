@@ -24,8 +24,8 @@
     powerManagement.enable = false;
     powerManagement.finegrained = false;
     
-    # Enable persistence mode for headless compute
-    nvidiaPersistenced.enable = true;
+    # Enable persistence mode for headless compute (BOOLEAN, not attrset!)
+    nvidiaPersistenced = true;
   };
 
   # Blacklist nouveau (good)
@@ -41,12 +41,6 @@
     "fbcon=map:0"  # Keep framebuffer on ASPEED iGPU
   ];
 
-  # Optional: Enable NVIDIA persistence daemon
-  systemd.services.nvidia-persistenced = {
-    enable = true;
-    wantedBy = [ "multi-user.target" ];
-  };
-
   environment.systemPackages = with pkgs; [
     nvtopPackages.full
     config.hardware.nvidia.package
@@ -55,7 +49,7 @@
     nvidia-settings
   ];
 
-  # Optional: Set persistence mode at boot
+  # Optional: Set persistence mode at boot (persistence daemon already enabled above)
   systemd.services.nvidia-persistenced-start = {
     description = "Enable NVIDIA persistence mode";
     after = [ "nvidia-persistenced.service" ];

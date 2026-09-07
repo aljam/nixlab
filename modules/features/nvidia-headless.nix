@@ -45,8 +45,7 @@
     nvtopPackages.full
     config.hardware.nvidia.package
     pciutils
-    # Useful for debugging
-    nvidia-settings
+    # Useful for debugging (nvidia-settings removed - not in this nixpkgs)
   ];
 
   # Optional: Set persistence mode at boot (persistence daemon already enabled above)

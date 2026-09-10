@@ -30,4 +30,11 @@
   };
 
   programs.kdeconnect.enable = true;
+
+  programs.gen1recomp = {
+    enable = true;
+
+    # Replace this with the hash returned by nix store prefetch-file.
+    hash = "sha256-lj9oPiWmrNPvNyYb+GbEmrdfqn00jzwxQfbXVoTg+40=";
+  };
 }

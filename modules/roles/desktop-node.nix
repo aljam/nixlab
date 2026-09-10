@@ -14,6 +14,7 @@
     ../../modules/features/flatpak.nix
     ../../modules/features/remote-builder.nix
     ../../modules/features/fonts.nix
+    ../../modules/features/gen1recomp.nix
   ];
   
   boot.kernelPackages = inputs.nix-cachyos-kernel.legacyPackages.x86_64-linux.linuxPackages-cachyos-lts;

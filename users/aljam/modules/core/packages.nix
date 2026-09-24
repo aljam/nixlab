@@ -19,5 +19,6 @@
     gnumake
     unzip
     xclip
+    gnupg
   ];
 }

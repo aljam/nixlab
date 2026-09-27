@@ -20,5 +20,6 @@
     unzip
     xclip
     gnupg
+    libxcrypt-legacy
   ];
 }

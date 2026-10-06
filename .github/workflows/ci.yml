@@ -26,7 +26,7 @@ jobs:
         with:
           name: aljam
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
-          extraPullNames: nix-community,nix-gaming,hyprland,cuda-maintainers
+          extraPullNames: nix-community,nix-gaming,hyprland
           skipPush: true
           useDaemon: false
 
@@ -63,7 +63,7 @@ jobs:
         with:
           name: aljam
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
-          extraPullNames: nix-community,nix-gaming,hyprland,cuda-maintainers
+          extraPullNames: nix-community,nix-gaming,hyprland
           useDaemon: false
 
       - name: Build host

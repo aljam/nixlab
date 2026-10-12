@@ -9,6 +9,8 @@
 
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
+    artcraft.url = "github:Hy4ri/artcraft-flake";
+
     mailserver = {
       url = "gitlab:simple-nixos-mailserver/nixos-mailserver/nixos-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -33,7 +35,7 @@
 
     hyprland = {
       url = "github:hyprwm/Hyprland"; 
-      inputs.nixpkgs.follows = "nixpkgs"; };
+      inputs.nixpkgs.follows = "nixpkgs"; }
 
     nur = {
       url = "github:nix-community/NUR";
@@ -51,6 +53,7 @@
     mailserver,
     nix-cachyos-kernel,
     nur,
+    artcraft,
     ...
   }@inputs:
     let
@@ -76,6 +79,7 @@
             {
               nixpkgs.overlays = [
                 nix-cachyos-kernel.overlays.pinned
+                artcraft.overlays.default
               ];
             }
           )
@@ -142,5 +146,5 @@
         };
 
       };
-    };
+    }
 }

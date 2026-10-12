@@ -22,6 +22,20 @@
     
     # (Optional) Kvantum engine if you want deep widget theming
     # kdePackages.qtstyleplugin-kvantum
+
+    # --- ArtCraft creative suite ---
+    photocraft
+    vectorcraft
+    filmcraft
+    lightcraft
+    pdfcraft
+    effectcraft
+    designcraft
+    cadcraft
+    deckcraft
+    gridcraft
+    soundcraft
+    wordcraft
   ];
   
  xdg.enable = true;

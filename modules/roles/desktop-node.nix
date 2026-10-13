@@ -15,6 +15,7 @@
     ../../modules/features/remote-builder.nix
     ../../modules/features/fonts.nix
     ../../modules/features/gen1recomp.nix
+    ../../modules/features/desktop-portals.nix
   ];
   
   boot.kernelPackages = inputs.nix-cachyos-kernel.legacyPackages.x86_64-linux.linuxPackages-cachyos-lts;

@@ -1,4 +1,4 @@
-{ config, pkgs, pkgs, ... }:
+{ config, pkgs, ... }:
 
 {
   programs.obs-studio = {

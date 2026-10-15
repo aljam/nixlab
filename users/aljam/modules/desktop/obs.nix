@@ -24,7 +24,7 @@ in
     ];
   };
 
-  environment.systemPackages = [ 
+  home.packages = [ 
     pkgs.streamcontroller 
   ];
 }

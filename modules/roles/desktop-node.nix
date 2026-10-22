@@ -18,7 +18,7 @@
     ../../modules/features/desktop-portals.nix
   ];
   
-  boot.kernelPackages = inputs.nix-cachyos-kernel.legacyPackages.x86_64-linux.linuxPackages-cachyos-lts;
+  boot.kernelPackages = inputs.nix-cachyos-kernel.legacyPackages.x86_64-linux.linuxPackages-cachyos-latest;
 
   networking.networkmanager.enable = true;
   

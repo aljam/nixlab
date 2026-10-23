@@ -14,7 +14,7 @@
   ...
 }:
 let
-  cfg = config.nixlab.servarr;
+  cfg = config.servarr;
 
   serviceDefs = {
     radarr = {

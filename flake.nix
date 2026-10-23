@@ -108,13 +108,16 @@
         {
           nixpkgs.overlays = [
             nix-cachyos-kernel.overlays.default
-            artcraft.overlays.default
           ];
         }
       ];
 
       desktopModules = [
         {
+          nixpkgs.overlays = [
+            artcraft.overlays.default
+          ];
+
           home-manager.users.aljam.imports = [
             ./users/aljam/home-gui.nix
           ];

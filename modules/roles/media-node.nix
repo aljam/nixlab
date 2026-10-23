@@ -21,6 +21,8 @@
     isSystemUser = true;
   };
 
+  servarr.enable = true;
+
   users.groups.media = {};
 
   systemd.tmpfiles.rules = [

@@ -1,11 +1,19 @@
-{ config, pkgs, inputs, ... }:
-
+{
+  config,
+  pkgs,
+  inputs,
+  ...
+}:
+let
+  potProvider = pkgs.python314Packages.bgutil-ytdlp-pot-provider;
+  potSitePackages = "${potProvider}/lib/python3.14/site-packages";
+in
 {
   environment.systemPackages = with pkgs; [
     ytdl-sub
     yt-dlp
     deno
-    python314Packages.bgutil-ytdlp-pot-provider
+    potProvider
   ];
 
   virtualisation.oci-containers.backend = "podman";
@@ -21,11 +29,10 @@
 
   systemd.tmpfiles.rules = [
     "d /mnt/media/youtube 0770 media media -"
-    "d /var/lib/ytdl-sub 0700 media media -"
   ];
 
   environment.etc."yt-dlp/plugins/bgutil-ytdlp-pot-provider/yt_dlp_plugins".source =
-    "${pkgs.python314Packages.bgutil-ytdlp-pot-provider}/lib/python3.14/site-packages/yt_dlp_plugins";
+    "${potSitePackages}/yt_dlp_plugins";
 
   environment.etc."ytdl-sub/config.yaml".text = ''
     configuration:
@@ -87,7 +94,7 @@
       StateDirectory = "ytdl-sub";
 
       Environment = [
-        "PYTHONPATH=${pkgs.python314Packages.bgutil-ytdlp-pot-provider}/lib/python3.14/site-packages"
+        "PYTHONPATH=${potSitePackages}"
       ];
 
       ExecStart =
@@ -100,7 +107,7 @@
         "/mnt/media/youtube"
       ];
 
-      TimeoutStartSec = "infinity";
+      TimeoutStartSec = "4h";
     };
   };
 

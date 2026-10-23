@@ -18,8 +18,8 @@
     ../../modules/features/desktop-portals.nix
   ];
   
-  boot.kernelPackages = pkgs.nix-cachyos-kernel."linuxPackages-cachyos-latest";
-
+  boot.kernelPackages = pkgs.cachyosKernels."linuxPackages-cachyos-latest";
+  
   networking.networkmanager.enable = true;
   
   services.tailscale = {

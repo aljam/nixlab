@@ -1,6 +1,12 @@
 # modules/roles/common.nix
 # Common configuration for all machines
-{ config, lib, pkgs, hostname, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  hostname,
+  ...
+}:
 
 {
   imports = [
@@ -15,25 +21,25 @@
       let
         host = config.networking.hostName;
       in
-      if lib.hasAttrByPath [ host "ip" ] config.networking.fleet
-      then config.networking.fleet.${host}.ip
-      else "127.0.0.1";
+      if lib.hasAttrByPath [ host "ip" ] config.networking.fleet then
+        config.networking.fleet.${host}.ip
+      else
+        "127.0.0.1";
     description = ''
       Address used by services that must be reachable by the local HAProxy instance.
     '';
   };
 
-  # Configuration
   config = {
     system.stateVersion = lib.mkDefault "26.05";
     networking.hostName = hostname;
     networking.domain = config.networking.myDomain;
-    
+
     nixpkgs.config.allowUnfree = true;
-  
+
     # Locale and timezone
-    time.timeZone = lib.mkDefault "America/Toronto";  # Or your timezone
-    
+    time.timeZone = lib.mkDefault "America/Toronto";
+
     i18n.defaultLocale = lib.mkDefault "en_CA.UTF-8";
     i18n.extraLocaleSettings = {
       LC_ADDRESS = "en_CA.UTF-8";
@@ -46,12 +52,18 @@
       LC_TELEPHONE = "en_CA.UTF-8";
       LC_TIME = "en_CA.UTF-8";
     };
-  
+
     # Generate locales
-    i18n.supportedLocales = [ "en_CA.UTF-8/UTF-8" "en_US.UTF-8/UTF-8" ];
+    i18n.supportedLocales = [
+      "en_CA.UTF-8/UTF-8"
+      "en_US.UTF-8/UTF-8"
+    ];
 
     # Enable flakes
-    nix.settings.experimental-features = [ "nix-command" "flakes" ];
+    nix.settings.experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
 
     # Set up cachix caches (keep your existing keys)
     nix.settings.substituters = [
@@ -84,6 +96,7 @@
         AllowUsers = [ "aljam" ];
         AllowGroups = [ "wheel" ];
       };
+
       # Only allow key-based auth for wheel
       extraConfig = ''
         Match Group wheel

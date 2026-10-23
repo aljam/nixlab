@@ -1,4 +1,4 @@
-{ config, pkgs, ... }: 
+{ config, pkgs, ... }:
 
 {
   imports = [
@@ -8,7 +8,6 @@
     ../features/vaultwarden.nix
     ../features/grafana.nix
     ../features/youtube.nix
-    #../features/nas-mount.nix
     ../features/servarr.nix
   ];
 
@@ -23,12 +22,12 @@
 
   servarr.enable = true;
 
-  users.groups.media = {};
+  users.groups.media = { };
 
   systemd.tmpfiles.rules = [
-    "d /mnt/media        2775 media media -"   # setgid so new files inherit `media`
+    # setgid so new files inherit `media`
+    "d /mnt/media 2775 media media -"
     "d /mnt/media/movies 2775 media media -"
-    "d /mnt/media/tv     2775 media media -"
+    "d /mnt/media/tv 2775 media media -"
   ];
-
 }

@@ -14,7 +14,6 @@
     blender
     qbittorrent
     inkscape
-    audacity
     super-slicer
     davinci-resolve
     element-desktop

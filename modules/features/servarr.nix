@@ -77,7 +77,7 @@ let
   ) serviceDefs;
 in
 {
-  options.nixlab.servarr.enable = lib.mkEnableOption "media automation stack";
+  options.servarr.enable = lib.mkEnableOption "media automation stack";
 
   config = lib.mkIf cfg.enable {
     networking.proxyBackendPorts = lib.mapAttrsToList (

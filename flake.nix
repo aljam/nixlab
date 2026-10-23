@@ -107,7 +107,7 @@
 
         {
           nixpkgs.overlays = [
-            #nix-cachyos-kernel.overlays.pinned
+            nix-cachyos-kernel.overlays.default
             artcraft.overlays.default
           ];
         }

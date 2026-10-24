@@ -12,11 +12,16 @@
   # Explicitly force SDDM as the display manager and disable any conflicting defaults
   services.displayManager.sddm = {
     enable = true;
-    wayland.enable = false; # Keeps the stable X11 greeter backend
+    wayland.enable = true
+  };
+
+  environment.sessionVariables = {
+    QT_IM_MODULE = "";
+    XMODIFIERS = "";
   };
 
   # Add KDE Plasma so SDDM detects the desktop session files
   services.desktopManager.plasma6.enable = true;
 
-  services.xserver.enable = true;
+  #services.xserver.enable = true;
 }

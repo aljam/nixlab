@@ -12,7 +12,7 @@
   # Explicitly force SDDM as the display manager and disable any conflicting defaults
   services.displayManager.sddm = {
     enable = true;
-    wayland.enable = true
+    wayland.enable = true;
   };
 
   environment.sessionVariables = {

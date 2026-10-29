@@ -54,10 +54,7 @@
       registration_shared_secret_path =
         config.sops.secrets.matrix-synapse-registration-shared-secret.path;
 
-      experimental_features = {
-        msc3861.enabled = false;
-        msc4143_enabled = true;
-      };
+      experimental_features.msc4143_enabled = true;
 
       matrix_rtc.transports = [
         {

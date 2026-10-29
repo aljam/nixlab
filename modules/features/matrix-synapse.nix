@@ -2,22 +2,21 @@
 {
   networking.proxyBackendPorts = [ 8008 ];
 
-  sops.secrets.matrix-synapse-registration-shared-secret = {
-    owner = "matrix-synapse";
-  };
-
-  services.postgresql = {
-    ensureDatabases = [ "matrix-synapse" ];
-    ensureUsers = [
-      {
-        name = "matrix-synapse";
-        ensureDBOwnership = true;
-      }
-    ];
+  sops.secrets = {
+    matrix-synapse-registration-shared-secret = {
+      owner = "matrix-synapse";
+    };
+    matrix-synapse-db-config = {
+      owner = "matrix-synapse";
+    };
   };
 
   services.matrix-synapse = {
     enable = true;
+
+    extraConfigFiles = [
+      config.sops.secrets.matrix-synapse-db-config.path
+    ];
 
     settings = {
       server_name = "matrix.derezzed.info";
@@ -28,7 +27,7 @@
         args = {
           database = "matrix-synapse";
           user = "matrix-synapse";
-          host = "127.0.0.1";
+          host = "192.168.1.4";
           cp_min = 5;
           cp_max = 10;
         };

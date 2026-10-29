@@ -48,24 +48,20 @@
         }
       ];
 
-      # Do not enable open registration.
       enable_registration = false;
-
-      # Keep the secret out of the Nix store.
       registration_shared_secret_path =
         config.sops.secrets.matrix-synapse-registration-shared-secret.path;
 
-      # Required for lk-jwt-service to validate Matrix user OpenID tokens.
-      experimental_features.msc3861.enabled = false;
-
-      # MatrixRTC / Element Call discovery.
-      experimental_features.msc4143_enabled = true;
+      experimental_features = {
+        msc3861.enabled = false;
+        msc4143_enabled = true;
+      };
 
       matrix_rtc.transports = [
         {
           type = "livekit";
-          url = "wss://rtc.example.com/livekit/sfu";
-          livekit_service_url = "https://rtc.example.com/livekit/jwt";
+          url = "wss://rtc.derezzed.info/livekit/sfu";
+          livekit_service_url = "https://rtc.derezzed.info/livekit/jwt";
         }
       ];
     };

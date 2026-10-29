@@ -2,7 +2,9 @@
 {
   networking.proxyBackendPorts = [ 8008 ];
 
-  sops.secrets.matrix-synapse-registration-shared-secret = { };
+  sops.secrets.matrix-synapse-registration-shared-secret = {
+    owner = "matrix-synapse";
+  };
 
   services.postgresql = {
     ensureDatabases = [ "matrix-synapse" ];

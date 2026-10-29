@@ -24,9 +24,10 @@
       local all all peer
       host all all 127.0.0.1/32 scram-sha-256
       host all all ${config.networking.servicesBindAddress}/32 scram-sha-256
+      host matrix-synapse matrix-synapse 192.168.1.2/32 scram-sha-256
     '';
 
-    ensureDatabases = [ "webscraper" "admin" ];
+    ensureDatabases = [ "webscraper" "admin" "matrix-synapse" ];
 
     ensureUsers = [
       {
@@ -35,6 +36,10 @@
       }
       {
         name = "admin";
+        ensureDBOwnership = true;
+      }
+      {
+        name = "matrix-synapse";
         ensureDBOwnership = true;
       }
     ];

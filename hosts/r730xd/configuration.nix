@@ -10,9 +10,11 @@
     ../../modules/roles/media-node.nix
     ../../modules/roles/storage-node.nix
     ../../modules/features/prometheus-server.nix
+    ../../modules/features/matrix-synapse.nix
+    ../../modules/features/matrix-rtc.nix
   ];
 
-  boot.kernelPackages = pkgs.linuxPackages_6_1;  
+  boot.kernelPackages = pkgs.linuxPackages_6_1;
 
   boot.kernelParams = [ "zfs.zfs_arc_max=68719476736" ];
 

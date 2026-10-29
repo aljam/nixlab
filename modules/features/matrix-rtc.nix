@@ -1,7 +1,7 @@
 { config, lib, pkgs, ... }:
 let
-  rtcDomain = "rtc.example.com";
-  matrixDomain = "matrix.example.com";
+  rtcDomain = "rtc.derezzed.info";
+  matrixDomain = "matrix.derezzed.info";
 
   livekitConfig = pkgs.writeText "livekit.yaml" ''
     port: 7880
@@ -33,13 +33,9 @@ in
         "7881:7881"
         "50100-50200:50100-50200/udp"
       ];
-      environmentFiles = [
-        config.sops.secrets.livekit-secret.path
-      ];
+      environmentFiles = [ config.sops.secrets.livekit-secret.path ];
       cmd = [ "--config" "/etc/livekit/livekit.yaml" ];
-      volumes = [
-        "${livekitConfig}:/etc/livekit/livekit.yaml:ro"
-      ];
+      volumes = [ "${livekitConfig}:/etc/livekit/livekit.yaml:ro" ];
     };
 
     lk-jwt-service = {
@@ -52,9 +48,7 @@ in
         LIVEKIT_HS_SERVER_NAME = matrixDomain;
         LIVEKIT_FULL_ACCESS_HOMESERVERS = matrixDomain;
       };
-      environmentFiles = [
-        config.sops.secrets.livekit-jwt-env.path
-      ];
+      environmentFiles = [ config.sops.secrets.livekit-jwt-env.path ];
     };
   };
 }

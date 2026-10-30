@@ -15,16 +15,35 @@ let
     keys:
       matrixrtc: "$LIVEKIT_SECRET"
   '';
+
+  livekitTestToken = pkgs.writeShellApplication {
+    name = "livekit-test-token";
+    runtimeInputs = [ pkgs.livekit-cli ];
+    text = ''
+      set -euo pipefail
+
+      secret_file="''${1:-${config.sops.secrets.livekit-secret.path}}"
+      secret="$(sed -n 's/^LIVEKIT_SECRET=//p' "$secret_file")"
+
+      if [[ -z "$secret" ]]; then
+        echo "LIVEKIT_SECRET not found in $secret_file" >&2
+        exit 1
+      fi
+
+      exec lk token create \
+        --api-key matrixrtc \
+        --api-secret "$secret" \
+        --join \
+        --room connection-test \
+        --identity tester \
+        --valid-for 1h
+    '';
+  };
 in
 {
   networking.proxyBackendPorts = [ 7880 8081 ];
 
-  networking.firewall = {
-    allowedTCPPorts = [ 7881 ];
-    allowedUDPPortRanges = [
-      { from = 50100; to = 50200; }
-    ];
-  };
+  environment.systemPackages = [ livekitTestToken ];
 
   sops.secrets = {
     livekit-secret = { };

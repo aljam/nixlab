@@ -29,7 +29,7 @@ in
       image = "docker.io/livekit/livekit-server:latest";
       autoStart = true;
       ports = [
-        "127.0.0.1:7880:7880"
+        "192.168.1.2:7880:7880"
         "7881:7881"
         "50100-50200:50100-50200/udp"
       ];
@@ -41,7 +41,7 @@ in
     lk-jwt-service = {
       image = "ghcr.io/element-hq/lk-jwt-service:latest";
       autoStart = true;
-      ports = [ "127.0.0.1:8080:8080" ];
+      ports = [ "192.168.1.2:8080:8080" ];
       environment = {
         LIVEKIT_URL = "wss://${rtcDomain}/livekit/sfu";
         LIVEKIT_KEY = "matrixrtc";

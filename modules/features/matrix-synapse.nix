@@ -50,6 +50,7 @@
       ];
 
       enable_registration = true;
+      registration_requires_token = true;
       registration_shared_secret_path =
         config.sops.secrets.matrix-synapse-registration-shared-secret.path;
 

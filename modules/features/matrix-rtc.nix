@@ -17,7 +17,7 @@ let
   '';
 in
 {
-  networking.proxyBackendPorts = [ 7880 8080 ];
+  networking.proxyBackendPorts = [ 7880 8081 ];
 
   sops.secrets = {
     livekit-secret = { };
@@ -41,7 +41,7 @@ in
     lk-jwt-service = {
       image = "ghcr.io/element-hq/lk-jwt-service:latest";
       autoStart = true;
-      ports = [ "192.168.1.2:8080:8080" ];
+      ports = [ "192.168.1.2:8081:8080" ];
       environment = {
         LIVEKIT_URL = "wss://${rtcDomain}/livekit/sfu";
         LIVEKIT_KEY = "matrixrtc";

@@ -66,11 +66,6 @@ in
       image = "ghcr.io/element-hq/lk-jwt-service:latest";
       autoStart = true;
       ports = [ "192.168.1.2:8081:8080" ];
-      environment = {
-        LIVEKIT_URL = "wss://${rtcDomain}/livekit/sfu";
-        LIVEKIT_KEY = "matrixrtc";
-        LIVEKIT_FULL_ACCESS_HOMESERVERS = matrixDomain;
-      };
       environmentFiles = [ config.sops.secrets.livekit-secret.path ];
     };
   };

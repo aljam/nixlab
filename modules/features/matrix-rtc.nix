@@ -21,7 +21,7 @@ let
     runtimeInputs = [ pkgs.livekit-cli ];
     text = ''
       set -euo pipefail
-      secret_file="''${1:-${config.sops.secrets.livekit-secret.path}}"
+      secret_file="''${1:-${config.sops.secrets.livekit-jwt-env.path}}"
       secret="$(sed -n 's/^LIVEKIT_SECRET=//p' "$secret_file")"
 
       if [[ -z "$secret" ]]; then
@@ -46,6 +46,7 @@ in
 
   sops.secrets = {
     livekit-secret = { };
+    livekit-jwt-env = { };
   };
 
   virtualisation.oci-containers.containers = {
@@ -57,7 +58,7 @@ in
         "7881:7881"
         "50100-50200:50100-50200/udp"
       ];
-      environmentFiles = [ config.sops.secrets.livekit-secret.path ];
+      environmentFiles = [ config.sops.secrets.livekit-jwt-env.path ];
       cmd = [ "--config" "/etc/livekit/livekit.yaml" ];
       volumes = [ "${livekitConfig}:/etc/livekit/livekit.yaml:ro" ];
     };
@@ -66,7 +67,7 @@ in
       image = "ghcr.io/element-hq/lk-jwt-service:latest";
       autoStart = true;
       ports = [ "192.168.1.2:8081:8080" ];
-      environmentFiles = [ config.sops.secrets.livekit-secret.path ];
+      environmentFiles = [ config.sops.secrets.livekit-jwt-env.path ];
     };
   };
 }

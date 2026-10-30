@@ -45,7 +45,6 @@ in
       environment = {
         LIVEKIT_URL = "wss://${rtcDomain}/livekit/sfu";
         LIVEKIT_KEY = "matrixrtc";
-        LIVEKIT_HS_SERVER_NAME = matrixDomain;
         LIVEKIT_FULL_ACCESS_HOMESERVERS = matrixDomain;
       };
       environmentFiles = [ config.sops.secrets.livekit-jwt-env.path ];

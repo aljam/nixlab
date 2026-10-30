@@ -22,6 +22,17 @@
       server_name = "matrix.derezzed.info";
       public_baseurl = "https://matrix.derezzed.info";
 
+      serve_client_wellknown = true;
+
+      extra_well_known_client_content = {
+        "org.matrix.msc4143.rtc_foci" = [
+          {
+            type = "livekit";
+            livekit_service_url = "https://rtc.derezzed.info/livekit/jwt";
+          }
+        ];
+      };
+
       database = {
         name = "psycopg2";
         args = {

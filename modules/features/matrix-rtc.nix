@@ -19,6 +19,13 @@ in
 {
   networking.proxyBackendPorts = [ 7880 8081 ];
 
+  networking.firewall = {
+    allowedTCPPorts = [ 7881 ];
+    allowedUDPPortRanges = [
+      { from = 50100; to = 50200; }
+    ];
+  };
+
   sops.secrets = {
     livekit-secret = { };
     livekit-jwt-env = { };

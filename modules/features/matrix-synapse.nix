@@ -54,7 +54,12 @@
       registration_shared_secret_path =
         config.sops.secrets.matrix-synapse-registration-shared-secret.path;
 
-      experimental_features.msc4143_enabled = true;
+      experimental_features = {
+        msc4140_enabled = true;
+        msc4143_enabled = true;
+      };
+
+      max_event_delay_duration = "24h";
 
       matrix_rtc.transports = [
         {

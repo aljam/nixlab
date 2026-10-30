@@ -21,7 +21,6 @@ let
     runtimeInputs = [ pkgs.livekit-cli ];
     text = ''
       set -euo pipefail
-
       secret_file="''${1:-${config.sops.secrets.livekit-secret.path}}"
       secret="$(sed -n 's/^LIVEKIT_SECRET=//p' "$secret_file")"
 
@@ -47,7 +46,6 @@ in
 
   sops.secrets = {
     livekit-secret = { };
-    livekit-jwt-env = { };
   };
 
   virtualisation.oci-containers.containers = {
@@ -73,7 +71,7 @@ in
         LIVEKIT_KEY = "matrixrtc";
         LIVEKIT_FULL_ACCESS_HOMESERVERS = matrixDomain;
       };
-      environmentFiles = [ config.sops.secrets.livekit-jwt-env.path ];
+      environmentFiles = [ config.sops.secrets.livekit-secret.path ];
     };
   };
 }

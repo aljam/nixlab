@@ -67,7 +67,7 @@ in
       autoStart = true;
       ports = [ "192.168.1.2:8081:8080" ];
       environment = {
-        LIVEKIT_URL = "wss://${rtcDomain}/livekit/sfu";
+        LIVEKIT_URL = "wss://${rtcDomain}";
         LIVEKIT_KEY = "matrixrtc";
         LIVEKIT_FULL_ACCESS_HOMESERVERS = matrixDomain;
       };

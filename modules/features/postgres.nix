@@ -1,8 +1,19 @@
-{ config, pkgs, lib, ... }:
+# PostgreSQL and pgAdmin.
+#
+# Exposure model:
+# - PostgreSQL listens only on loopback and this host's fleet service address.
+# - pgAdmin listens only on loopback and is intentionally not added to
+#   `networking.proxyBackendPorts`. Expose it through an authenticated,
+#   admin-only route only if explicitly needed.
+# - TCP database authentication is limited to explicit database/user pairs.
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
-  networking.proxyBackendPorts = [ 5050 ];
-
   sops.secrets.pgadmin_password = {
     owner = "pgadmin";
   };
@@ -12,22 +23,31 @@
     enableTCPIP = true;
 
     settings = {
-      listen_addresses = lib.mkForce (lib.concatStringsSep "," [
-        "127.0.0.1"
-        config.networking.servicesBindAddress
-      ]);
+      listen_addresses = lib.mkForce (
+        lib.concatStringsSep "," [
+          "127.0.0.1"
+          config.networking.servicesBindAddress
+        ]
+      );
 
       password_encryption = "scram-sha-256";
     };
 
     authentication = lib.mkOverride 10 ''
       local all all peer
-      host all all 127.0.0.1/32 scram-sha-256
-      host all all ${config.networking.servicesBindAddress}/32 scram-sha-256
-      host matrix-synapse matrix-synapse 192.168.1.2/32 scram-sha-256
+
+      # Keep TCP rules narrow: each rule names both the database and role.
+      host webscraper webscraper 127.0.0.1/32 scram-sha-256
+      host admin admin 127.0.0.1/32 scram-sha-256
+      host matrix-synapse matrix-synapse 127.0.0.1/32 scram-sha-256
+      host matrix-synapse matrix-synapse ${config.networking.fleet.r730xd.ip}/32 scram-sha-256
     '';
 
-    ensureDatabases = [ "webscraper" "admin" "matrix-synapse" ];
+    ensureDatabases = [
+      "webscraper"
+      "admin"
+      "matrix-synapse"
+    ];
 
     ensureUsers = [
       {
@@ -50,6 +70,6 @@
     initialEmail = "admin@derezzed.info";
     initialPasswordFile = config.sops.secrets.pgadmin_password.path;
     port = 5050;
-    settings.DEFAULT_SERVER = config.networking.servicesBindAddress;
+    settings.DEFAULT_SERVER = "127.0.0.1";
   };
 }

@@ -77,6 +77,10 @@ let
   ) serviceDefs;
 in
 {
+  imports = [
+    ./media-storage.nix
+  ];
+
   options.servarr.enable = lib.mkEnableOption "media automation stack";
 
   config = lib.mkIf cfg.enable {

@@ -66,7 +66,10 @@ in
     lk-jwt-service = {
       image = "ghcr.io/element-hq/lk-jwt-service:latest";
       autoStart = true;
-      ports = [ "192.168.1.2:8081:8080" ];
+      ports = [ "192.168.1.2:8081:8081" ];
+      environment = {
+        LIVEKIT_JWT_BIND = ":8081";
+      };
       environmentFiles = [ config.sops.secrets.livekit-jwt-env.path ];
     };
   };

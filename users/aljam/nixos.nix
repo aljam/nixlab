@@ -18,6 +18,8 @@ in
 
   programs.fish.enable = true;
 
-  # secrets.yaml: aljam_password = output of `mkpasswd -m yescrypt`
-  sops.secrets.aljam_password.neededForUsers = true; # required — decrypt before user    
+  sops.secrets.aljam_password = {
+    sopsFile = ../../secrets/common.yaml;
+    neededForUsers = true; # required — decrypt before user creation
+  };
 }

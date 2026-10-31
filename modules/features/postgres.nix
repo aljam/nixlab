@@ -15,6 +15,7 @@
 
 {
   sops.secrets.pgadmin_password = {
+    sopsFile = ../../secrets/database.yaml;
     owner = "pgadmin";
   };
 

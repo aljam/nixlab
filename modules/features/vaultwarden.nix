@@ -5,10 +5,11 @@
 {
   networking.proxyBackendPorts = [ 8222 ];
 
-  # Vaultwarden secrets
-  sops.secrets."vaultwarden-admin-token" = {};
-  sops.secrets."vaultwarden-admin-token".mode = "0640";
-  sops.secrets."vaultwarden-admin-token".owner = "vaultwarden";
+  sops.secrets."vaultwarden-admin-token" = {
+    sopsFile = ../../secrets/vaultwarden.yaml;
+    mode = "0640";
+    owner = "vaultwarden";
+  };
 
   services.vaultwarden = {
     enable = true;

@@ -70,6 +70,7 @@ in
       environment = {
         LIVEKIT_JWT_BIND = ":8081";
         LIVEKIT_URL = "ws://192.168.1.2:7880";
+        LIVEKIT_KEY = "matrixrtc";
       };
       environmentFiles = [ config.sops.secrets.livekit-jwt-env.path ];
     };

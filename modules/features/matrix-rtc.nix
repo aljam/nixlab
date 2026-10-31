@@ -62,8 +62,13 @@ in
   environment.systemPackages = [ livekitTestToken ];
 
   sops.secrets = {
-    livekit-secret = { };
-    livekit-jwt-env = { };
+    livekit-secret = {
+      sopsFile = ../../secrets/matrix.yaml;
+    };
+
+    livekit-jwt-env = {
+      sopsFile = ../../secrets/matrix.yaml;
+    };
   };
 
   virtualisation.oci-containers.containers = {

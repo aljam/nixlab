@@ -4,9 +4,12 @@
 
   sops.secrets = {
     matrix-synapse-registration-shared-secret = {
+      sopsFile = ../../secrets/matrix.yaml;
       owner = "matrix-synapse";
     };
+
     matrix-synapse-db-config = {
+      sopsFile = ../../secrets/matrix.yaml;
       owner = "matrix-synapse";
     };
   };

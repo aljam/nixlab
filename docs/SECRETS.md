@@ -4,204 +4,125 @@ Secrets are encrypted with [SOPS](https://github.com/getsops/sops) using age key
 
 ## Structure
 
-```
+Secrets are split by service or trust boundary rather than kept in one global file:
+
+```text
 secrets/
-└── secrets.yaml    # Single encrypted file for all hosts
+├── common.yaml       # Fleet-wide user/login secrets
+├── nas.yaml          # CIFS credentials
+├── database.yaml     # PostgreSQL / pgAdmin
+├── matrix.yaml       # Matrix Synapse and Matrix RTC / LiveKit
+├── vaultwarden.yaml  # Vaultwarden
+├── monitoring.yaml   # Grafana and alerting
+└── backup.yaml       # Backup credentials
 ```
+
+Each module that consumes a secret declares its own `sopsFile`. Do not add a global `sops.defaultSopsFile`.
 
 ## Key Model
 
-**Age identities are host SSH Ed25519 keys:**
+Age identities are host SSH Ed25519 keys:
 
 - Each host's age identity is `/etc/ssh/ssh_host_ed25519_key`
-- The corresponding public key is in `.sops.yaml` under the `age` recipients
+- The corresponding public key is in `.sops.yaml` under the relevant `creation_rules`
 - This ties secrets to the host's SSH identity, not a separate age key
 
-### .sops.yaml
+## Recipient model
 
-```yaml
-creation_rules:
-  - path_regex: secrets/.*\.yaml$
-    age: >-
-      ssh-ed25519 AAAA... (r730),
-      ssh-ed25519 AAAA... (r730xd),
-      ssh-ed25519 AAAA... (r820),
-      ssh-ed25519 AAAA... (navi),
-      ssh-ed25519 AAAA... (oryx)
-```
+| File | Intended recipients |
+|---|---|
+| `common.yaml` | Desktop key and all hosts |
+| `nas.yaml` | Desktop key and hosts importing `nas-mount.nix` |
+| `database.yaml` | Desktop key and PostgreSQL host |
+| `matrix.yaml` | Desktop key and Matrix/LiveKit host |
+| `vaultwarden.yaml` | Desktop key and Vaultwarden host |
+| `monitoring.yaml` | Desktop key and monitoring host |
+| `backup.yaml` | Desktop key and backup-capable hosts |
 
-## Setup
+The desktop key is included so secrets can be edited locally. Remove it from a file's recipients if local editing is not required.
 
-### 1. Host SSH Key as Age Identity
+## Encrypt a new secret file
 
-On each host, the SSH Ed25519 host key is used directly:
-
-```bash
-# The private key (age identity)
-/etc/ssh/ssh_host_ed25519_key
-
-# The public key (SOPS recipient)
-/etc/ssh/ssh_host_ed25519_key.pub
-```
-
-No separate age key is needed.
-
-### 2. Encrypt a Secret
+Create plaintext YAML outside the repository, then encrypt it into the intended path:
 
 ```bash
-# Create plaintext YAML
-cat > secret.yaml <<EOF
-my-secret:
-  path: /run/secrets/my-secret
-  owner: root
-  group: root
-  mode: "0400"
-EOF
-
-# Encrypt with all host keys
-sops -e secret.yaml > secrets/secrets.yaml
+sops -e /tmp/common.yaml > secrets/common.yaml
+sops -e /tmp/nas.yaml > secrets/nas.yaml
+sops -e /tmp/database.yaml > secrets/database.yaml
+sops -e /tmp/matrix.yaml > secrets/matrix.yaml
+sops -e /tmp/vaultwarden.yaml > secrets/vaultwarden.yaml
+sops -e /tmp/monitoring.yaml > secrets/monitoring.yaml
+sops -e /tmp/backup.yaml > secrets/backup.yaml
 ```
 
-### 3. Define Secret in secrets.yaml
+SOPS selects recipients from the matching `creation_rules` entry in `.sops.yaml`.
 
-```yaml
-# secrets/secrets.yaml
-aljam_password:
-  path: /run/secrets/users/aljam/password
-  owner: root
-  group: root
-  mode: "0400"
-  neededForUsers: true  # Critical for mutableUsers = false
-
-cifs_credentials:
-  path: /run/secrets/cifs-credentials
-  owner: root
-  group: root
-  mode: "0400"
-```
-
-### 4. Import in NixOS Configuration
+## Use a secret in a module
 
 ```nix
-# In common.nix or host config
 { config, ... }:
 {
-  sops.secrets.aljam_password = {
-    path = "/run/secrets/users/aljam/password";
-    owner = "aljam";
-    group = "aljam";
+  sops.secrets.my-secret = {
+    sopsFile = ../../secrets/database.yaml;
+    owner = "my-service";
+    group = "my-service";
     mode = "0400";
-    neededForUsers = true;  # Must be available before user creation
   };
 
-  # Use the secret
-  users.users.aljam.hashedPasswordFile = config.sops.secrets.aljam_password.path;
+  users.users.my-service.hashedPasswordFile =
+    config.sops.secrets.my-secret.path;
 }
 ```
 
-## Decryption
-
-Secrets are decrypted automatically during system activation by the `sops-nix` activation script. They are materialized in `/run/secrets.d/` and symlinked to the configured paths.
-
-## Host-Key Regeneration Footgun
-
-**Critical:** If you regenerate a host's SSH Ed25519 key, SOPS decryption will fail on that host until you update the recipients.
-
-### Recovery Steps
-
-1. **Boot into previous generation** (before key change) if possible:
-   ```bash
-   sudo nixos-rebuild switch --rollback
-   ```
-
-2. **Or manually decrypt from another host** with valid key:
-   ```bash
-   # From a host that can still decrypt
-   sops -d secrets/secrets.yaml > secrets-seed.yaml
-   
-   # Re-encrypt with new host key
-   sops -e --age <new-host-key-pub> secrets-seed.yaml > secrets/secrets.yaml
-   ```
-
-3. **Update .sops.yaml** with new host public key:
-   ```bash
-   # Add new ssh-ed25519 AAAA... to .sops.yaml
-   # Remove old key
-   ```
-
-4. **Run sops updatekeys**:
-   ```bash
-   sops updatekeys secrets/secrets.yaml
-   ```
-
-5. **Rebuild**:
-   ```bash
-   sudo nixos-rebuild switch
-   ```
-
-### Prevention
-
-- **Don't regenerate host keys** unless necessary
-- **Backup `/etc/ssh/ssh_host_ed25519_key`** before any key rotation
-- **Test decryption** after key changes before rebooting
-
-## mutableUsers = false Implications
-
-With `users.mutableUsers = false`, user passwords are set at build time from secrets:
-
-- `neededForUsers = true` is **required** for `aljam_password`
-- If the secret is missing or can't be decrypted, user creation fails
-- Recovery requires booting a generation with valid secrets or manually setting password
-
-## Best Practices
-
-- **Never commit plaintext secrets** - only encrypted `secrets.yaml`
-- **Backup host SSH keys** - they are your age identities
-- **Test decryption** after any host-key or `.sops.yaml` change
-- **Use `neededForUsers`** for secrets required before user creation
-- **Keep secrets minimal** - one file, host-specific values in subkeys if needed
-
-## Troubleshooting
-
-### "No valid key found"
-
-The host SSH key doesn't match any recipient in `.sops.yaml`:
-
-```bash
-# Check current host key
-ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
-
-# Compare with .sops.yaml recipients
-cat .sops.yaml
-```
-
-### "Decryption failed after host-key change"
-
-See [Host-Key Regeneration Footgun](#host-key-regeneration-footgun) above.
-
-### "Secret not available at boot"
-
-Check activation order:
-
-```bash
-# View sops-nix activation script
-cat /run/current-system/sw/bin/sops-nix-activation
-
-# Check journal
-journalctl -b | grep sops
-```
-
-For CIFS mounts that need secrets, add:
+For a secret required before user creation, set:
 
 ```nix
-fileSystems."/mnt/nas" = {
-  device = "//192.168.2.10/share";
-  fsType = "cifs";
-  options = [
-    "credentials=/run/secrets/cifs-credentials"
-    "noauto"
-    "x-systemd.automount"
-    "x-systemd.requires=sops-nix.service"
-  ];
+sops.secrets.aljam_password = {
+  sopsFile = ../../secrets/common.yaml;
+  neededForUsers = true;
 };
 ```
+
+## Migration from the legacy file
+
+The former `secrets/secrets.yaml` remains intact until all new category files have been created, encrypted, and validated.
+
+1. Decrypt the legacy file to temporary plaintext:
+
+   ```bash
+   sops -d secrets/secrets.yaml > /tmp/all-secrets.yaml
+   ```
+
+2. Split the relevant keys into temporary plaintext category files.
+
+3. Encrypt each category file using the commands above.
+
+4. Verify decryption locally:
+
+   ```bash
+   sops -d secrets/common.yaml >/dev/null
+   sops -d secrets/database.yaml >/dev/null
+   ```
+
+5. Rebuild and activate one host before migrating the rest.
+
+6. Delete `secrets/secrets.yaml` only after every consuming host has successfully rebuilt and activated.
+
+## Host-key rotation
+
+If a host SSH Ed25519 key is regenerated, update its age recipient in `.sops.yaml` and re-encrypt every file that includes that recipient:
+
+```bash
+sops updatekeys secrets/common.yaml
+sops updatekeys secrets/database.yaml
+```
+
+Test decryption before rebooting. If a host key is lost or rotated without updating recipients, SOPS decryption will fail on that host.
+
+## Best practices
+
+- Never commit plaintext secrets.
+- Keep each secret in the narrowest appropriate category file.
+- Use `neededForUsers = true` only for secrets required before user creation.
+- Back up host SSH keys; they are the hosts' age identities.
+- Test decryption after any host-key or `.sops.yaml` change.

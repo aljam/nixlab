@@ -8,13 +8,72 @@ keys:
   - &r820 age1m63qqf3u6n7dlsjdh6mke4wejntwuarm8y7jrjzp59zaua809gsskgddvk
 
 creation_rules:
-  # Any file in the secrets folder will be encrypted so BOTH you and the server can unlock it
-  - path_regex: secrets/.*$
+  # Fleet-wide user/login secret.
+  - path_regex: secrets/common\.yaml$
     key_groups:
-    - age:
-      - *aljam
-      - *navi
-      - *oryx
-      - *r730xd
-      - *r730
-      - *r820
+      - age:
+          - *aljam
+          - *navi
+          - *oryx
+          - *r730
+          - *r730xd
+          - *r820
+
+  # NAS credentials are needed by every host that imports nas-mount.nix.
+  - path_regex: secrets/nas\.yaml$
+    key_groups:
+      - age:
+          - *aljam
+          - *navi
+          - *oryx
+          - *r730
+          - *r730xd
+          - *r820
+
+  # PostgreSQL / pgAdmin.
+  - path_regex: secrets/database\.yaml$
+    key_groups:
+      - age:
+          - *aljam
+          - *r730xd
+
+  # Matrix Synapse and Matrix RTC / LiveKit.
+  - path_regex: secrets/matrix\.yaml$
+    key_groups:
+      - age:
+          - *aljam
+          - *r730xd
+
+  # Vaultwarden.
+  - path_regex: secrets/vaultwarden\.yaml$
+    key_groups:
+      - age:
+          - *aljam
+          - *r730xd
+
+  # Grafana and alerting.
+  - path_regex: secrets/monitoring\.yaml$
+    key_groups:
+      - age:
+          - *aljam
+          - *r730xd
+
+  # Backups. Restrict this further if per-host backup credentials are introduced.
+  - path_regex: secrets/backup\.yaml$
+    key_groups:
+      - age:
+          - *aljam
+          - *r730
+          - *r730xd
+          - *r820
+
+  # Catch accidental new secret files; specific rules above take precedence.
+  - path_regex: secrets/.*\.yaml$
+    key_groups:
+      - age:
+          - *aljam
+          - *navi
+          - *oryx
+          - *r730
+          - *r730xd
+          - *r820

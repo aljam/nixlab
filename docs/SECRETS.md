@@ -14,7 +14,7 @@ secrets/
 ├── matrix.yaml       # Matrix Synapse and Matrix RTC / LiveKit
 ├── vaultwarden.yaml  # Vaultwarden
 ├── monitoring.yaml   # Grafana and alerting
-├── media.yaml        # Media automation API keys
+├── media.yaml        # Radarr, Sonarr, and media automation API keys
 └── backup.yaml       # Backup credentials
 ```
 
@@ -30,18 +30,31 @@ Age identities are host SSH Ed25519 keys:
 
 ## Recipient model
 
-| File | Intended recipients |
-|---|---|
-| `common.yaml` | Desktop key and all hosts |
-| `nas.yaml` | Desktop key and hosts importing `nas-mount.nix` |
-| `database.yaml` | Desktop key and PostgreSQL host |
-| `matrix.yaml` | Desktop key and Matrix/LiveKit host |
-| `vaultwarden.yaml` | Desktop key and Vaultwarden host |
-| `monitoring.yaml` | Desktop key and monitoring host |
-| `media.yaml` | Desktop key and media automation host |
-| `backup.yaml` | Desktop key and backup-capable hosts |
+| File | Intended recipients | Consumers |
+|---|---|---|
+| `common.yaml` | Desktop key and all hosts | User configuration |
+| `nas.yaml` | Desktop key and hosts importing `nas-mount.nix` | CIFS mount |
+| `database.yaml` | Desktop key and PostgreSQL host | pgAdmin |
+| `matrix.yaml` | Desktop key and Matrix/LiveKit host | Matrix Synapse, LiveKit |
+| `vaultwarden.yaml` | Desktop key and Vaultwarden host | Vaultwarden |
+| `monitoring.yaml` | Desktop key and monitoring host | Grafana |
+| `media.yaml` | Desktop key and media automation host | Recyclarr |
+| `backup.yaml` | Desktop key and backup-capable hosts | Backup jobs |
 
 The desktop key is included so secrets can be edited locally. Remove it from a file's recipients if local editing is not required.
+
+## Media secrets
+
+`secrets/media.yaml` must contain the API keys used by Recyclarr:
+
+```yaml
+radarr_api_key: <Radarr API key>
+sonarr_api_key: <Sonarr API key>
+```
+
+Recyclarr loads these keys through systemd credentials and uses them to connect
+to local Radarr and Sonarr instances. It expects the Servarr stack to be enabled
+on the same host.
 
 ## Encrypt a secret file
 
@@ -109,6 +122,7 @@ If a host SSH Ed25519 key is regenerated, update its age recipient in `.sops.yam
 sops updatekeys secrets/common.yaml
 sops updatekeys secrets/database.yaml
 sops updatekeys secrets/matrix.yaml
+sops updatekeys secrets/media.yaml
 ```
 
 Test decryption before rebooting. If a host key is lost or rotated without updating recipients, SOPS decryption will fail on that host.

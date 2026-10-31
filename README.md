@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/github/license/Aljam/nixlab?label=license)](LICENSE.md)
 [![Flake](https://img.shields.io/badge/Nix-Flake-5277C3?logo=nixos&logoColor=white)](flake.nix)
 [![SOPS](https://img.shields.io/badge/secrets-SOPS%20%2B%20age-2F855A?logo=gnuprivacyguard&logoColor=white)](https://github.com/getsops/sops)
-[![Home Manager](https://img.shields.io/badge/Home-Manager-7EBB4B?logo=nixos&logoColor=white)](https://github.com/nix-community/home-manager)
+[![Home Manager](https://img.shields.io/badge/Home-Manager-7EBF4B?logo=nix-community&logoColor=white)](https://github.com/nix-community/home-manager)
 
 Declarative NixOS infrastructure for a multi-server homelab. Managed via flakes, sops-nix for secrets, and GitHub Actions for CI.
 
@@ -35,7 +35,7 @@ nix flake check
 
 ## Architecture
 
-```
+```text
 nixlab/
 ├── flake.nix              # Entry point: mkHost helper, inputs, outputs
 ├── flake.lock             # Pinned dependencies
@@ -49,8 +49,14 @@ nixlab/
 │   ├── features/          # Optional features (~30 flat .nix files)
 │   ├── hardware/          # Hardware modules (dell-poweredge, navi-desktop, system76-laptop)
 │   └── roles/             # Role modules (common, server-core, desktop-node, media-node, storage-node, ai-node, mail-node)
-├── secrets/               # SOPS-encrypted secrets
-│   └── secrets.yaml       # Single encrypted file for all hosts
+├── secrets/               # SOPS-encrypted secrets, split by service or trust boundary
+│   ├── common.yaml        # Fleet-wide user/login secrets
+│   ├── nas.yaml           # CIFS credentials
+│   ├── database.yaml      # PostgreSQL / pgAdmin
+│   ├── matrix.yaml        # Matrix Synapse and Matrix RTC / LiveKit
+│   ├── vaultwarden.yaml   # Vaultwarden
+│   ├── monitoring.yaml    # Grafana and alerting
+│   └── media.yaml         # Media automation API keys
 ├── tests/                 # NixOS tests
 │   └── firewall.nix       # Security property tests
 └── users/                 # User configurations
@@ -59,7 +65,7 @@ nixlab/
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md) - Flake structure, mkHost, module organization
-- [Secrets](docs/SECRETS.md) - SOPS with SSH Ed25519 keys, host-key recovery
+- [Secrets](docs/SECRETS.md) - Service-scoped SOPS files, SSH Ed25519 keys, host-key recovery
 - [Runbook](docs/RUNBOOK.md) - Common operations, rollback, host-key recovery
 - [Networking](docs/NETWORKING.md) - 192.168.1.x topology, HAProxy on pfSense, firewall rules
 

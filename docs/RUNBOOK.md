@@ -63,13 +63,10 @@ If you rebooted into a broken generation:
 sudo nix-collect-garbage -d --delete-older-than 7d
 
 # Run Nix store GC (removes unreferenced store paths)
-sudo nix-store --gc
+nix-store --gc
 
 # Vacuum the Nix store (optimize symlinks)
-sudo nix-store --optimise
-
-# Check disk usage
-nix-du  # or: nix-visualize /nix/store
+nix-store --optimise
 ```
 
 ## Service Management
@@ -106,7 +103,7 @@ sudo nft list ruleset
 # Test connectivity
 curl -v http://<host>:<port>
 
-# Check DNS
+# Check DNS resolution
 resolvectl status
 
 # Check network interfaces
@@ -129,17 +126,19 @@ df -h
 sudo smartctl -a /dev/sdX
 
 # Run ZFS scrub (monthly)
-sudo zpool scrub <pool>
+zpool scrub <pool>
 ```
 
 ## Secrets
 
-```bash
-# Decrypt a secret manually
-sops -d secrets/secrets.yaml
+Secrets are split by service or trust boundary. See [SECRETS.md](SECRETS.md) for the complete file layout and recipient model.
 
-# Re-encrypt after editing
-sops -e -i secrets/secrets.yaml
+```bash
+# Decrypt a category file manually
+sops -d secrets/common.yaml
+
+# Edit and re-encrypt a category file in place
+sops -e -i secrets/common.yaml
 
 # Check sops-nix activation
 journalctl -b | grep sops
@@ -147,6 +146,8 @@ journalctl -b | grep sops
 # List decrypted secrets
 ls -la /run/secrets.d/
 ```
+
+Replace `common.yaml` with the relevant category file, such as `database.yaml`, `matrix.yaml`, `vaultwarden.yaml`, `monitoring.yaml`, `media.yaml`, or `nas.yaml`.
 
 ## Host-Key Recovery (Critical)
 
@@ -161,126 +162,168 @@ sudo nixos-rebuild switch --rollback
 # Or select from boot menu
 ```
 
-### Option 2: Manual Decrypt from Another Host
+### Option 2: Re-encrypt affected category files
 
-```bash
-# From a host that can still decrypt (has valid key in .sops.yaml)
-sops -d secrets/secrets.yaml > /tmp/secrets-plain.yaml
+1. From a host or workstation that can still decrypt, export the plaintext:
 
-# Copy new host public key
-scp /etc/ssh/ssh_host_ed25519_key.pub other-host:/tmp/
+   ```bash
+   sops -d secrets/common.yaml > /tmp/common.yaml
+   ```
 
-# Re-encrypt with new key
-sops -e --age <new-key-pub> /tmp/secrets-plain.yaml > secrets/secrets.yaml
+2. Copy the new host public key and add it to the relevant `.sops.yaml` creation rule.
 
-# Update .sops.yaml with new key
-# Run sops updatekeys
-sops updatekeys secrets/secrets.yaml
+3. Copy the plaintext to the destination path and re-encrypt in place:
 
-# Rebuild
-sudo nixos-rebuild switch
-```
+   ```bash
+   cp /tmp/common.yaml secrets/common.yaml
+   sops -e -i secrets/common.yaml
+   ```
 
-### Option 3: Reset User Password (if aljam_password lost)
+4. Update recipients for every affected category file:
 
-```bash
-# Boot into any generation
-# At boot menu, select "Systemd rescue mode" or add "init=/bin/sh" to kernel cmdline
+   ```bash
+   sops updatekeys secrets/common.yaml
+   sops updatekeys secrets/database.yaml
+   sops updatekeys secrets/matrix.yaml
+   ```
 
-# Mount root if needed
-mount -o remount,rw /
+5. Rebuild and verify decryption before rebooting.
 
-# Reset password manually
-passwd aljam
+### Option 3: Reset User Password (if aljam_password is lost)
 
-# Rebuild with new password hash
-# (update secrets.yaml with new hash, re-encrypt, rebuild)
-```
+1. Boot into any working generation.
+2. Reset the password manually:
+
+   ```bash
+   passwd aljam
+   ```
+
+3. Generate a new password hash:
+
+   ```bash
+   mkpasswd -m yescrypt
+   ```
+
+4. Update `aljam_password` in `secrets/common.yaml`, re-encrypt it, and rebuild.
 
 ## Troubleshooting
 
 ### Build Fails
 
-1. Check the error message for the failing module
-2. Run `nix flake check` to isolate evaluation errors
-3. Search the module for the failing attribute
-4. Check recent commits with `git log -p -- <file>`
-5. Try building a minimal config to isolate the issue
+1. Check the error message for the failing module.
+2. Run `nix flake check` to isolate evaluation errors.
+3. Search the module for the failing attribute.
+4. Check recent commits:
+
+   ```bash
+   git log -p -- <file>
+   ```
+
+5. Try building a minimal configuration to isolate the issue.
 
 ### Service Won't Start
 
-1. Check `journalctl -u <service>` for errors
-2. Verify secrets are present: `ls -la /run/secrets.d/`
-3. Check configuration: `nixos-option services.<service>`
-4. Test with minimal config in a temporary flake
-5. Check dependencies: `systemctl list-dependencies <service>`
+```bash
+# Verify secrets are present
+ls -la /run/secrets.d/
+
+# Check service dependencies
+systemctl list-dependencies <service>
+
+# Inspect service logs
+journalctl -u <service> -b
+```
 
 ### Network Unreachable
 
-1. Check firewall: `sudo nft list ruleset`
-2. Verify HAProxy is running on pfSense (192.168.1.1)
-3. Test backend directly: `curl http://<backend>:<port>`
-4. Check DNS resolution: `dig <hostname>`
-5. Verify route: `ip route get <dest>`
+```bash
+# Check firewall rules
+sudo nft list ruleset
+
+# Check listening sockets
+ss -tlnp
+
+# Test a backend directly
+curl -v http://<backend>:<port>
+
+# Check DNS
+resolvectl status
+```
 
 ### Disk Full
 
-1. Identify large files: `du -sh /* | sort -h`
-2. Clean Nix store: `sudo nix-collect-garbage -d`
-3. Remove old logs: `sudo journalctl --vacuum-time=7d`
-4. Check for orphaned snapshots: `zfs list -t snapshot`
-5. Remove old generations: `nixos-rebuild list-generations` then `nixos-rebuild delete-generations --old`
+```bash
+# Identify large directories
+du -sh /* | sort -h
+
+# Remove old generations and garbage
+sudo nix-collect-garbage -d
+
+# Remove old logs
+sudo journalctl --vacuum-time=7d
+```
 
 ### SOPS Decryption Fails
 
-1. Check host SSH key matches `.sops.yaml`:
+1. Check that the host SSH key matches a recipient in `.sops.yaml`:
+
    ```bash
    ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
    cat .sops.yaml
    ```
-2. Check activation logs: `journalctl -b | grep sops`
-3. Verify secret exists: `ls -la /run/secrets.d/`
-4. Test manual decrypt: `sops -d secrets/secrets.yaml`
+
+2. Check activation logs:
+
+   ```bash
+   journalctl -b | grep sops
+   ```
+
+3. Verify that the expected category file exists and decrypts:
+
+   ```bash
+   sops -d secrets/common.yaml >/dev/null
+   ```
+
+4. Verify that the secret was materialized:
+
+   ```bash
+   ls -la /run/secrets.d/
+   ```
 
 ### mutableUsers = false Lockout
 
-If you're locked out due to password issues:
+If you are locked out because of a password issue:
 
-1. **Boot into previous generation** with working password
-2. **Or use systemd rescue mode** to reset password manually
-3. **Update secrets.yaml** with new password hash
-4. **Re-encrypt and rebuild**
+1. Boot into a previous generation with a working password.
+2. Reset the password manually or generate a new hash.
+3. Update `aljam_password` in `secrets/common.yaml`.
+4. Re-encrypt and rebuild.
 
 ## Emergency Access
 
 ### SSH Broken
 
-1. Boot into the previous generation from the boot menu
-2. Fix the configuration
-3. Rebuild and test SSH before rebooting
+1. Boot into the previous generation from the boot menu.
+2. Fix the configuration.
+3. Rebuild and test SSH before rebooting.
 
 ### System Won't Boot
 
-1. Boot from a NixOS installer USB
-2. Mount the root filesystem:
-   ```bash
-   mount -t zfs rpool/root /mnt
-   ```
-3. Chroot and rebuild:
-   ```bash
-   mount --bind /dev /mnt/dev
-   mount --bind /proc /mnt/proc
-   mount --bind /sys /mnt/sys
-   chroot /mnt
-   nixos-install --flake /path/to/flake#<hostname>
-   ```
+```bash
+# Example for a ZFS root system
+mount -t zfs rpool/root /mnt
+mount --bind /dev /mnt/dev
+mount --bind /proc /mnt/proc
+mount --bind /sys /mnt/sys
+chroot /mnt
+
+nixos-install --flake /path/to/flake#<hostname>
+```
 
 ### ZFS Pool Degraded
 
-1. Check pool status: `zpool status -v`
-2. Identify failed disk: `smartctl -a /dev/sdX`
-3. Replace disk and resilver:
-   ```bash
-   zpool replace <pool> <old-disk> <new-disk>
-   zpool status  # Monitor resilver
-   ```
+```bash
+zpool status -v
+zpool replace <pool> <failed-disk> <replacement-disk>
+zpool status -v
+```

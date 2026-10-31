@@ -1,3 +1,9 @@
+# YouTube subscription downloads.
+#
+# Exposure model:
+# - The bgutil POT provider is bound only to loopback.
+# - No secrets are used by this module.
+# - Downloads are written to `/mnt/media/youtube` by the shared `media` group.
 {
   config,
   pkgs,
@@ -5,10 +11,16 @@
   ...
 }:
 let
+  mediaDir = "/mnt/media/youtube";
+
   potProvider = pkgs.python314Packages.bgutil-ytdlp-pot-provider;
   potSitePackages = "${potProvider}/lib/python3.14/site-packages";
 in
 {
+  imports = [
+    ./media-storage.nix
+  ];
+
   environment.systemPackages = with pkgs; [
     ytdl-sub
     yt-dlp
@@ -28,7 +40,7 @@ in
   };
 
   systemd.tmpfiles.rules = [
-    "d /mnt/media/youtube 0770 media media -"
+    "d ${mediaDir} 0770 media media -"
   ];
 
   environment.etc."yt-dlp/plugins/bgutil-ytdlp-pot-provider/yt_dlp_plugins".source =
@@ -61,7 +73,7 @@ in
           ignoreerrors: true
 
         output_options:
-          output_directory: "/mnt/media/youtube"
+          output_directory: "${mediaDir}"
           file_name: "{channel}/{upload_date}_{title}.{ext}"
   '';
 
@@ -104,7 +116,7 @@ in
 
       ReadWritePaths = [
         "/var/lib/ytdl-sub"
-        "/mnt/media/youtube"
+        mediaDir
       ];
 
       TimeoutStartSec = "4h";

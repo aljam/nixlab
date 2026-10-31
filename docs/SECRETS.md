@@ -4,7 +4,7 @@ Secrets are encrypted with [SOPS](https://github.com/getsops/sops) using age key
 
 ## Structure
 
-Secrets are split by service or trust boundary rather than kept in one global file:
+Secrets are split by service or trust boundary:
 
 ```text
 secrets/
@@ -14,6 +14,7 @@ secrets/
 ├── matrix.yaml       # Matrix Synapse and Matrix RTC / LiveKit
 ├── vaultwarden.yaml  # Vaultwarden
 ├── monitoring.yaml   # Grafana and alerting
+├── media.yaml        # Media automation API keys
 └── backup.yaml       # Backup credentials
 ```
 
@@ -37,25 +38,42 @@ Age identities are host SSH Ed25519 keys:
 | `matrix.yaml` | Desktop key and Matrix/LiveKit host |
 | `vaultwarden.yaml` | Desktop key and Vaultwarden host |
 | `monitoring.yaml` | Desktop key and monitoring host |
+| `media.yaml` | Desktop key and media automation host |
 | `backup.yaml` | Desktop key and backup-capable hosts |
 
 The desktop key is included so secrets can be edited locally. Remove it from a file's recipients if local editing is not required.
 
-## Encrypt a new secret file
+## Encrypt a secret file
 
-Create plaintext YAML outside the repository, then encrypt it into the intended path:
+SOPS matches `creation_rules` against the **input path**. Create the plaintext temporarily at the destination path, then encrypt it in place:
 
 ```bash
-sops -e /tmp/common.yaml > secrets/common.yaml
-sops -e /tmp/nas.yaml > secrets/nas.yaml
-sops -e /tmp/database.yaml > secrets/database.yaml
-sops -e /tmp/matrix.yaml > secrets/matrix.yaml
-sops -e /tmp/vaultwarden.yaml > secrets/vaultwarden.yaml
-sops -e /tmp/monitoring.yaml > secrets/monitoring.yaml
-sops -e /tmp/backup.yaml > secrets/backup.yaml
+cp /tmp/common.yaml secrets/common.yaml
+sops -e -i secrets/common.yaml
+
+cp /tmp/nas.yaml secrets/nas.yaml
+sops -e -i secrets/nas.yaml
+
+cp /tmp/database.yaml secrets/database.yaml
+sops -e -i secrets/database.yaml
+
+cp /tmp/matrix.yaml secrets/matrix.yaml
+sops -e -i secrets/matrix.yaml
+
+cp /tmp/vaultwarden.yaml secrets/vaultwarden.yaml
+sops -e -i secrets/vaultwarden.yaml
+
+cp /tmp/monitoring.yaml secrets/monitoring.yaml
+sops -e -i secrets/monitoring.yaml
+
+cp /tmp/media.yaml secrets/media.yaml
+sops -e -i secrets/media.yaml
+
+cp /tmp/backup.yaml secrets/backup.yaml
+sops -e -i secrets/backup.yaml
 ```
 
-SOPS selects recipients from the matching `creation_rules` entry in `.sops.yaml`.
+Never commit the plaintext files from `/tmp`.
 
 ## Use a secret in a module
 
@@ -83,31 +101,6 @@ sops.secrets.aljam_password = {
 };
 ```
 
-## Migration from the legacy file
-
-The former `secrets/secrets.yaml` remains intact until all new category files have been created, encrypted, and validated.
-
-1. Decrypt the legacy file to temporary plaintext:
-
-   ```bash
-   sops -d secrets/secrets.yaml > /tmp/all-secrets.yaml
-   ```
-
-2. Split the relevant keys into temporary plaintext category files.
-
-3. Encrypt each category file using the commands above.
-
-4. Verify decryption locally:
-
-   ```bash
-   sops -d secrets/common.yaml >/dev/null
-   sops -d secrets/database.yaml >/dev/null
-   ```
-
-5. Rebuild and activate one host before migrating the rest.
-
-6. Delete `secrets/secrets.yaml` only after every consuming host has successfully rebuilt and activated.
-
 ## Host-key rotation
 
 If a host SSH Ed25519 key is regenerated, update its age recipient in `.sops.yaml` and re-encrypt every file that includes that recipient:
@@ -115,6 +108,7 @@ If a host SSH Ed25519 key is regenerated, update its age recipient in `.sops.yam
 ```bash
 sops updatekeys secrets/common.yaml
 sops updatekeys secrets/database.yaml
+sops updatekeys secrets/matrix.yaml
 ```
 
 Test decryption before rebooting. If a host key is lost or rotated without updating recipients, SOPS decryption will fail on that host.

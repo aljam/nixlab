@@ -13,7 +13,7 @@ let
     room:
       auto_create: false
     keys:
-      matrixrtc: "$LIVEKIT_SECRET"
+      matrixrtc: "''${LIVEKIT_SECRET}"
   '';
 
   livekitTestToken = pkgs.writeShellApplication {

@@ -12,8 +12,6 @@ let
       use_external_ip: true
     room:
       auto_create: false
-    keys:
-      matrixrtc: "''${LIVEKIT_SECRET}"
   '';
 
   livekitTestToken = pkgs.writeShellApplication {

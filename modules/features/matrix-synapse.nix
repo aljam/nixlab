@@ -41,7 +41,7 @@
         args = {
           database = "matrix-synapse";
           user = "matrix-synapse";
-          host = "192.168.1.4";
+          host = config.networking.fleet.r820.ip;
           cp_min = 5;
           cp_max = 10;
         };

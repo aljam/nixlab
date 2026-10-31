@@ -15,7 +15,6 @@
 }:
 let
   rtcDomain = "rtc.derezzed.info";
-  matrixDomain = "matrix.derezzed.info";
 
   hostIp = config.networking.fleet.r730xd.ip;
 
@@ -64,10 +63,6 @@ in
   environment.systemPackages = [ livekitTestToken ];
 
   sops.secrets = {
-    livekit-secret = {
-      sopsFile = ../../secrets/matrix.yaml;
-    };
-
     livekit-jwt-env = {
       sopsFile = ../../secrets/matrix.yaml;
     };
@@ -96,7 +91,7 @@ in
       ports = [ "${hostIp}:8081:8081" ];
       environment = {
         LIVEKIT_JWT_BIND = ":8081";
-        LIVEKIT_URL = "wss://rtc.derezzed.info";
+        LIVEKIT_URL = "wss://${rtcDomain}";
         LIVEKIT_KEY = "matrixrtc";
       };
       environmentFiles = [ config.sops.secrets.livekit-jwt-env.path ];

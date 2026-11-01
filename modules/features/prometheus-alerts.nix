@@ -1,19 +1,20 @@
 { config, lib, ... }:
 
+# Alertmanager is intentionally UI-only for now: alerts are visible in
+# Prometheus and Alertmanager, but no external notification receiver is
+# configured. Add a webhook, ntfy, or SMTP receiver later.
 {
-  networking.proxyBackendPorts = [ 9093 ];
-
   services.prometheus.alertmanager = {
     enable = true;
+    listenAddress = "127.0.0.1";
 
     configuration = {
-      global = {
-        smtp_from = "alertmanager@example.com";
-        smtp_smarthost = "localhost:25";
-      };
-
       route = {
         receiver = "default";
+        group_by = [ "alertname" "host" ];
+        group_wait = "30s";
+        group_interval = "5m";
+        repeat_interval = "4h";
       };
 
       receivers = [

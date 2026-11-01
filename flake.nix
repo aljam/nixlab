@@ -151,11 +151,17 @@
         # isolated even if their application processes listen more broadly.
         admin-isolation =
           nixpkgs.legacyPackages.${system}.testers.runNixOSTest
-            (import ./tests/runtime-isolation.nix { test = "admin-isolation"; });
+            (import ./tests/runtime-isolation.nix {
+              pkgs = nixpkgs.legacyPackages.${system};
+              test = "admin-isolation";
+            });
 
         postgresql-auth =
           nixpkgs.legacyPackages.${system}.testers.runNixOSTest
-            (import ./tests/runtime-isolation.nix { test = "postgresql-auth"; });
+            (import ./tests/runtime-isolation.nix {
+              pkgs = nixpkgs.legacyPackages.${system};
+              test = "postgresql-auth";
+            });
 
         # End-to-end network isolation test.
         firewall-isolation =

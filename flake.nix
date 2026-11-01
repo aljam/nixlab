@@ -9,10 +9,13 @@
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
     artcraft.url = "github:Hy4ri/artcraft-flake";
 
-    mailserver = {
-      url = "gitlab:simple-nixos-mailserver/nixos-mailserver/nixos-26.05";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    # TODO: Re-enable when deploying a mail server.
+    # Decide whether mailserver should follow nixpkgs-unstable for newer
+    # fixes or use its own pinned nixpkgs for release compatibility.
+    # mailserver = {
+    #   url = "gitlab:simple-nixos-mailserver/nixos-mailserver/nixos-26.05";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
 
     sops-nix = {
       url = "github:Mic92/sops-nix";
@@ -50,7 +53,6 @@
       home-manager,
       disko,
       sops-nix,
-      mailserver,
       nix-cachyos-kernel,
       nur,
       artcraft,

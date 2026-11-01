@@ -10,7 +10,7 @@
         "credentials=${config.sops.secrets.nas-credentials.path}"
         "uid=1000"
         "gid=1000"
-        "iocharset=utf-8"
+        "iocharset=utf8"
         "noperm"
       ];
     };

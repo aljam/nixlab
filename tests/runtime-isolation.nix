@@ -183,7 +183,10 @@ let
         exporter.wait_for_unit("prometheus-node-exporter.service")
 
         with subtest("Prometheus becomes ready and healthy"):
-            monitor.succeed("curl -fsS --max-time 10 http://127.0.0.1:9090/-/ready")
+            monitor.wait_until_succeeds(
+                "curl -fsS --max-time 10 http://127.0.0.1:9090/-/ready",
+                timeout=60,
+            )
             monitor.succeed("curl -fsS --max-time 10 http://127.0.0.1:9090/-/healthy")
 
         with subtest("Prometheus loads its alert rules"):

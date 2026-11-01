@@ -6,10 +6,10 @@
 # they are listening.
 #
 # Import with:
-#   import ./runtime-isolation.nix { test = "admin-isolation"; }
-#   import ./runtime-isolation.nix { test = "postgresql-auth"; }
+#   import ./runtime-isolation.nix { pkgs = ...; test = "admin-isolation"; }
+#   import ./runtime-isolation.nix { pkgs = ...; test = "postgresql-auth"; }
 {
-  pkgs ? import <nixpkgs> { },
+  pkgs,
   test ? "admin-isolation",
 }:
 

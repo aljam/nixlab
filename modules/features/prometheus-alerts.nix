@@ -28,7 +28,7 @@
     };
   };
 
-  config.assertions = [
+  assertions = [
     {
       assertion = !(lib.elem 9093 config.networking.proxyBackendPorts);
       message = "Alertmanager must not be exposed through the HAProxy backend allowlist.";

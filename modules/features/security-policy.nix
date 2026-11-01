@@ -18,9 +18,15 @@ let
   duplicateProxyPorts = lib.lists.subtractLists
     (lib.unique proxyBackendPorts)
     proxyBackendPorts;
+
+  gamingEnabled =
+    (config.programs.steam.enable or false)
+    || (config.programs.gamescope.enable or false);
 in
 {
-  assertions = [
+  options.roles.server.enable = lib.mkEnableOption "server role policies";
+
+  config.assertions = [
     # Preserve the service-scoped SOPS model. A missing `sopsFile` would
     # otherwise depend on a global default, which this repository intentionally
     # does not define.
@@ -79,6 +85,15 @@ in
         !(config.modules.features.recyclarr.enable or false)
         || config.servarr.enable;
       message = "modules.features.recyclarr requires servarr.enable because it connects to local Radarr and Sonarr.";
+    }
+
+    # Gaming software opens LAN-facing ports and is intended only for desktop
+    # hosts. Prevent accidental inclusion in server roles.
+    {
+      assertion =
+        !(config.roles.server.enable or false)
+        || !gamingEnabled;
+      message = "Steam, GameScope, and gaming firewall rules must not be enabled on server hosts.";
     }
   ];
 }

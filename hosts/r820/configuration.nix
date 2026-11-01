@@ -7,8 +7,11 @@
     ../../modules/roles/server-core.nix
     ../../modules/features/libvirt.nix
     ../../modules/features/postgres.nix
+    ../../modules/features/nix-builder.nix
     #../../modules/roles/mail-node.nix
   ];
+
+  roles.server.enable = true;
 
   # Remote builder configuration
   nix.settings.trusted-users = [ "root" "aljam" ];

@@ -11,7 +11,8 @@
   config,
   pkgs,
   lib,
-  ...}:
+  ...
+}:
 
 {
   sops.secrets.pgadmin_password = {
@@ -34,7 +35,7 @@
       password_encryption = "scram-sha-256";
     };
 
-    authentication = lib.mkOverride 10 '''
+    authentication = lib.mkOverride 10 ''
       local all all peer
 
       # Keep TCP rules narrow: each rule names both the database and role.
@@ -42,7 +43,7 @@
       host admin admin 127.0.0.1/32 scram-sha-256
       host matrix-synapse matrix-synapse 127.0.0.1/32 scram-sha-256
       host matrix-synapse matrix-synapse ${config.networking.fleet.r730xd.ip}/32 scram-sha-256
-    ''';
+    '';
 
     ensureDatabases = [
       "webscraper"
@@ -69,9 +70,9 @@
   # Matrix Synapse runs on r730xd and connects to this PostgreSQL instance.
   # Permit only that host; pg_hba still enforces the database/user pair and
   # SCRAM authentication.
-  networking.firewall.extraInputRules = '''
+  networking.firewall.extraInputRules = ''
     ip saddr ${config.networking.fleet.r730xd.ip} tcp dport 5432 accept comment "Matrix Synapse PostgreSQL"
-  ''';
+  '';
 
   services.pgadmin = {
     enable = true;

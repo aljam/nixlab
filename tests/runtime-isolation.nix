@@ -145,7 +145,10 @@ let
             )
 
         with subtest("PostgreSQL authentication contains no broad host/all/all rule"):
-            config = database.succeed("cat /etc/postgresql/config/pg_hba.conf")
+            hba_path = database.succeed(
+                "psql -U postgres -Atc 'SHOW hba_file'"
+            ).strip()
+            config = database.succeed(f"cat {hba_path}")
             if "host all all" in config:
                 raise Exception("PostgreSQL contains a broad host/all/all rule")
       '';

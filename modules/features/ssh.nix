@@ -1,9 +1,11 @@
 # SSH access and brute-force protection.
 #
-# The `aljam` user and members of `wheel` may log in with public keys.
-# These allowlists are OR-ed by OpenSSH, so adding a user to `wheel`
-# intentionally grants that user SSH access.
+# SSH access is group-based: members of `wheel` may log in with public keys.
+# Adding a user to `wheel` intentionally grants that user SSH access and
+# administrative privileges.
 {
+  config,
+  lib,
   ...
 }:
 
@@ -14,7 +16,6 @@
       PasswordAuthentication = false;
       PermitRootLogin = "no";
       KbdInteractiveAuthentication = false;
-      AllowUsers = [ "aljam" ];
       AllowGroups = [ "wheel" ];
     };
 
@@ -37,4 +38,19 @@
   };
 
   users.mutableUsers = false;
+
+  assertions = [
+    {
+      assertion = config.services.openssh.settings.PasswordAuthentication == false;
+      message = "SSH password authentication must remain disabled.";
+    }
+    {
+      assertion = config.services.openssh.settings.PermitRootLogin == "no";
+      message = "Direct SSH root login must remain disabled.";
+    }
+    {
+      assertion = config.services.openssh.settings.KbdInteractiveAuthentication == false;
+      message = "SSH interactive authentication must remain disabled.";
+    }
+  ];
 }

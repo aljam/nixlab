@@ -19,6 +19,9 @@ in
     # Restrict accepted Host headers to the public dashboard hostname.
     allowedHosts = "home.${domain}";
 
+    # Only advertise services that are intentionally reachable through the
+    # public reverse-proxy path. pgAdmin is loopback-only and must not be
+    # listed here.
     services = [
       {
         "Media & Requests" = [
@@ -42,7 +45,6 @@ in
       {
         "System & Monitoring" = [
           (mkLink "Grafana" "grafana" "Metrics & Dashboards" "grafana.png")
-          (mkLink "pgAdmin" "db" "Databases" "pgadmin.png")
         ];
       }
     ];

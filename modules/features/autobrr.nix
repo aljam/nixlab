@@ -13,8 +13,4 @@
     openFirewall = false;
     settings.host = config.networking.servicesBindAddress;
   };
-
-  networking.firewall.extraInputRules = ''
-    ip saddr ${config.networking.subnets.lan}.1 tcp dport 7474 accept
-  '';
 }

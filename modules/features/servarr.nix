@@ -5,6 +5,10 @@
 # the per-backend firewall rules are generated centrally from
 # `networking.proxyBackendPorts` in reverse-proxy-backends.nix.
 #
+# Shoko is intentionally LAN-only. It remains enabled for local Jellyfin and
+# other media integrations, but it is not added to `networking.proxyBackendPorts`,
+# HAProxy, or the public Homepage dashboard.
+#
 # `serviceDefs` is the single source of truth for each service's web UI port
 # and shared-group model. Upstream service options remain explicit because the
 # upstream modules do not share a common option surface.
@@ -44,11 +48,6 @@ let
 
     seerr = {
       port = 5055;
-      userType = "dynamic";
-    };
-
-    shoko = {
-      port = 8111;
       userType = "dynamic";
     };
 
@@ -104,10 +103,7 @@ in
         openFirewall = false;
       };
 
-      shoko = {
-        enable = true;
-        openFirewall = false;
-      };
+      shoko.enable = true;
 
       audiobookshelf = {
         enable = true;

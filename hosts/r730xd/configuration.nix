@@ -21,5 +21,8 @@
 
   networking.hostId = "d2083fdc"; # Required for ZFS
 
+  modules.features.prometheus-server.postgresCaFile =
+    config.sops.secrets.pfsense-root-ca.path;
+
   modules.features.static-site.enable = true;
 }

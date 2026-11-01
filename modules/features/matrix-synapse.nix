@@ -3,6 +3,8 @@ let
   rtcDomain = "rtc.${config.networking.myDomain}";
 in
 {
+  imports = [ ./pfsense-root-ca.nix ];
+
   networking.proxyBackendPorts = [ 8008 ];
 
   sops.secrets = {
@@ -14,13 +16,6 @@ in
     };
 
     matrix-synapse-db-config = {
-      sopsFile = ../../secrets/matrix.yaml;
-      owner = "matrix-synapse";
-      group = "matrix-synapse";
-      mode = "0400";
-    };
-
-    pfsense-root-ca = {
       sopsFile = ../../secrets/matrix.yaml;
       owner = "matrix-synapse";
       group = "matrix-synapse";

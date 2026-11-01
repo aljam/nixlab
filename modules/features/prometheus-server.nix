@@ -19,7 +19,7 @@
   ];
 
   sops.secrets."pfsense-root-ca" = {
-    sopsFile = ../../secrets/monitoring.yaml;
+    sopsFile = ../../secrets/matrix.yaml;
     owner = "prometheus";
     group = "prometheus";
     mode = "0400";

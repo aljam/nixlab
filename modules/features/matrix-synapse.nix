@@ -42,6 +42,7 @@
           database = "matrix-synapse";
           user = "matrix-synapse";
           host = config.networking.fleet.r820.ip;
+          sslmode = "require";
           cp_min = 5;
           cp_max = 10;
         };

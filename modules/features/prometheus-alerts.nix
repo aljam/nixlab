@@ -1,31 +1,56 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 
-# Alertmanager is intentionally UI-only for now: alerts are visible in
-# Prometheus and Alertmanager, but no external notification receiver is
-# configured. Add a webhook, ntfy, or SMTP receiver later.
-#
-# Alertmanager must remain loopback-only. It is not added to
-# `networking.proxyBackendPorts`, so it is not reachable through HAProxy.
+let
+  alertmanagerConfig = pkgs.writeText "alertmanager.yml" ''
+    route:
+      receiver: ntfy-default
+      group_by:
+        - alertname
+        - host
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      routes:
+        - receiver: ntfy-critical
+          matchers:
+            - 'severity="critical"'
+
+    receivers:
+      - name: ntfy-default
+        ntfy_configs:
+          - url: "@NTFY_URL@"
+            priority: default
+
+      - name: ntfy-critical
+        ntfy_configs:
+          - url: "@NTFY_URL@"
+            priority: high
+  '';
+
+  renderedConfig = "/var/lib/alertmanager/alertmanager.yml";
+in
 {
+  # Alertmanager remains loopback-only. The ntfy URL, including its private
+  # topic and access token if used, is supplied at runtime from SOPS.
+  sops.secrets.ntfy-url = {
+    sopsFile = ../../secrets/monitoring.yaml;
+    owner = "alertmanager";
+    group = "alertmanager";
+    mode = "0400";
+  };
+
   services.prometheus.alertmanager = {
     enable = true;
     listenAddress = "127.0.0.1";
+    configFile = renderedConfig;
+  };
 
-    configuration = {
-      route = {
-        receiver = "default";
-        group_by = [ "alertname" "host" ];
-        group_wait = "30s";
-        group_interval = "5m";
-        repeat_interval = "4h";
-      };
-
-      receivers = [
-        {
-          name = "default";
-        }
-      ];
-    };
+  systemd.services.alertmanager = {
+    preStart = lib.mkAfter ''
+      install -m 0600 /dev/null ${renderedConfig}
+      sed "s|@NTFY_URL@|$(cat ${config.sops.secrets.ntfy-url.path})|g" \
+        ${alertmanagerConfig} > ${renderedConfig}
+    '';
   };
 
   assertions = [

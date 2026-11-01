@@ -175,7 +175,7 @@
                 preferred_ip_protocol = "ip4";
                 tls = true;
                 tls_config = {
-                  ca_file = config.sops.secrets.pfsense-root-ca.path;
+                  ca_file = config.sops.secrets.pfsense-root-ca-prometheus.path;
                 };
               };
             };

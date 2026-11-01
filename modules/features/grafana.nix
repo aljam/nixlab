@@ -30,6 +30,4 @@
   };
 
   networking.proxyBackendPorts = [ 3000 ];
-
-  systemd.services.grafana.serviceConfig.ExecStartPre = lib.mkForce [];
 }

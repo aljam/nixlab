@@ -3,6 +3,17 @@
 let
   sopsSecrets = lib.attrValues config.sops.secrets;
 
+  allowedSecretModes = [
+    "0400"
+    "0640"
+  ];
+
+  groupReadableSecrets = [
+    "grafana-admin-password"
+    "grafana-secret-key"
+    "vaultwarden-admin-token"
+  ];
+
   postgresAuth = config.services.postgresql.authentication or "";
   postgresPort = config.services.postgresql.settings.port or 5432;
   proxyBackendPorts = config.networking.proxyBackendPorts;
@@ -24,6 +35,28 @@ in
     {
       assertion = lib.all (secret: secret.sopsFile != null) sopsSecrets;
       message = "Every sops secret must declare an explicit sopsFile.";
+    }
+
+    # Make the effective identity of every decrypted secret explicit.
+    {
+      assertion = lib.all (secret: secret.owner != null) sopsSecrets;
+      message = "Every sops secret must declare an explicit owner.";
+    }
+
+    # Make permissions explicit and restrict group-readable secrets to
+    # documented service exceptions.
+    {
+      assertion = lib.all (secret: secret.mode != null) sopsSecrets;
+      message = "Every sops secret must declare an explicit mode.";
+    }
+
+    {
+      assertion = lib.all
+        (secret:
+          lib.elem secret.mode allowedSecretModes
+          && (secret.mode == "0400" || lib.elem secret.name groupReadableSecrets))
+        sopsSecrets;
+      message = "SOPS secrets must use mode 0400; 0640 is allowed only for documented Grafana and Vaultwarden exceptions.";
     }
 
     # Prevent regression to broad PostgreSQL authentication rules.

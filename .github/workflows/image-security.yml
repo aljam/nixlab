@@ -35,11 +35,12 @@ jobs:
         with:
           image-ref: ${{ matrix.image }}
           format: table
-          exit-code: '0'
+          exit-code: '1'
           severity: HIGH,CRITICAL
           ignore-unfixed: true
 
       - name: Record scan result
+        if: always()
         run: |
           echo "image=${{ matrix.image }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "status=report-only" >> "$GITHUB_STEP_SUMMARY"
+          echo "status=enforced" >> "$GITHUB_STEP_SUMMARY"

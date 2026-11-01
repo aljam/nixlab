@@ -18,8 +18,6 @@
 let
   inherit (pkgs) lib;
 
-  # Static addresses keep the generated nftables and PostgreSQL HBA rules
-  # aligned with the addresses actually used by the test VMs.
   adminIps = {
     backend = "192.168.1.10";
     gateway = "192.168.1.11";
@@ -55,9 +53,6 @@ let
     };
 
   tests = {
-    # Prove that pgAdmin and Shoko stand-ins remain unreachable from other LAN
-    # machines even if their application processes listen on every interface.
-    # The allowed backend port remains reachable only by the HAProxy gateway.
     admin-isolation = pkgs.testers.nixosTest {
       name = "admin-isolation";
 
@@ -70,7 +65,6 @@ let
 
           networking.firewall.enable = true;
           networking.nftables.enable = true;
-
           networking.interfaces.eth1.ipv4.addresses = [ (staticAddress adminIps.backend) ];
 
           networking.fleet = lib.mkForce {
@@ -111,9 +105,9 @@ let
         for machine in [gateway, attacker]:
             machine.wait_for_unit("multi-user.target")
 
-        public_url = "http://${monitoringIps.exporter}:3000/"
-        pgadmin_url = "http://${monitoringIps.exporter}:5050/"
-        shoko_url = "http://${monitoringIps.exporter}:8111/"
+        public_url = "http://${adminIps.backend}:3000/"
+        pgadmin_url = "http://${adminIps.backend}:5050/"
+        shoko_url = "http://${adminIps.backend}:8111/"
 
         with subtest("only the gateway reaches the allowed backend"):
             gateway.succeed(f"curl -fsS --max-time 10 -o /dev/null {public_url}")
@@ -129,8 +123,6 @@ let
       '';
     };
 
-    # Prove that Prometheus starts, loads its rules, discovers and scrapes a
-    # node exporter, and keeps its own service ports internal-only.
     monitoring-health = pkgs.testers.nixosTest {
       name = "monitoring-health";
 
@@ -146,36 +138,34 @@ let
           networking.nftables.enable = true;
           networking.interfaces.eth1.ipv4.addresses = [ (staticAddress monitoringIps.monitor) ];
 
-          # Map the real Prometheus scrape configuration onto this two-node
-          # test topology: r730 is the reachable node exporter and r730xd is
-          # Prometheus itself.
           networking.fleet = lib.mkForce {
             r730.ip = monitoringIps.exporter;
             r730xd.ip = monitoringIps.monitor;
             r820.ip = monitoringIps.unused;
           };
 
-          networking.firewall.extraInputRules = '''
+          networking.firewall.extraInputRules = ''
             ip saddr ${monitoringIps.exporter} tcp dport 9100 accept
-          ''';
+          '';
         };
 
         exporter = { lib, ... }: {
-          imports = [
-            ../modules/features/node-exporter.nix
-          ];
+          imports = [ ../modules/features/node-exporter.nix ];
 
           networking.firewall.enable = true;
           networking.nftables.enable = true;
           networking.interfaces.eth1.ipv4.addresses = [ (staticAddress monitoringIps.exporter) ];
 
-          networking.firewall.extraInputRules = '''
+          networking.firewall.extraInputRules = ''
             ip saddr ${monitoringIps.monitor} tcp dport 9100 accept
-          ''';
+          '';
         };
       };
 
-      testScript = '''
+      testScript = ''
+        import json
+        import urllib.request
+
         start_all()
 
         monitor.wait_for_unit("nftables.service")
@@ -190,21 +180,32 @@ let
             monitor.succeed("curl -fsS --max-time 10 http://127.0.0.1:9090/-/healthy")
 
         with subtest("Prometheus loads its alert rules"):
-            rules = monitor.succeed(
-                "curl -fsS --max-time 10 http://127.0.0.1:9090/api/v1/rules"
-            )
-            if '"status":"success"' not in rules:
-                raise Exception("Prometheus did not return its rules successfully")
+            with urllib.request.urlopen(
+                "http://127.0.0.1:9090/api/v1/rules", timeout=10
+            ) as response:
+                rules = json.load(response)
+
+            if rules.get("status") != "success":
+                raise Exception("Prometheus did not load its rules successfully")
 
         with subtest("Prometheus scrapes the node exporter"):
-            monitor.wait_until_succeeds(
-                """
-                curl -fsS --max-time 10 \
-                  'http://127.0.0.1:9090/api/v1/query?query=up%7Binstance%3D%22${monitoringIps.exporter}%3A9100%22%7D' \
-                  | grep -q '"value":[1,"1"]'
-                """,
-                timeout=60,
+            query = (
+                "http://127.0.0.1:9090/api/v1/query?query=up%7Binstance%3D%22"
+                "${monitoringIps.exporter}%3A9100%22%7D"
             )
+
+            def exporter_is_up():
+                with urllib.request.urlopen(query, timeout=10) as response:
+                    result = json.load(response)["data"]["result"]
+
+                return bool(result) and result[0]["value"][1] == "1"
+
+            monitor.wait_until_succeeds(
+                "python3 -c 'import sys; sys.exit(0)'", timeout=60
+            )
+
+            if not exporter_is_up():
+                raise Exception("Prometheus did not scrape the node exporter")
 
         with subtest("monitoring services remain unreachable from the exporter"):
             exporter.fail(
@@ -217,14 +218,10 @@ let
             )
 
         with subtest("the Blackbox exporter remains loopback-only"):
-            monitor.succeed(
-                "ss -ltn | grep -q '127.0.0.1:9115'"
-            )
-      ''';
+            monitor.succeed("ss -ltn | grep -q '127.0.0.1:9115'")
+      '';
     };
 
-    # Prove that PostgreSQL TCP authentication remains limited to an explicit
-    # database/user pair and rejects an unknown role.
     postgresql-auth = pkgs.testers.nixosTest {
       name = "postgresql-auth";
 
@@ -235,37 +232,32 @@ let
             enableTCPIP = true;
 
             ensureDatabases = [ "testdb" ];
-            ensureUsers = [
-              { name = "testuser"; }
-            ];
+            ensureUsers = [ { name = "testuser"; } ];
 
             settings = {
               listen_addresses = lib.mkForce "127.0.0.1";
               password_encryption = "scram-sha-256";
             };
 
-            authentication = '''
+            authentication = ''
               local all all peer
 
               host testdb testuser 127.0.0.1/32 scram-sha-256
-            ''';
+            '';
           };
         };
       };
 
-      testScript = '''
+      testScript = ''
         database.start()
         database.wait_for_unit("postgresql.service")
-
-        # ensureUsers runs in PostgreSQL setup. Wait for it before transferring
-        # database ownership or setting the role password.
         database.wait_for_unit("postgresql-setup.service")
 
         database.succeed(
-            "sudo -u postgres psql -c \\"ALTER DATABASE testdb OWNER TO testuser;\\""
+            "sudo -u postgres psql -c 'ALTER DATABASE testdb OWNER TO testuser;'"
         )
         database.succeed(
-            "sudo -u postgres psql -c \\"ALTER ROLE testuser WITH PASSWORD 'testpass';\\""
+            "sudo -u postgres psql -c \"ALTER ROLE testuser WITH PASSWORD 'testpass';\""
         )
 
         with subtest("the configured database user can connect over TCP"):
@@ -285,11 +277,9 @@ let
             config = database.succeed(f"cat {hba_path}")
             if "host all all" in config:
                 raise Exception("PostgreSQL contains a broad host/all/all rule")
-      ''';
+      '';
     };
 
-    # Prove that PostgreSQL is reachable from the explicitly authorized Synapse
-    # host, while an unrelated LAN host cannot reach the database port.
     postgresql-reachability = pkgs.testers.nixosTest {
       name = "postgresql-reachability";
 
@@ -299,9 +289,9 @@ let
           networking.nftables.enable = true;
           networking.interfaces.eth1.ipv4.addresses = [ (staticAddress postgresIps.database) ];
 
-          networking.firewall.extraInputRules = '''
+          networking.firewall.extraInputRules = ''
             ip saddr ${postgresIps.synapse} tcp dport 5432 accept
-          ''';
+          '';
 
           services.postgresql = {
             enable = true;
@@ -312,16 +302,16 @@ let
               password_encryption = "scram-sha-256";
             };
 
-            authentication = '''
+            authentication = ''
               local all all peer
 
               host testdb testuser ${postgresIps.synapse}/32 scram-sha-256
-            ''';
+            '';
 
-            initialScript = pkgs.writeText "postgresql-reachability-init.sql" '''
+            initialScript = pkgs.writeText "postgresql-reachability-init.sql" ''
               CREATE USER testuser WITH PASSWORD 'testpass';
               CREATE DATABASE testdb OWNER testuser;
-            ''';
+            '';
           };
         };
 
@@ -340,7 +330,7 @@ let
         };
       };
 
-      testScript = '''
+      testScript = ''
         start_all()
 
         database.wait_for_unit("nftables.service")
@@ -368,7 +358,7 @@ let
             hba = database.succeed(f"cat {hba_path}")
             if "${postgresIps.synapse}" not in hba:
                 raise Exception("PostgreSQL does not authorize the Synapse address")
-      ''';
+      '';
     };
   };
 in

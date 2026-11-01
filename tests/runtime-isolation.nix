@@ -138,20 +138,22 @@ let
             type = lib.types.str;
           };
 
-          networking.servicesBindAddress = monitoringIps.monitor;
-          networking.firewall.enable = true;
-          networking.nftables.enable = true;
-          networking.interfaces.eth1.ipv4.addresses = [ (staticAddress monitoringIps.monitor) ];
+          config = {
+            networking.servicesBindAddress = monitoringIps.monitor;
+            networking.firewall.enable = true;
+            networking.nftables.enable = true;
+            networking.interfaces.eth1.ipv4.addresses = [ (staticAddress monitoringIps.monitor) ];
 
-          networking.fleet = lib.mkForce {
-            r730.ip = monitoringIps.exporter;
-            r730xd.ip = monitoringIps.monitor;
-            r820.ip = monitoringIps.unused;
+            networking.fleet = lib.mkForce {
+              r730.ip = monitoringIps.exporter;
+              r730xd.ip = monitoringIps.monitor;
+              r820.ip = monitoringIps.unused;
+            };
+
+            networking.firewall.extraInputRules = ''
+              ip saddr ${monitoringIps.exporter} tcp dport 9100 accept
+            '';
           };
-
-          networking.firewall.extraInputRules = ''
-            ip saddr ${monitoringIps.exporter} tcp dport 9100 accept
-          '';
         };
 
         exporter = { lib, ... }: {

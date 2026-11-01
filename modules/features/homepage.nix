@@ -20,8 +20,8 @@ in
     allowedHosts = "home.${domain}";
 
     # Only advertise services that are intentionally reachable through the
-    # public reverse-proxy path. pgAdmin is loopback-only and must not be
-    # listed here.
+    # public reverse-proxy path. pgAdmin is loopback-only and Shoko is
+    # LAN-only; neither should be listed here.
     services = [
       {
         "Media & Requests" = [
@@ -39,7 +39,6 @@ in
           (mkLink "Lidarr" "lidarr" "Music Automation" "lidarr.png")
           (mkLink "qBittorrent" "qb" "Torrents" "qbittorrent.png")
           (mkLink "Autobrr" "autobrr" "IRC Torrent Filters" "autobrr.png")
-          (mkLink "Shoko" "shoko" "AniDB integration" "shoko.png")
         ];
       }
       {

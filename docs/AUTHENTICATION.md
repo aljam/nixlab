@@ -32,30 +32,51 @@ For every public hostname, record:
 | `lidarr.derezzed.info` | Lidarr | 8686 | Application authentication | Review | N/A | N/A | Review | Pending |
 | `bazarr.derezzed.info` | Bazarr | 6767 | Application authentication | Review | N/A | N/A | Review | Pending |
 | `prowlarr.derezzed.info` | Prowlarr | 9696 | Application authentication | Review | N/A | N/A | Review | Pending |
-| `shoko.derezzed.info` | Shoko | 8111 | Review | Review | Review | Review | Review | Pending |
-| `qb.derezzed.info` | qBittorrent | 8080 | WebUI authentication | Review | N/A | N/A | Review | Pending |
+| `qb.derezzed.info` | qBittorrent | 8080 | qBittorrent WebUI username/password | Public, authenticated | N/A | Not supported | None | 2026-11-01 |
 | `home.derezzed.info` | Homepage | 8082 | None; public dashboard | No admin UI | N/A | N/A | None | Pending |
 | `derezzed.info` / `www.derezzed.info` | Static landing page | 8083 | None | None | N/A | N/A | None | Pending |
 
+## LAN-only services
+
+| Service | Backend port | Exposure | Last reviewed |
+|---|---:|---|---|
+| Shoko | 8111 | LAN-only; not routed through HAProxy or advertised publicly | 2026-11-01 |
+
+Shoko remains enabled for local media integrations, but it is not added to
+`networking.proxyBackendPorts`, HAProxy, or the public Homepage dashboard.
+Use VPN access when remote administration is required.
+
 ## Priority review order
 
-1. **qBittorrent** — Confirm WebUI authentication is required and that bypass
-   rules do not unintentionally apply to requests forwarded by HAProxy.
-2. **Shoko** — Determine whether its administrative or API surface should be
-   publicly reachable. If not, remove it from the HAProxy backend allowlist and
-   public Homepage dashboard.
-3. **Jellyfin** — Confirm there is no open registration and that administrative
+1. **Jellyfin** — Confirm there is no open registration and that administrative
    access is limited to a dedicated administrator account.
-4. **Seerr** — Confirm account creation is admin- or invite-controlled.
-5. **Grafana** — Enable MFA for the `aljam` administrator account and review
+2. **Seerr** — Confirm account creation is admin- or invite-controlled.
+3. **Grafana** — Enable MFA for the `aljam` administrator account and review
    users, service accounts, and API keys.
-6. **Vaultwarden** — Confirm the admin panel is not publicly discoverable or
+4. **Vaultwarden** — Confirm the admin panel is not publicly discoverable or
    linked, enable MFA for user accounts, and rotate the admin token if it has
    ever been exposed.
-7. **Radarr, Sonarr, Lidarr, Bazarr, Prowlarr** — Confirm forms authentication
+5. **Radarr, Sonarr, Lidarr, Bazarr, Prowlarr** — Confirm forms authentication
    is enabled and API keys are protected.
-8. **Audiobookshelf** — Confirm separate administrator and user accounts, and
+6. **Audiobookshelf** — Confirm separate administrator and user accounts, and
    review API tokens.
+
+## Completed reviews
+
+### qBittorrent — 2026-11-01
+
+- WebUI authentication is enabled and working through the public HAProxy route.
+- Administrative access requires the configured qBittorrent WebUI credentials.
+- Authentication bypass rules are not used for HAProxy-forwarded requests.
+- CSRF protection and Host header validation are enabled.
+- The default `admin` / `adminadmin` credentials are not in use.
+- No API key is exposed through the public WebUI.
+
+### Shoko — 2026-11-01
+
+- Removed from the public HAProxy backend allowlist and Homepage dashboard.
+- Remains enabled for LAN-only media integrations.
+- Remote administration requires VPN access.
 
 ## Required controls
 

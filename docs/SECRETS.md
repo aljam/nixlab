@@ -14,8 +14,7 @@ secrets/
 ├── matrix.yaml       # Matrix Synapse and Matrix RTC / LiveKit
 ├── vaultwarden.yaml  # Vaultwarden
 ├── monitoring.yaml   # Grafana and alerting
-├── media.yaml        # Radarr, Sonarr, and media automation API keys
-└── backup.yaml       # Backup credentials
+└── media.yaml        # Radarr, Sonarr, and media automation API keys
 ```
 
 Each module that consumes a secret declares its own `sopsFile`. Do not add a global `sops.defaultSopsFile`.
@@ -28,6 +27,25 @@ Age identities are host SSH Ed25519 keys:
 - The corresponding public key is in `.sops.yaml` under the relevant `creation_rules`
 - This ties secrets to the host's SSH identity, not a separate age key
 
+## Verify host age recipients
+
+After initially deploying a host, replacing its host key, or changing `.sops.yaml`, verify that its SSH-derived age public key matches the recipient configured in `.sops.yaml`.
+
+From an administrative machine:
+
+```bash
+ssh <host> 'cat /etc/ssh/ssh_host_ed25519_key.pub' | ssh-to-age
+```
+
+Or run this on the host:
+
+```bash
+sudo nix-shell -p age --run \
+  'ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub'
+```
+
+The resulting `age1...` value must exactly match that host's entry in `.sops.yaml`. If it does not, update the recipient and re-encrypt every secret file that includes that host.
+
 ## Recipient model
 
 | File | Intended recipients | Consumers |
@@ -39,7 +57,6 @@ Age identities are host SSH Ed25519 keys:
 | `vaultwarden.yaml` | Desktop key and Vaultwarden host | Vaultwarden |
 | `monitoring.yaml` | Desktop key and monitoring host | Grafana |
 | `media.yaml` | Desktop key and media automation host | Recyclarr |
-| `backup.yaml` | Desktop key and backup-capable hosts | Backup jobs |
 
 The desktop key is included so secrets can be edited locally. Remove it from a file's recipients if local editing is not required.
 
@@ -81,9 +98,6 @@ sops -e -i secrets/monitoring.yaml
 
 cp /tmp/media.yaml secrets/media.yaml
 sops -e -i secrets/media.yaml
-
-cp /tmp/backup.yaml secrets/backup.yaml
-sops -e -i secrets/backup.yaml
 ```
 
 Never commit the plaintext files from `/tmp`.

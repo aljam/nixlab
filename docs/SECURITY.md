@@ -1,47 +1,35 @@
-# Security policies and automated checks
+# Security posture
 
-This repository uses evaluation-time assertions, NixOS tests, and Gitleaks to enforce its security model.
+## Container images
+
+OCI container images intentionally use floating version tags such as
+`:latest` so security hotfixes can be adopted quickly on the next host
+rebuild.
+
+This favors timely patching over bit-for-bit reproducibility. Before a major
+container upgrade, inspect upstream release notes and verify service health
+after deployment.
+
+## Alertmanager
+
+Alertmanager listens only on loopback and is intentionally excluded from
+`networking.proxyBackendPorts`. Prometheus reaches it locally at
+`127.0.0.1:9093`.
+
+Alerts are currently visible only in the Prometheus and Alertmanager UIs; no
+external notification receiver is configured.
 
 ## Enforced policies
 
-The policies in `modules/features/security-policy.nix` are evaluated for every host:
+The repository enforces these invariants at evaluation time:
 
-| Policy | Reason |
-|---|---|
-| Every SOPS secret must declare `sopsFile` | Keeps secret access scoped to the intended service or trust boundary. |
-| PostgreSQL must not contain `host all all` rules | Prevents broad database authentication access. |
-| pgAdmin port 5050 must not be proxy-exposed | Keeps the administrative interface off the HAProxy backend allowlist. |
-| Autobrr must not bind to `0.0.0.0` | Limits its network exposure to the host service address. |
-| Recyclarr requires Servarr | Recyclarr connects to local Radarr and Sonarr instances. |
-| SSH password authentication must be disabled | Enforces key-based SSH authentication. |
-| Sudo must require a password when enabled | Prevents passwordless privilege escalation. |
-
-## Secret scanning
-
-Gitleaks scans tracked files and full Git history on pull requests, pushes to `main`, and a weekly schedule. There is intentionally no allowlist for encrypted SOPS files; investigate any finding rather than broadly excluding secret paths.
-
-## Firewall and isolation tests
-
-- `tests/nftables-input-rules.nix` performs fast validation of generated nftables input rules.
-- `tests/firewall.nix` runs an end-to-end NixOS VM test for network isolation.
-
-## Deferred policies
-
-### Container image pinning
-
-OCI container images must eventually be pinned to a version tag or SHA256 digest. A `:latest` prohibition is intentionally not enforced yet because the LiveKit, `lk-jwt-service`, and bgutil POT provider images still use floating tags.
-
-Once those images are pinned, add this policy to `security-policy.nix`:
-
-```nix
-{
-  assertion = lib.allAttrs (
-    _: container: !lib.hasSuffix ":latest" container.image
-  ) config.virtualisation.oci-containers.containers;
-  message = "OCI container images must be pinned to a version or digest.";
-}
-```
-
-### SOPS recipient audit
-
-A future check should validate that each `secrets/*.yaml` file has a matching `.sops.yaml` creation rule and that its recipient set matches its documented trust boundary.
+- Every SOPS secret declares an explicit `sopsFile`.
+- PostgreSQL does not use broad `host all all` authentication rules.
+- pgAdmin and PostgreSQL are not exposed through the HAProxy backend
+  allowlist.
+- Alertmanager is not exposed through the HAProxy backend allowlist.
+- Services using `servicesBindAddress` do not bind to every interface.
+- HAProxy backend ports are unique.
+- Autobrr does not bind to `0.0.0.0`.
+- Recyclarr requires the Servarr stack.
+- Server hosts do not enable Steam or GameScope.

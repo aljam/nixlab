@@ -6,13 +6,19 @@ in
 {
   users.users.aljam = {
     extraGroups =
-    [ "wheel" "video" "render" "input" ]
-    ++ lib.filter groupExists [ "networkmanager" "libvirtd" "wireshark" "media" "podman" ];
+      [ "wheel" "video" "render" "input" ]
+      ++ lib.filter groupExists [
+        "networkmanager"
+        "libvirtd"
+        "wireshark"
+        "media"
+        "podman"
+      ];
     isNormalUser = true;
-        openssh.authorizedKeys.keys = [
-          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHzrMiro1XD8krk5Kb4EWQ+rGjmgKXha/OuOmUZcopRL navi-desktop"
-        ];
-    shell = pkgs.fish; # Or whichever shell you use
+    openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHzrMiro1XD8krk5Kb4EWQ+rGjmgKXha/OuOmUZcopRL navi-desktop"
+    ];
+    shell = pkgs.fish;
     hashedPasswordFile = config.sops.secrets.aljam_password.path;
   };
 

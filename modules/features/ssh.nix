@@ -1,6 +1,8 @@
 # SSH access and brute-force protection.
 #
-# Only the `aljam` user may log in, and only with a public key.
+# The `aljam` user and members of `wheel` may log in with public keys.
+# These allowlists are OR-ed by OpenSSH, so adding a user to `wheel`
+# intentionally grants that user SSH access.
 {
   ...
 }:

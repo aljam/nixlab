@@ -23,15 +23,15 @@ For every public hostname, record:
 | Hostname | Service | Backend port | Authentication | Admin exposure | Signup | MFA | API-key exposure | Last reviewed |
 |---|---|---:|---|---|---|---|---|---|
 | `grafana.derezzed.info` | Grafana | 3000 | Local account | Dedicated administrator account | Disabled | Requires external IdP | None | 2026-11-01 |
-| `vault.derezzed.info` | Vaultwarden | 8222 | Local accounts | Admin token required | Disabled | Review | Review | Pending |
+| `vault.derezzed.info` | Vaultwarden | 8222 | Local accounts | Admin token required | Disabled | Authenticator app | None | 2026-11-01 |
 | `jellyfin.derezzed.info` | Jellyfin | 8096 | Local accounts | Dedicated administrator account | Disabled | Not supported | Five expected integration keys | 2026-11-01 |
 | `seerr.derezzed.info` | Jellyseerr/Overseerr | 5055 | Local accounts | Dedicated administrator account | Admin-controlled | Not supported | None | 2026-11-01 |
-| `audiobookshelf.derezzed.info` | Audiobookshelf | 13378 | Local accounts | Review | Review | Review | Review | Pending |
-| `radarr.derezzed.info` | Radarr | 7878 | Application authentication | Review | N/A | N/A | Review | Pending |
-| `sonarr.derezzed.info` | Sonarr | 8989 | Application authentication | Review | N/A | N/A | Review | Pending |
-| `lidarr.derezzed.info` | Lidarr | 8686 | Application authentication | Review | N/A | N/A | Review | Pending |
-| `bazarr.derezzed.info` | Bazarr | 6767 | Application authentication | Review | N/A | N/A | Review | Pending |
-| `prowlarr.derezzed.info` | Prowlarr | 9696 | Application authentication | Review | N/A | N/A | Review | Pending |
+| `audiobookshelf.derezzed.info` | Audiobookshelf | 13378 | Local accounts | Dedicated administrator account | Disabled | Not supported | None | 2026-11-01 |
+| `radarr.derezzed.info` | Radarr | 7878 | Application authentication | Public, authenticated | N/A | Not supported | Protected | 2026-11-01 |
+| `sonarr.derezzed.info` | Sonarr | 8989 | Application authentication | Public, authenticated | N/A | Not supported | Protected | 2026-11-01 |
+| `lidarr.derezzed.info` | Lidarr | 8686 | Application authentication | Public, authenticated | N/A | Not supported | Protected | 2026-11-01 |
+| `bazarr.derezzed.info` | Bazarr | 6767 | Application authentication | Public, authenticated | N/A | Not supported | Protected | 2026-11-01 |
+| `prowlarr.derezzed.info` | Prowlarr | 9696 | Application authentication | Public, authenticated | N/A | Not supported | Protected | 2026-11-01 |
 | `shoko.derezzed.info` | Shoko | 8111 | Review | Review | Review | Review | Review | Pending |
 | `qb.derezzed.info` | qBittorrent | 8080 | qBittorrent WebUI username/password | Public, authenticated | N/A | Not supported | None | 2026-11-01 |
 | `home.derezzed.info` | Homepage | 8082 | None; public dashboard | No admin UI | N/A | N/A | None | Pending |
@@ -49,15 +49,58 @@ Use VPN access when remote administration is required.
 
 ## Priority review order
 
-1. **Vaultwarden** — Confirm the admin panel is not publicly discoverable or
-   linked, enable MFA for user accounts, and rotate the admin token if it has
-   ever been exposed.
-2. **Radarr, Sonarr, Lidarr, Bazarr, Prowlarr** — Confirm forms authentication
-   is enabled and API keys are protected.
-3. **Audiobookshelf** — Confirm separate administrator and user accounts, and
-   review API tokens.
+1. **Homepage and static landing page** — Confirm public exposure is intended
+   and contains no sensitive information.
 
 ## Completed reviews
+
+### Audiobookshelf — 2026-11-01
+
+- Authentication uses local Audiobookshelf accounts.
+- Administrative access is limited to a dedicated administrator account with a
+  unique password.
+- Open signup is disabled.
+- No unintended API tokens were identified, and no tokens were exposed through
+  the public interface, logs, or dashboards.
+- No unintended public library, collection, item, or share links were
+  identified.
+- Audiobookshelf does not provide native multi-factor authentication.
+
+### Lidarr, Bazarr, and Prowlarr — 2026-11-01
+
+- All three services use application authentication and require login before
+  library, indexer, and settings data are accessible.
+- Default credentials are not in use.
+- API keys are protected and were not exposed through the public interfaces,
+  logs, or dashboards.
+- Connected integrations were reviewed; no unused integrations or unintended
+  users were identified.
+- Lidarr, Bazarr, and Prowlarr do not provide native multi-factor
+  authentication.
+
+### Radarr and Sonarr — 2026-11-01
+
+- Both services use application authentication and require login before
+  library, queue, and settings data are accessible.
+- Default credentials are not in use.
+- API keys are protected and were not exposed through the public interfaces,
+  logs, or dashboards.
+- Connected integrations were reviewed; no unused integrations or unintended
+  users were identified.
+- Radarr and Sonarr do not provide native multi-factor authentication.
+
+### Vaultwarden — 2026-11-01
+
+- Authentication uses local Vaultwarden accounts.
+- The administrative panel resolves at `/admin` and requires the configured
+  admin token.
+- The admin token is strong and has not been exposed.
+- Open signup is disabled.
+- Multi-factor authentication is enabled for the user account using an
+  authenticator application.
+- No unintended organization, attachment, or Send shares were identified.
+- The Vaultwarden master password remains unique and must be retained securely;
+  Vaultwarden cannot recover it.
 
 ### Grafana — 2026-11-01
 

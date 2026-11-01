@@ -9,14 +9,22 @@
 }:
 
 let
-  # Use proxy IP from fleet config as gateway
-  gateway = config.networking.fleet.proxy.ip or "192.168.1.1";
+  # Use proxy IP from fleet config as gateway.
+  # This must be explicit: a silent fallback can hide topology drift.
+  gateway = config.networking.fleet.proxy.ip;
 in
 {
   imports = [
     ../features/node-exporter.nix
     ../features/prometheus-alerts.nix
     ../features/reverse-proxy-backends.nix
+  ];
+
+  assertions = [
+    {
+      assertion = config.networking.fleet.proxy.ip != null;
+      message = "server-core requires networking.fleet.proxy.ip to be configured.";
+    }
   ];
 
   networking.interfaces.eno1.ipv4.addresses = [

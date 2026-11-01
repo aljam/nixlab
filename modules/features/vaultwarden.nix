@@ -7,7 +7,7 @@
 
   sops.secrets."vaultwarden-admin-token" = {
     sopsFile = ../../secrets/vaultwarden.yaml;
-    mode = "0640";
+    mode = "0400";
     owner = "vaultwarden";
   };
 
@@ -16,7 +16,7 @@
     config = {
       rocketAddress = config.networking.servicesBindAddress;
       rocketPort = 8222;
-      domain = "https://vault.${config.networking.domain}";
+      domain = "https://vault.${config.networking.myDomain}";
       signupsAllowed = false;
       adminTokenFile = config.sops.secrets."vaultwarden-admin-token".path;
       adminRateLimitSeconds = 300;

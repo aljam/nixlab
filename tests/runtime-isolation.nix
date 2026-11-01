@@ -199,9 +199,9 @@ let
         with subtest("Prometheus scrapes the node exporter"):
             monitor.wait_until_succeeds(
                 "curl -fsS --max-time 10 "
-                f"'{prometheus_url}/api/v1/query?query=up%7Binstance%3D%22"
-                "${monitoringIps.exporter}%3A9100%22%7D' "
-                "| grep -qE '\"value\":\\[[0-9]+,\"1\"\\]'",
+                f"'{prometheus_url}/api/v1/targets?state=active' "
+                "| grep -A5 '\"scrapeUrl\":\"http://${monitoringIps.exporter}:9100/metrics\"' "
+                "| grep -q '\"health\":\"up\"'",
                 timeout=120,
             )
 

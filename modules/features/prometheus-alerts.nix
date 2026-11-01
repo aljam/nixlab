@@ -59,6 +59,16 @@ let
   '';
 in
 {
+  # Alertmanager uses a dynamic user by default, which is unavailable while
+  # SOPS installs secrets during activation. Use a stable service identity so
+  # the relay can own and read its secret.
+  users.groups.alertmanager = { };
+
+  users.users.alertmanager = {
+    isSystemUser = true;
+    group = "alertmanager";
+  };
+
   # Alertmanager remains loopback-only. The ntfy URL, including its private
   # topic and access token if used, is supplied at runtime from SOPS.
   sops.secrets.ntfy-url = {

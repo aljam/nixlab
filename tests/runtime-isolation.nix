@@ -135,10 +135,7 @@ let
 
             ensureDatabases = [ "testdb" ];
             ensureUsers = [
-              {
-                name = "testuser";
-                ensureDBOwnership = true;
-              }
+              { name = "testuser"; }
             ];
 
             settings = {
@@ -159,9 +156,12 @@ let
         database.start()
         database.wait_for_unit("postgresql.service")
 
-        # The test role is declaratively created by ensureUsers. Set its
-        # password after PostgreSQL is ready so the TCP authentication test
-        # does not depend on initial-script ordering.
+        # The role and database are declaratively created. Transfer ownership
+        # and set the password after PostgreSQL is ready; this avoids relying
+        # on initial-script ordering.
+        database.succeed(
+            "sudo -u postgres psql -c \"ALTER DATABASE testdb OWNER TO testuser;\""
+        )
         database.succeed(
             "sudo -u postgres psql -c \"ALTER ROLE testuser WITH PASSWORD 'testpass';\""
         )

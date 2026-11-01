@@ -13,7 +13,7 @@
     # Decide whether mailserver should follow nixpkgs-unstable for newer
     # fixes or use its own pinned nixpkgs for release compatibility.
     # mailserver = {
-    #   url = "gitlab:simple-nixos-mailserver/nixos-mailserver/nixos-26.05";
+    #   url = "gitlab:simple-nixos-mailserver/nixos-26.05";
     #   inputs.nixpkgs.follows = "nixpkgs";
     # };
 
@@ -136,6 +136,13 @@
       checks.${system} = {
         # Fast, VM-free validation of custom nftables input rules on every host.
         nftables-input-rules = import ./tests/nftables-input-rules.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+          hosts = self.nixosConfigurations;
+        };
+
+        # Fast, VM-free validation of exposure, database, SOPS, and binding
+        # invariants across the fully composed fleet.
+        service-exposure = import ./tests/service-exposure.nix {
           pkgs = nixpkgs.legacyPackages.${system};
           hosts = self.nixosConfigurations;
         };

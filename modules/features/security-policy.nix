@@ -3,17 +3,6 @@
 let
   sopsSecrets = lib.attrValues config.sops.secrets;
 
-  allowedSecretModes = [
-    "0400"
-    "0640"
-  ];
-
-  groupReadableSecrets = [
-    "grafana-admin-password"
-    "grafana-secret-key"
-    "vaultwarden-admin-token"
-  ];
-
   grafanaExposed = lib.elem 3000 config.networking.proxyBackendPorts;
   grafanaAnonymous = config.services.grafana.settings.auth.anonymous.enabled or false;
   grafanaSignup = config.services.grafana.settings.users.allow_sign_up or false;
@@ -47,8 +36,8 @@ in
       message = "Every sops secret must declare an explicit owner.";
     }
 
-    # Make permissions explicit and restrict group-readable secrets to
-    # documented service exceptions.
+    # Make permissions explicit and restrict every secret to its owning
+    # service identity.
     {
       assertion = lib.all (secret: secret.mode != null) sopsSecrets;
       message = "Every sops secret must declare an explicit mode.";
@@ -56,11 +45,9 @@ in
 
     {
       assertion = lib.all
-        (secret:
-          lib.elem secret.mode allowedSecretModes
-          && (secret.mode == "0400" || lib.elem secret.name groupReadableSecrets))
+        (secret: secret.mode == "0400")
         sopsSecrets;
-      message = "SOPS secrets must use mode 0400; 0640 is allowed only for documented Grafana and Vaultwarden exceptions.";
+      message = "SOPS secrets must use owner-only mode 0400.";
     }
 
     # Grafana is the internet-facing monitoring dashboard. It must require

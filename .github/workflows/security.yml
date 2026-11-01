@@ -44,7 +44,7 @@ jobs:
           import re
 
           config = pathlib.Path(".sops.yaml").read_text()
-          patterns = re.findall(r"^\s*path_regex:\s*(.+)$", config, re.MULTILINE)
+          patterns = re.findall(r"^\s*-\s*path_regex:\s*(.+)$", config, re.MULTILINE)
           fallback = "secrets/.*\\.yaml$"
           missing = []
 

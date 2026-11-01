@@ -27,9 +27,7 @@
         admin_password = "$__file{/run/secrets/grafana-admin-password}";
         secret_key = "$__file{/run/secrets/grafana-secret-key}";
       };
-      auth.anonymous = {
-        enabled = false;
-      };
+      "auth.anonymous".enabled = false;
       users = {
         allow_sign_up = false;
       };

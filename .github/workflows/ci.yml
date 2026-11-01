@@ -6,6 +6,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -75,6 +78,7 @@ jobs:
           echo "path=$path" >> "$GITHUB_OUTPUT"
 
       - name: Push to aljam cache
+        if: github.event_name != 'pull_request'
         run: nix path-info --recursive "${{ steps.build.outputs.path }}" | cachix push aljam
 
   summary:

@@ -1,4 +1,0 @@
-[allowlist]
-paths = [
-  '''secrets/secrets\.yaml$'''
-]

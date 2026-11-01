@@ -26,7 +26,7 @@ For every public hostname, record:
 | `vault.derezzed.info` | Vaultwarden | 8222 | Local accounts | Admin token required | Disabled | Authenticator app | None | 2026-11-01 |
 | `jellyfin.derezzed.info` | Jellyfin | 8096 | Local accounts | Dedicated administrator account | Disabled | Not supported | Five expected integration keys | 2026-11-01 |
 | `seerr.derezzed.info` | Jellyseerr/Overseerr | 5055 | Local accounts | Dedicated administrator account | Admin-controlled | Not supported | None | 2026-11-01 |
-| `audiobookshelf.derezzed.info` | Audiobookshelf | 13378 | Local accounts | Review | Review | Review | Review | Pending |
+| `audiobookshelf.derezzed.info` | Audiobookshelf | 13378 | Local accounts | Dedicated administrator account | Disabled | Not supported | None | 2026-11-01 |
 | `radarr.derezzed.info` | Radarr | 7878 | Application authentication | Public, authenticated | N/A | Not supported | Protected | 2026-11-01 |
 | `sonarr.derezzed.info` | Sonarr | 8989 | Application authentication | Public, authenticated | N/A | Not supported | Protected | 2026-11-01 |
 | `lidarr.derezzed.info` | Lidarr | 8686 | Application authentication | Public, authenticated | N/A | Not supported | Protected | 2026-11-01 |
@@ -49,10 +49,22 @@ Use VPN access when remote administration is required.
 
 ## Priority review order
 
-1. **Audiobookshelf** — Confirm separate administrator and user accounts, and
-   review API tokens.
+1. **Homepage and static landing page** — Confirm public exposure is intended
+   and contains no sensitive information.
 
 ## Completed reviews
+
+### Audiobookshelf — 2026-11-01
+
+- Authentication uses local Audiobookshelf accounts.
+- Administrative access is limited to a dedicated administrator account with a
+  unique password.
+- Open signup is disabled.
+- No unintended API tokens were identified, and no tokens were exposed through
+  the public interface, logs, or dashboards.
+- No unintended public library, collection, item, or share links were
+  identified.
+- Audiobookshelf does not provide native multi-factor authentication.
 
 ### Lidarr, Bazarr, and Prowlarr — 2026-11-01
 

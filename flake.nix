@@ -74,37 +74,39 @@
           };
 
           modules =
-            commonModules
+            commonModules hostname
             ++ [
               ./hosts/${hostname}/configuration.nix
               ./users/aljam/nixos.nix
-
-              home-manager.nixosModules.home-manager
-              {
-                home-manager.useGlobalPkgs = true;
-                home-manager.useUserPackages = true;
-                home-manager.backupFileExtension = "backup";
-                home-manager.users.aljam = import ./users/aljam/home.nix;
-                home-manager.extraSpecialArgs = {
-                  inherit inputs pkgs-stable hostname;
-                };
-              }
             ]
             ++ extraModules;
         };
 
-      commonModules = [
-        ./modules/roles/common.nix
+      commonModules =
+        hostname:
+        [
+          ./modules/roles/common.nix
 
-        sops-nix.nixosModules.sops
-        nur.modules.nixos.default
+          sops-nix.nixosModules.sops
+          nur.modules.nixos.default
 
-        {
-          nixpkgs.overlays = [
-            nix-cachyos-kernel.overlays.default
-          ];
-        }
-      ];
+          home-manager.nixosModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.backupFileExtension = "backup";
+            home-manager.users.aljam = import ./users/aljam/home.nix;
+            home-manager.extraSpecialArgs = {
+              inherit inputs pkgs-stable hostname;
+            };
+          }
+
+          {
+            nixpkgs.overlays = [
+              nix-cachyos-kernel.overlays.default
+            ];
+          }
+        ];
 
       desktopModules = [
         {

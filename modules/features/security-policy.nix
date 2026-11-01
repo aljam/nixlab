@@ -26,7 +26,7 @@ in
 {
   options.roles.server.enable = lib.mkEnableOption "server role policies";
 
-  assertions = [
+  config.assertions = [
     # Preserve the service-scoped SOPS model. A missing `sopsFile` would
     # otherwise depend on a global default, which this repository intentionally
     # does not define.

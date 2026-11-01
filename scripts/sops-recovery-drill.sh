@@ -62,30 +62,10 @@ done
 
 [[ -n "$host" ]] || { usage >&2; fail "--host is required"; }
 
-case "$host" in
-  navi|oryx)
-    allowed_files=(secrets/common.yaml secrets/nas.yaml)
-    ;;
-  r730|r820)
-    allowed_files=(secrets/common.yaml)
-    ;;
-  r730xd)
-    allowed_files=(
-      secrets/common.yaml
-      secrets/database.yaml
-      secrets/matrix.yaml
-      secrets/monitoring.yaml
-      secrets/media.yaml
-      secrets/vaultwarden.yaml
-    )
-    ;;
-  *)
-    fail "unknown host: $host"
-    ;;
-esac
-
 printf 'Running SOPS recipient policy audit...\n'
 python3 scripts/check-sops-recipients.py
+
+mapfile -t allowed_files < <(python3 scripts/sops_policy.py --host "$host" --files)
 
 recipient_line="$(grep -E "^[[:space:]]*-[[:space:]]*&${host}[[:space:]]" .sops.yaml)" || \
   fail "no SOPS recipient alias found for host: $host"

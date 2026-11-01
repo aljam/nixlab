@@ -22,7 +22,7 @@ For every public hostname, record:
 
 | Hostname | Service | Backend port | Authentication | Admin exposure | Signup | MFA | API-key exposure | Last reviewed |
 |---|---|---:|---|---|---|---|---|---|
-| `grafana.derezzed.info` | Grafana | 3000 | Local account | Admin UI public | Disabled | Review | Review | Pending |
+| `grafana.derezzed.info` | Grafana | 3000 | Local account | Dedicated administrator account | Disabled | Requires external IdP | None | 2026-11-01 |
 | `vault.derezzed.info` | Vaultwarden | 8222 | Local accounts | Admin token required | Disabled | Review | Review | Pending |
 | `jellyfin.derezzed.info` | Jellyfin | 8096 | Local accounts | Dedicated administrator account | Disabled | Not supported | Five expected integration keys | 2026-11-01 |
 | `seerr.derezzed.info` | Jellyseerr/Overseerr | 5055 | Local accounts | Dedicated administrator account | Admin-controlled | Not supported | None | 2026-11-01 |
@@ -49,17 +49,28 @@ Use VPN access when remote administration is required.
 
 ## Priority review order
 
-1. **Grafana** — Enable MFA for the `aljam` administrator account and review
-   users, service accounts, and API keys.
-2. **Vaultwarden** — Confirm the admin panel is not publicly discoverable or
+1. **Vaultwarden** — Confirm the admin panel is not publicly discoverable or
    linked, enable MFA for user accounts, and rotate the admin token if it has
    ever been exposed.
-3. **Radarr, Sonarr, Lidarr, Bazarr, Prowlarr** — Confirm forms authentication
+2. **Radarr, Sonarr, Lidarr, Bazarr, Prowlarr** — Confirm forms authentication
    is enabled and API keys are protected.
-4. **Audiobookshelf** — Confirm separate administrator and user accounts, and
+3. **Audiobookshelf** — Confirm separate administrator and user accounts, and
    review API tokens.
 
 ## Completed reviews
+
+### Grafana — 2026-11-01
+
+- Authentication uses a local Grafana administrator account.
+- The default Grafana administrator credentials are not in use; the
+  administrator account uses a unique password.
+- Self-registration is disabled.
+- Anonymous access is disabled.
+- No unused users, service accounts, service-account tokens, or legacy API
+  keys were identified.
+- No dashboards are publicly accessible without authentication.
+- Grafana OSS does not provide built-in MFA; enabling MFA would require an
+  external identity provider.
 
 ### Seerr — 2026-11-01
 
@@ -108,7 +119,7 @@ Use VPN access when remote administration is required.
   dashboards, repository files, screenshots, or logs.
 - Shared administrator credentials must not be used.
 - MFA must be enabled where the application supports it, especially for
-  Grafana and Vaultwarden administrators.
+  Vaultwarden administrators.
 - Services that do not require public access must be removed from
   `networking.proxyBackendPorts`, HAProxy, and the public Homepage dashboard.
 

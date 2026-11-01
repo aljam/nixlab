@@ -38,7 +38,7 @@ with the current policy.
 Run the host-specific recovery drill before relying on a new or rebuilt host:
 
 ```bash
-./scripts/sops-recovery-drill.sh --host r730xd
+bash scripts/sops-recovery-drill.sh --host r730xd
 ```
 
 The drill validates the recipient policy, resolves the selected host's SOPS
@@ -49,7 +49,7 @@ To exercise decryption from a local SOPS identity that is authorized for the
 host's allowed files, run:
 
 ```bash
-./scripts/sops-recovery-drill.sh --host r730xd --decrypt
+bash scripts/sops-recovery-drill.sh --host r730xd --decrypt
 ```
 
 CI runs the non-decrypting drill for `r730xd` and validates the script syntax.

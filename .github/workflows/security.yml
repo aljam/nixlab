@@ -85,7 +85,7 @@ jobs:
         run: bash -n scripts/sops-recovery-drill.sh
 
       - name: Run non-decrypting recovery drill
-        run: ./scripts/sops-recovery-drill.sh --host r730xd
+        run: bash scripts/sops-recovery-drill.sh --host r730xd
 
   nix:
     name: Evaluate Nix checks

@@ -154,11 +154,10 @@
           hosts = self.nixosConfigurations;
         };
 
-        # Runtime checks for SOPS secret permissions, service listeners, and
-        # narrowly scoped firewall exceptions.
+        # Runtime checks for SOPS encryption/decryption permissions, service
+        # listeners, and narrowly scoped firewall exceptions.
         runtime-security = import ./tests/runtime-security.nix {
           pkgs = nixpkgs.legacyPackages.${system};
-          sopsModule = sops-nix.nixosModules.sops;
         };
 
         # Runtime checks that administrative services and PostgreSQL remain

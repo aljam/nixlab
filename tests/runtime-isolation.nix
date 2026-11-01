@@ -31,7 +31,7 @@ let
     # Prove that pgAdmin and Shoko stand-ins remain unreachable from other LAN
     # machines even if their application processes listen on every interface.
     # The allowed backend port remains reachable only by the HAProxy gateway.
-    admin-isolation = pkgs.nixosTest {
+    admin-isolation = pkgs.testers.nixosTest {
       name = "admin-isolation";
 
       nodes = {
@@ -102,7 +102,7 @@ let
 
     # Prove that PostgreSQL TCP authentication remains limited to an explicit
     # database/user pair and rejects an unknown role.
-    postgresql-auth = pkgs.nixosTest {
+    postgresql-auth = pkgs.testers.nixosTest {
       name = "postgresql-auth";
 
       nodes = {

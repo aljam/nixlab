@@ -16,6 +16,7 @@
     ../features/nix-cache.nix
     ../features/sops.nix
     ../features/ssh.nix
+    ../features/security-policy.nix
   ];
 
   options.networking.servicesBindAddress = lib.mkOption {

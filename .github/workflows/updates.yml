@@ -1,0 +1,46 @@
+name: Updates
+
+on:
+  schedule:
+    # Mondays at 09:00 UTC.
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  update-flake-lock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update flake lock
+        run: nix flake update
+
+      - name: Create update pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: chore/flake-update
+          delete-branch: true
+          title: "chore: update flake lock"
+          commit-message: "chore: update flake lock"
+          body: |
+            Automated weekly `nix flake update`.
+
+            Review the changed inputs, run `nix flake check`, and build the
+            affected hosts before merging.
+          labels: |
+            dependencies

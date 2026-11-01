@@ -147,6 +147,13 @@
           hosts = self.nixosConfigurations;
         };
 
+        # Fast, VM-free validation of the application-level security baseline
+        # for services exposed through the public HAProxy gateway.
+        public-service-hardening = import ./tests/public-service-hardening.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+          hosts = self.nixosConfigurations;
+        };
+
         # Runtime checks that administrative services and PostgreSQL remain
         # isolated even if their application processes listen more broadly.
         admin-isolation = import ./tests/runtime-isolation.nix {

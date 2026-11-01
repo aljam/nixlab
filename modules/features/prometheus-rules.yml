@@ -72,6 +72,15 @@ groups:
           summary: "PostgreSQL is unreachable"
           description: "The TCP probe cannot reach PostgreSQL on {{ $labels.instance }}."
 
+      - alert: PostgreSQLTLSVerificationFailed
+        expr: probe_success{job="blackbox-postgres-tls"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL TLS verification failed"
+          description: "Prometheus cannot verify the PostgreSQL TLS certificate on {{ $labels.instance }}."
+
       - alert: PostgreSQLCertificateExpiringSoon
         expr: >-
           probe_ssl_earliest_cert_expiry{job="blackbox-postgres-tls"}

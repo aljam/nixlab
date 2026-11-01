@@ -27,8 +27,8 @@ For every public hostname, record:
 | `jellyfin.derezzed.info` | Jellyfin | 8096 | Local accounts | Dedicated administrator account | Disabled | Not supported | Five expected integration keys | 2026-11-01 |
 | `seerr.derezzed.info` | Jellyseerr/Overseerr | 5055 | Local accounts | Dedicated administrator account | Admin-controlled | Not supported | None | 2026-11-01 |
 | `audiobookshelf.derezzed.info` | Audiobookshelf | 13378 | Local accounts | Review | Review | Review | Review | Pending |
-| `radarr.derezzed.info` | Radarr | 7878 | Application authentication | Review | N/A | N/A | Review | Pending |
-| `sonarr.derezzed.info` | Sonarr | 8989 | Application authentication | Review | N/A | N/A | Review | Pending |
+| `radarr.derezzed.info` | Radarr | 7878 | Application authentication | Public, authenticated | N/A | Not supported | Protected | 2026-11-01 |
+| `sonarr.derezzed.info` | Sonarr | 8989 | Application authentication | Public, authenticated | N/A | Not supported | Protected | 2026-11-01 |
 | `lidarr.derezzed.info` | Lidarr | 8686 | Application authentication | Review | N/A | N/A | Review | Pending |
 | `bazarr.derezzed.info` | Bazarr | 6767 | Application authentication | Review | N/A | N/A | Review | Pending |
 | `prowlarr.derezzed.info` | Prowlarr | 9696 | Application authentication | Review | N/A | N/A | Review | Pending |
@@ -49,12 +49,23 @@ Use VPN access when remote administration is required.
 
 ## Priority review order
 
-1. **Radarr, Sonarr, Lidarr, Bazarr, Prowlarr** — Confirm forms authentication
-   is enabled and API keys are protected.
+1. **Lidarr, Bazarr, Prowlarr** — Confirm forms authentication is enabled and
+   API keys are protected.
 2. **Audiobookshelf** — Confirm separate administrator and user accounts, and
    review API tokens.
 
 ## Completed reviews
+
+### Radarr and Sonarr — 2026-11-01
+
+- Both services use application authentication and require login before
+  library, queue, and settings data are accessible.
+- Default credentials are not in use.
+- API keys are protected and were not exposed through the public interfaces,
+  logs, or dashboards.
+- Connected integrations were reviewed; no unused integrations or unintended
+  users were identified.
+- Radarr and Sonarr do not provide native multi-factor authentication.
 
 ### Vaultwarden — 2026-11-01
 

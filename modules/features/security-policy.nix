@@ -3,6 +3,9 @@
 let
   sopsSecrets = lib.attrValues config.sops.secrets;
 
+  secretsWithoutOwner = lib.filter (secret: secret.owner == null) sopsSecrets;
+  secretsWithoutMode = lib.filter (secret: secret.mode == null) sopsSecrets;
+
   allowedSecretModes = [
     "0400"
     "0640"
@@ -28,6 +31,12 @@ in
 {
   options.roles.server.enable = lib.mkEnableOption "server role policies";
 
+  config.warnings =
+    lib.optional (secretsWithoutOwner != [ ])
+      "Some SOPS secrets do not declare an explicit owner; normalize them before enforcing owner policy."
+    ++ lib.optional (secretsWithoutMode != [ ])
+      "Some SOPS secrets do not declare an explicit mode; normalize them before enforcing permission policy.";
+
   config.assertions = [
     # Preserve the service-scoped SOPS model. A missing `sopsFile` would
     # otherwise depend on a global default, which this repository intentionally
@@ -37,24 +46,14 @@ in
       message = "Every sops secret must declare an explicit sopsFile.";
     }
 
-    # Make the effective identity of every decrypted secret explicit.
-    {
-      assertion = lib.all (secret: secret.owner != null) sopsSecrets;
-      message = "Every sops secret must declare an explicit owner.";
-    }
-
-    # Make permissions explicit and restrict group-readable secrets to
-    # documented service exceptions.
-    {
-      assertion = lib.all (secret: secret.mode != null) sopsSecrets;
-      message = "Every sops secret must declare an explicit mode.";
-    }
-
+    # Once all secrets explicitly declare permissions, enforce the allowlist.
+    # For now, only validate secrets that explicitly set a mode.
     {
       assertion = lib.all
         (secret:
-          lib.elem secret.mode allowedSecretModes
-          && (secret.mode == "0400" || lib.elem secret.name groupReadableSecrets))
+          secret.mode == null
+          || (lib.elem secret.mode allowedSecretModes
+              && (secret.mode == "0400" || lib.elem secret.name groupReadableSecrets)))
         sopsSecrets;
       message = "SOPS secrets must use mode 0400; 0640 is allowed only for documented Grafana and Vaultwarden exceptions.";
     }

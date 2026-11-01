@@ -182,16 +182,18 @@ let
         exporter.wait_for_unit("nftables.service")
         exporter.wait_for_unit("prometheus-node-exporter.service")
 
+        prometheus_url = "http://${monitoringIps.monitor}:9090"
+
         with subtest("Prometheus becomes ready and healthy"):
             monitor.wait_until_succeeds(
-                "curl -fsS --max-time 10 http://127.0.0.1:9090/-/ready",
+                f"curl -fsS --max-time 10 {prometheus_url}/-/ready",
                 timeout=60,
             )
-            monitor.succeed("curl -fsS --max-time 10 http://127.0.0.1:9090/-/healthy")
+            monitor.succeed(f"curl -fsS --max-time 10 {prometheus_url}/-/healthy")
 
         with subtest("Prometheus loads its alert rules"):
             with urllib.request.urlopen(
-                "http://127.0.0.1:9090/api/v1/rules", timeout=10
+                f"{prometheus_url}/api/v1/rules", timeout=10
             ) as response:
                 rules = json.load(response)
 
@@ -200,7 +202,7 @@ let
 
         with subtest("Prometheus scrapes the node exporter"):
             query = (
-                "http://127.0.0.1:9090/api/v1/query?query=up%7Binstance%3D%22"
+                f"{prometheus_url}/api/v1/query?query=up%7Binstance%3D%22"
                 "${monitoringIps.exporter}%3A9100%22%7D"
             )
 
@@ -220,11 +222,11 @@ let
         with subtest("monitoring services remain unreachable from the exporter"):
             exporter.fail(
                 "curl -o /dev/null -fsS --max-time 10 "
-                "http://${monitoringIps.monitor}:9090/-/ready"
+                f"http://${monitoringIps.monitor}:9090/-/ready"
             )
             exporter.fail(
                 "curl -o /dev/null -fsS --max-time 10 "
-                "http://${monitoringIps.monitor}:9115/probe"
+                f"http://${monitoringIps.monitor}:9115/probe"
             )
 
         with subtest("the Blackbox exporter remains loopback-only"):

@@ -1,91 +1,152 @@
-{ config, lib, pkgs, ... }:
-
-let
-  cfg = config.modules.features.servarr;
-  domain = config.networking.domains.primary;
-  hostName = config.networking.hostName;
-  proxyIP = config.networking.fleet.proxy.ip;
-  bindAddress = config.networking.servicesBindAddress;
-  mediaGroup = config.users.groups.media.name;
-in
+# Consolidated media automation stack ("*arr" and friends).
+#
+# Security: none of these services are exposed to the LAN. They listen on the
+# host's fleet address and are reachable only through the HAProxy gateway;
+# the per-backend firewall rules are generated centrally from
+# `networking.proxyBackendPorts` in reverse-proxy-backends.nix.
+#
+# `serviceDefs` is the single source of truth for each service's web UI port
+# and shared-group model. Upstream service options remain explicit because the
+# upstream modules do not share a common option surface.
 {
-  options.modules.features.servarr = {
-    enable = lib.mkEnableOption "Servarr media automation stack";
+  config,
+  lib,
+  ...
+}:
+let
+  cfg = config.servarr;
+
+  serviceDefs = {
+    radarr = {
+      port = 7878;
+      userType = "static";
+    };
+
+    sonarr = {
+      port = 8989;
+      userType = "static";
+    };
+
+    lidarr = {
+      port = 8686;
+      userType = "static";
+    };
+
+    bazarr = {
+      port = 6767;
+      userType = "static";
+    };
+
+    prowlarr = {
+      port = 9696;
+      userType = "dynamic";
+    };
+
+    seerr = {
+      port = 5055;
+      userType = "dynamic";
+    };
+
+    shoko = {
+      port = 8111;
+      userType = "dynamic";
+    };
+
+    audiobookshelf = {
+      port = 13378;
+      userType = "static";
+    };
+
+    jellyfin = {
+      port = 8096;
+      userType = "static";
+    };
+
+    qbittorrent = {
+      port = 8080;
+      userType = "static";
+    };
   };
 
+  staticServices = lib.filterAttrs (
+    _: service: service.userType == "static"
+  ) serviceDefs;
+
+  dynamicServices = lib.filterAttrs (
+    _: service: service.userType == "dynamic"
+  ) serviceDefs;
+in
+{
+  imports = [
+    ./media-storage.nix
+  ];
+
+  options.servarr.enable = lib.mkEnableOption "media automation stack";
+
   config = lib.mkIf cfg.enable {
-    users.groups.media = { };
-    users.users.media = {
-      isSystemUser = true;
-      group = "media";
-      home = "/var/lib/media";
-      createHome = true;
-    };
+    networking.proxyBackendPorts = lib.mapAttrsToList (
+      _: service: service.port
+    ) serviceDefs;
 
-    services.prowlarr.enable = true;
-    services.radarr.enable = true;
-    services.sonarr.enable = true;
-    services.bazarr.enable = true;
+    services = {
+      radarr.enable = true;
+      sonarr.enable = true;
+      lidarr.enable = true;
+      prowlarr.enable = true;
 
-    services.prowlarr.settings = {
-      server = {
-        bind_address = bindAddress;
-        port = 9696;
+      bazarr = {
+        enable = true;
+        openFirewall = false;
+      };
+
+      seerr = {
+        enable = true;
+        openFirewall = false;
+      };
+
+      shoko = {
+        enable = true;
+        openFirewall = false;
+      };
+
+      audiobookshelf = {
+        enable = true;
+        host = config.networking.servicesBindAddress;
+        port = serviceDefs.audiobookshelf.port;
+      };
+
+      jellyfin = {
+        enable = true;
+        group = "media";
+      };
+
+      qbittorrent = {
+        enable = true;
+        webuiPort = serviceDefs.qbittorrent.port;
       };
     };
 
-    services.radarr.settings = {
-      server = {
-        bind_address = bindAddress;
-        port = 7878;
-      };
-    };
-
-    services.sonarr.settings = {
-      server = {
-        bind_address = bindAddress;
-        port = 8989;
-      };
-    };
-
-    services.bazarr.settings = {
-      server = {
-        bind_address = bindAddress;
-        port = 6767;
-      };
-    };
-
-    # qBittorrent uses a separate WebUI port and is intentionally not exposed
-    # through HAProxy. Its BitTorrent listener uses TCP/UDP 6881 so it can
-    # accept inbound peer connections; this is the only intentionally broad
-    # firewall opening in this module.
-    services.qbittorrent = {
-      enable = true;
-      openFirewall = false;
-      settings = {
-        server = {
-          bind_address = bindAddress;
-          port = 8080;
-        };
-
-        bitorrent = {
-          port = 6881;
-        };
-      };
-    };
-
+    # Inbound BitTorrent swarm port. This is the only port in the stack that is
+    # deliberately reachable from outside the gateway; without it qBittorrent can
+    # only make outbound connections.
     networking.firewall.allowedTCPPorts = [ 6881 ];
     networking.firewall.allowedUDPPorts = [ 6881 ];
 
-    networking.proxyBackendPorts = [
-      9696
-      7878
-      8989
-      6767
-    ];
+    # Shared access to /mnt/media. Declaring membership on the group (rather
+    # than `users.users.<name>.extraGroups`) means this module never has to
+    # define a user that an upstream service module owns.
+    users.groups.media.members = lib.attrNames staticServices;
 
-    environment.systemPackages = with pkgs; [
-      qbittorrent
-    ];
+    systemd.services = lib.genAttrs (lib.attrNames serviceDefs) (name: {
+      serviceConfig =
+        {
+          # /mnt/media is setgid `media`; a group-writable umask is what makes
+          # the shared-ownership scheme work for newly written files.
+          UMask = lib.mkForce "0002";
+        }
+        // lib.optionalAttrs (lib.hasAttr name dynamicServices) {
+          SupplementaryGroups = [ "media" ];
+        };
+    });
   };
 }

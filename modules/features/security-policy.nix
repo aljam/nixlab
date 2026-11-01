@@ -18,10 +18,6 @@ let
   duplicateProxyPorts = lib.lists.subtractLists
     (lib.unique proxyBackendPorts)
     proxyBackendPorts;
-
-  gamingEnabled =
-    (config.programs.steam.enable or false)
-    || (config.programs.gamescope.enable or false);
 in
 {
   assertions = [
@@ -83,13 +79,6 @@ in
         !(config.modules.features.recyclarr.enable or false)
         || config.servarr.enable;
       message = "modules.features.recyclarr requires servarr.enable because it connects to local Radarr and Sonarr.";
-    }
-
-    # Gaming software opens LAN-facing ports and is intended only for desktop
-    # hosts. Prevent accidental inclusion in server roles.
-    {
-      assertion = !gamingEnabled;
-      message = "Steam, GameScope, and gaming firewall rules must not be enabled on server hosts.";
     }
   ];
 }

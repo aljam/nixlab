@@ -217,11 +217,11 @@ let
         with subtest("monitoring services remain unreachable from the exporter"):
             exporter.fail(
                 "curl -o /dev/null -fsS --max-time 10 "
-                f"http://${monitoringIps.monitor}:9090/-/ready"
+                "http://${monitoringIps.monitor}:9090/-/ready"
             )
             exporter.fail(
                 "curl -o /dev/null -fsS --max-time 10 "
-                f"http://${monitoringIps.monitor}:9115/probe"
+                "http://${monitoringIps.monitor}:9115/probe"
             )
 
         with subtest("the Blackbox exporter remains loopback-only"):
@@ -332,7 +332,6 @@ let
         unrelated = { pkgs, ... }: {
           environment.systemPackages = [ pkgs.postgresql ];
           networking.firewall.enable = true;
-          networking.nftables.enable = true;
           networking.interfaces.eth1.ipv4.addresses = [ (staticAddress postgresIps.unrelated) ];
         };
       };

@@ -34,8 +34,8 @@ For every public hostname, record:
 | `prowlarr.derezzed.info` | Prowlarr | 9696 | Application authentication | Public, authenticated | N/A | Not supported | Protected | 2026-11-01 |
 | `shoko.derezzed.info` | Shoko | 8111 | Review | Review | Review | Review | Review | Pending |
 | `qb.derezzed.info` | qBittorrent | 8080 | qBittorrent WebUI username/password | Public, authenticated | N/A | Not supported | None | 2026-11-01 |
-| `home.derezzed.info` | Homepage | 8082 | None; public dashboard | No admin UI | N/A | N/A | None | Pending |
-| `derezzed.info` / `www.derezzed.info` | Static landing page | 8083 | None | None | N/A | N/A | None | Pending |
+| `home.derezzed.info` | Homepage | 8082 | None; public dashboard | No admin UI | N/A | N/A | None | 2026-11-01 |
+| `derezzed.info` / `www.derezzed.info` | Static landing page | 8083 | None | None | N/A | N/A | None | 2026-11-01 |
 
 ## LAN-only services
 
@@ -47,12 +47,22 @@ Shoko remains enabled for local media integrations, but it is not added to
 `networking.proxyBackendPorts`, HAProxy, or the public Homepage dashboard.
 Use VPN access when remote administration is required.
 
-## Priority review order
-
-1. **Homepage and static landing page** — Confirm public exposure is intended
-   and contains no sensitive information.
-
 ## Completed reviews
+
+### Homepage and static landing page — 2026-11-01
+
+- Homepage is intentionally public and contains only links to services that
+  are already exposed through the reverse proxy.
+- Homepage accepts only the `home.derezzed.info` Host header.
+- Homepage has no administrative interface, account system, API keys, or
+  sensitive operational data.
+- Shoko and pgAdmin are excluded from the public Homepage dashboard.
+- The static landing page is intentionally public and contains only the site
+  name and a generic description.
+- The landing page sets `noindex, nofollow` and exposes only a `/health`
+  endpoint in addition to the root page.
+- No credentials, internal hostnames, infrastructure details, or sensitive
+  links are present in the static page.
 
 ### Audiobookshelf — 2026-11-01
 

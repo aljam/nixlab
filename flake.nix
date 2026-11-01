@@ -123,9 +123,40 @@
       ];
 
       diskoModule = disko.nixosModules.disko;
+
+      deployHosts = [
+        "navi"
+        "oryx"
+        "r820"
+        "r730"
+        "r730xd"
+      ];
     in
     {
       formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt;
+
+      apps.${system} = {
+        deploy = {
+          type = "app";
+          program = "${nixpkgs.legacyPackages.${system}.writeShellScript "deploy-all" ''
+            set -euo pipefail
+
+            hosts=("$@")
+
+            if (( ''${#hosts[@]} == 0 )); then
+              hosts=(${lib.concatStringsSep " " deployHosts})
+            fi
+
+            for host in "''${hosts[@]}"; do
+              echo "==> Deploying ''${host}"
+              nixos-rebuild switch \\
+                --flake ".#''${host}" \\
+                --target-host "root@''${host}" \\
+                --use-remote-sudo
+            done
+          ''}";
+        };
+      };
 
       checks.${system} = {
         nftables-input-rules = import ./tests/nftables-input-rules.nix {

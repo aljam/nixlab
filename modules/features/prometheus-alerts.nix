@@ -14,12 +14,14 @@ let
     with open(os.environ["NTFY_URL_FILE"], "r", encoding="utf-8") as handle:
         NTFY_URL = handle.read().strip()
 
+
     class Handler(BaseHTTPRequestHandler):
         def do_POST(self):
             try:
                 length = int(self.headers.get("Content-Length", "0"))
                 payload = json.loads(self.rfile.read(length))
-                query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+                parsed = urllib.parse.urlparse(self.path)
+                query = urllib.parse.parse_qs(parsed.query)
                 priority = query.get("priority", ["default"])[0]
 
                 for alert in payload.get("alerts", []):
@@ -50,7 +52,10 @@ let
         def log_message(self, *args):
             pass
 
-    ThreadingHTTPServer(("127.0.0.1", int(sys.argv[1])), Handler).serve_forever()
+
+    ThreadingHTTPServer(
+        ("127.0.0.1", int(sys.argv[1])), Handler
+    ).serve_forever()
   '';
 in
 {

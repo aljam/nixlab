@@ -10,10 +10,10 @@ fleet-wide fallback rule.
 |---|---|---|
 | `secrets/common.yaml` | `aljam`, all hosts | Shared user/login secrets. |
 | `secrets/nas.yaml` | `aljam`, `navi`, `oryx` | NAS credentials for desktop hosts that mount the NAS. |
-| `secrets/database.yaml` | `aljam`, `r730xd`, `r820` | PostgreSQL and pgAdmin secrets. |
-| `secrets/matrix.yaml` | `aljam`, `r730xd` | Matrix Synapse, MatrixRTC, LiveKit, and pfSense CA secrets. |
-| `secrets/vaultwarden.yaml` | `aljam`, `r730xd` | Vaultwarden secrets. |
-| `secrets/monitoring.yaml` | `aljam`, `r730xd` | Grafana and alerting secrets. |
+| `secrets/database.yaml` | `aljam`, `r820` | PostgreSQL and pgAdmin secrets. |
+| `secrets/matrix.yaml` | `aljam`, `r730xd`, `r820` | Matrix Synapse, MatrixRTC, LiveKit, and pfSense CA secrets. |
+| `secrets/vaultwarden.yaml` | `aljam`, `r730xd`, `r820` | Vaultwarden secrets. |
+| `secrets/monitoring.yaml` | `aljam`, `r730`, `r730xd`, `r820` | Grafana and alerting secrets. |
 | `secrets/media.yaml` | `aljam`, `r730xd` | Radarr, Sonarr, and Recyclarr API keys. |
 
 Servers do not receive NAS credentials because they do not mount the NAS.

@@ -30,6 +30,40 @@ jobs:
         with:
           args: detect --source . --redact --verbose
 
+  sops-policy:
+    name: Require explicit SOPS rules
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Check SOPS creation rules
+        run: |
+          python3 - <<'PY'
+          import pathlib
+          import re
+
+          config = pathlib.Path(".sops.yaml").read_text()
+          patterns = re.findall(r"^\s*-\s*path_regex:\s*(.+)$", config, re.MULTILINE)
+          fallback = "secrets/.*\\.yaml$"
+          missing = []
+
+          for path in sorted(pathlib.Path("secrets").glob("*.yaml")):
+              rel = path.as_posix()
+              explicit = any(
+                  pattern != fallback and re.fullmatch(pattern, rel)
+                  for pattern in patterns
+              )
+              if not explicit:
+                  missing.append(rel)
+
+          if missing:
+              raise SystemExit(
+                  "Missing explicit SOPS creation rule for:\n"
+                  + "\n".join(f"- {path}" for path in missing)
+              )
+          PY
+
   nix:
     name: Evaluate Nix checks
     runs-on: ubuntu-latest

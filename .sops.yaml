@@ -58,22 +58,18 @@ creation_rules:
           - *aljam
           - *r730xd
 
+  # Recyclarr / media automation API keys.
+  - path_regex: secrets/media\.yaml$
+    key_groups:
+      - age:
+          - *aljam
+          - *r730xd
+
   # Backups. Restrict this further if per-host backup credentials are introduced.
   - path_regex: secrets/backup\.yaml$
     key_groups:
       - age:
           - *aljam
-          - *r730
-          - *r730xd
-          - *r820
-
-  # Catch accidental new secret files; specific rules above take precedence.
-  - path_regex: secrets/.*\.yaml$
-    key_groups:
-      - age:
-          - *aljam
-          - *navi
-          - *oryx
           - *r730
           - *r730xd
           - *r820

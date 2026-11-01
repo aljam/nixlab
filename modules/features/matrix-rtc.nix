@@ -44,12 +44,12 @@ let
 
       # Nix indented strings treat backslashes literally, so use one backslash
       # for each POSIX shell line continuation.
-      exec lk token create \
-        --api-key matrixrtc \
-        --api-secret "$secret" \
-        --join \
-        --room connection-test \
-        --identity tester \
+      exec lk token create \\
+        --api-key matrixrtc \\
+        --api-secret "$secret" \\
+        --join \\
+        --room connection-test \\
+        --identity tester \\
         --valid-for 1h
     '';
   };
@@ -65,6 +65,9 @@ in
   sops.secrets = {
     livekit-jwt-env = {
       sopsFile = ../../secrets/matrix.yaml;
+      owner = "root";
+      group = "root";
+      mode = "0400";
     };
   };
 

@@ -27,5 +27,8 @@ in
   sops.secrets.aljam_password = {
     sopsFile = ../../secrets/common.yaml;
     neededForUsers = true; # required — decrypt before user creation
+    owner = "root";
+    group = "root";
+    mode = "0400";
   };
 }

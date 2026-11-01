@@ -2,11 +2,15 @@
 
 {
   sops.secrets."smtp_relay_password" = {
-    owner = "root"; 
+    owner = "root";
+    group = "root";
+    mode = "0400";
   };
 
   sops.secrets."mail_password_aljam" = {
     owner = "root";
+    group = "root";
+    mode = "0400";
   };
 
   mailserver = {
@@ -30,7 +34,7 @@
 
     certificateScheme = "acme-nginx";
 
-    # SENDGRID RELAY (Bypasses Bell's Port 25 Block)
+    # SENDGRID RELAY (Bypass Bell's Port 25 Block)
     indexSmarthost = true;
     
     relay = [

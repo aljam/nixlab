@@ -1,7 +1,19 @@
 { config, lib, pkgs, ... }:
 
+let
+  cfg = config.modules.features.prometheus-server;
+in
 {
-  imports = [ ./pfsense-root-ca.nix ];
+  options.modules.features.prometheus-server = {
+    postgresCaFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.path;
+      default = null;
+      description = ''
+        Path to a CA bundle used to verify PostgreSQL TLS certificates.
+        When null, the TLS PostgreSQL Blackbox probe is omitted.
+      '';
+    };
+  };
 
   # Prometheus, Alertmanager, and the Blackbox exporter are internal-only.
   # Grafana is the internet-facing monitoring surface.
@@ -117,7 +129,7 @@
           }
         ];
       }
-
+    ] ++ lib.optionals (cfg.postgresCaFile != null) [
       {
         job_name = "blackbox-postgres-tls";
         metrics_path = "/probe";
@@ -167,7 +179,7 @@
                 preferred_ip_protocol = "ip4";
               };
             };
-
+          } // lib.optionalAttrs (cfg.postgresCaFile != null) {
             tls_postgres = {
               prober = "tcp";
               timeout = "5s";
@@ -175,7 +187,7 @@
                 preferred_ip_protocol = "ip4";
                 tls = true;
                 tls_config = {
-                  ca_file = config.sops.secrets.pfsense-root-ca-prometheus.path;
+                  ca_file = cfg.postgresCaFile;
                 };
               };
             };

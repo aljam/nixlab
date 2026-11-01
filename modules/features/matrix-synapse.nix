@@ -52,7 +52,7 @@ in
           user = "matrix-synapse";
           host = config.networking.fleet.r820.ip;
           sslmode = "verify-full";
-          sslrootcert = config.sops.secrets.pfsense-root-ca-matrix.path;
+          sslrootcert = config.sops.secrets.pfsense-root-ca.path;
           cp_min = 5;
           cp_max = 10;
         };

@@ -42,7 +42,10 @@ ALIAS_DEFINITION = re.compile(
 ALIAS_REFERENCE = re.compile(r"\*([A-Za-z0-9_-]+)")
 RULE_SPLIT = re.compile(r"^(?=\s*-\s*path_regex:\s*)", re.MULTILINE)
 PATH_REGEX = re.compile(r"^\s*-\s*path_regex:\s*(\S+)\s*$", re.MULTILINE)
-ENCRYPTED_RECIPIENT = re.compile(r"^\s*(?:-\s*)?recipient:\s*(\S+)\s*$", re.MULTILINE)
+ENCRYPTED_RECIPIENT = re.compile(
+    r"^\s*(?:-\s*)?recipient:\s*(.+?)\s*$",
+    re.MULTILINE,
+)
 
 
 def fail(message: str) -> None:

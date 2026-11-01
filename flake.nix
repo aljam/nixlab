@@ -131,7 +131,7 @@
       diskoModule = disko.nixosModules.disko;
     in
     {
-      formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt-rfc-style;
+      formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt;
 
       checks.${system} = {
         # Fast, VM-free validation of custom nftables input rules on every host.

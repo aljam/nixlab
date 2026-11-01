@@ -18,13 +18,6 @@
     }
   ];
 
-  sops.secrets."pfsense-root-ca" = {
-    sopsFile = ../../secrets/matrix.yaml;
-    owner = "prometheus";
-    group = "prometheus";
-    mode = "0400";
-  };
-
   services.prometheus = {
     enable = true;
     port = 9090;

@@ -146,7 +146,7 @@ let
 
         with subtest("PostgreSQL authentication contains no broad host/all/all rule"):
             hba_path = database.succeed(
-                "psql -U postgres -Atc 'SHOW hba_file'"
+                "sudo -u postgres psql -Atc 'SHOW hba_file'"
             ).strip()
             config = database.succeed(f"cat {hba_path}")
             if "host all all" in config:

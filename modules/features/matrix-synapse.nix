@@ -6,16 +6,22 @@
     matrix-synapse-registration-shared-secret = {
       sopsFile = ../../secrets/matrix.yaml;
       owner = "matrix-synapse";
+      group = "matrix-synapse";
+      mode = "0400";
     };
 
     matrix-synapse-db-config = {
       sopsFile = ../../secrets/matrix.yaml;
       owner = "matrix-synapse";
+      group = "matrix-synapse";
+      mode = "0400";
     };
 
     pfsense-root-ca = {
       sopsFile = ../../secrets/matrix.yaml;
       owner = "matrix-synapse";
+      group = "matrix-synapse";
+      mode = "0400";
     };
   };
 

@@ -20,6 +20,8 @@
   sops.secrets.pgadmin_password = {
     sopsFile = ../../secrets/database.yaml;
     owner = "pgadmin";
+    group = "pgadmin";
+    mode = "0400";
   };
 
   services.postgresql = {

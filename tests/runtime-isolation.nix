@@ -134,6 +134,11 @@ let
             ../modules/features/prometheus-server.nix
           ];
 
+          options.networking.servicesBindAddress = lib.mkOption {
+            type = lib.types.str;
+          };
+
+          networking.servicesBindAddress = monitoringIps.monitor;
           networking.firewall.enable = true;
           networking.nftables.enable = true;
           networking.interfaces.eth1.ipv4.addresses = [ (staticAddress monitoringIps.monitor) ];

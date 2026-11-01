@@ -25,7 +25,7 @@ For every public hostname, record:
 | `grafana.derezzed.info` | Grafana | 3000 | Local account | Admin UI public | Disabled | Review | Review | Pending |
 | `vault.derezzed.info` | Vaultwarden | 8222 | Local accounts | Admin token required | Disabled | Review | Review | Pending |
 | `jellyfin.derezzed.info` | Jellyfin | 8096 | Local accounts | Dedicated administrator account | Disabled | Not supported | Five expected integration keys | 2026-11-01 |
-| `seerr.derezzed.info` | Jellyseerr/Overseerr | 5055 | Local accounts | Review | Review | Review | Review | Pending |
+| `seerr.derezzed.info` | Jellyseerr/Overseerr | 5055 | Local accounts | Dedicated administrator account | Admin-controlled | Not supported | None | 2026-11-01 |
 | `audiobookshelf.derezzed.info` | Audiobookshelf | 13378 | Local accounts | Review | Review | Review | Review | Pending |
 | `radarr.derezzed.info` | Radarr | 7878 | Application authentication | Review | N/A | N/A | Review | Pending |
 | `sonarr.derezzed.info` | Sonarr | 8989 | Application authentication | Review | N/A | N/A | Review | Pending |
@@ -49,18 +49,28 @@ Use VPN access when remote administration is required.
 
 ## Priority review order
 
-1. **Seerr** — Confirm account creation is admin- or invite-controlled.
-2. **Grafana** — Enable MFA for the `aljam` administrator account and review
+1. **Grafana** — Enable MFA for the `aljam` administrator account and review
    users, service accounts, and API keys.
-3. **Vaultwarden** — Confirm the admin panel is not publicly discoverable or
+2. **Vaultwarden** — Confirm the admin panel is not publicly discoverable or
    linked, enable MFA for user accounts, and rotate the admin token if it has
    ever been exposed.
-4. **Radarr, Sonarr, Lidarr, Bazarr, Prowlarr** — Confirm forms authentication
+3. **Radarr, Sonarr, Lidarr, Bazarr, Prowlarr** — Confirm forms authentication
    is enabled and API keys are protected.
-5. **Audiobookshelf** — Confirm separate administrator and user accounts, and
+4. **Audiobookshelf** — Confirm separate administrator and user accounts, and
    review API tokens.
 
 ## Completed reviews
+
+### Seerr — 2026-11-01
+
+- Authentication uses local Seerr accounts.
+- Account creation is controlled by an administrator rather than open to the
+  public.
+- Administrative access is limited to a dedicated administrator account.
+- Seerr does not provide native multi-factor authentication.
+- No API keys or tokens were exposed through the public interface.
+- Connected media integrations were reviewed and no unused integrations were
+  identified.
 
 ### Jellyfin — 2026-11-01
 

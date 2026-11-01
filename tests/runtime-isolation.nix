@@ -156,9 +156,10 @@ let
         database.start()
         database.wait_for_unit("postgresql.service")
 
-        # The role and database are declaratively created. Transfer ownership
-        # and set the password after PostgreSQL is ready; this avoids relying
-        # on initial-script ordering.
+        # ensureUsers runs in PostgreSQL setup. Wait for it before transferring
+        # database ownership or setting the role password.
+        database.wait_for_unit("postgresql-setup.service")
+
         database.succeed(
             "sudo -u postgres psql -c \"ALTER DATABASE testdb OWNER TO testuser;\""
         )

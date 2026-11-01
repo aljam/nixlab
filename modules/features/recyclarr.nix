@@ -2,7 +2,8 @@
 #
 # Exposure model:
 # - Recyclarr is a local scheduled job and does not listen on the network.
-# - It expects Radarr and Sonarr to be running locally through `servarr.nix`.
+# - It requires the local Servarr stack because it connects to Radarr and
+#   Sonarr on loopback.
 # - API keys are loaded from `secrets/media.yaml` through systemd credentials;
 #   they are not copied into the Nix store.
 {
@@ -18,6 +19,13 @@
   };
 
   config = lib.mkIf config.modules.features.recyclarr.enable {
+    assertions = [
+      {
+        assertion = config.servarr.enable;
+        message = "modules.features.recyclarr requires servarr.enable because it connects to local Radarr and Sonarr.";
+      }
+    ];
+
     sops.secrets = {
       radarr_api_key = {
         sopsFile = ../../secrets/media.yaml;

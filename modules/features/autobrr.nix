@@ -2,7 +2,7 @@
 {
   networking.proxyBackendPorts = [ 7474 ];
 
-  users.groups.autobrr = {};
+  users.groups.autobrr = { };
   users.users.autobrr = {
     isSystemUser = true;
     group = "autobrr";
@@ -11,8 +11,9 @@
   services.autobrr = {
     enable = true;
     openFirewall = false;
-    settings.host = "0.0.0.0";
+    settings.host = config.networking.servicesBindAddress;
   };
+
   networking.firewall.extraInputRules = ''
     ip saddr ${config.networking.subnets.lan}.1 tcp dport 7474 accept
   '';

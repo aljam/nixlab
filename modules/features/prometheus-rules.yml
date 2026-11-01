@@ -1,0 +1,97 @@
+groups:
+  - name: host-health
+    rules:
+      - alert: NodeDown
+        expr: up{job="node"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Node exporter unreachable"
+          description: "Prometheus has been unable to scrape {{ $labels.host }} for five minutes."
+
+      - alert: FilesystemAlmostFull
+        expr: >-
+          (
+            node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"}
+            /
+            node_filesystem_size_bytes{fstype!~"tmpfs|overlay"}
+          ) < 0.20
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Filesystem is almost full"
+          description: "{{ $labels.instance }} filesystem {{ $labels.mountpoint }} has less than 20% free space."
+
+      - alert: FilesystemFull
+        expr: >-
+          (
+            node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"}
+            /
+            node_filesystem_size_bytes{fstype!~"tmpfs|overlay"}
+          ) < 0.10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Filesystem is critically full"
+          description: "{{ $labels.instance }} filesystem {{ $labels.mountpoint }} has less than 10% free space."
+
+      - alert: SystemdUnitFailed
+        expr: node_systemd_unit_state{state="failed"} == 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Systemd unit failed"
+          description: "{{ $labels.instance }} has failed unit {{ $labels.name }}."
+
+      - alert: HostMemoryPressure
+        expr: >-
+          (
+            node_memory_MemAvailable_bytes
+            /
+            node_memory_MemTotal_bytes
+          ) < 0.10
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Host memory pressure"
+          description: "{{ $labels.instance }} has less than 10% available memory."
+
+  - name: postgresql
+    rules:
+      - alert: PostgreSQLUnreachable
+        expr: probe_success{job="blackbox-postgres"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL is unreachable"
+          description: "The TCP probe cannot reach PostgreSQL on {{ $labels.instance }}."
+
+      - alert: PostgreSQLCertificateExpiringSoon
+        expr: >-
+          probe_ssl_earliest_cert_expiry{job="blackbox-postgres-tls"}
+          - time()
+          < 14 * 24 * 60 * 60
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL certificate expires soon"
+          description: "The PostgreSQL TLS certificate on {{ $labels.instance }} expires in less than 14 days."
+
+      - alert: PostgreSQLCertificateExpiringCritical
+        expr: >-
+          probe_ssl_earliest_cert_expiry{job="blackbox-postgres-tls"}
+          - time()
+          < 7 * 24 * 60 * 60
+        for: 1h
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL certificate expires imminently"
+          description: "The PostgreSQL TLS certificate on {{ $labels.instance }} expires in less than 7 days."

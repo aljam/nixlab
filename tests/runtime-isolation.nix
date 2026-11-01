@@ -7,6 +7,7 @@
 #
 # Import with:
 #   import ./runtime-isolation.nix { pkgs = ...; test = "admin-isolation"; }
+#   import ./runtime-isolation.nix { pkgs = ...; test = "monitoring-health"; }
 #   import ./runtime-isolation.nix { pkgs = ...; test = "postgresql-auth"; }
 #   import ./runtime-isolation.nix { pkgs = ...; test = "postgresql-reachability"; }
 {
@@ -29,6 +30,12 @@ let
     database = "192.168.1.20";
     synapse = "192.168.1.21";
     unrelated = "192.168.1.22";
+  };
+
+  monitoringIps = {
+    exporter = "192.168.1.30";
+    monitor = "192.168.1.31";
+    unused = "192.168.1.32";
   };
 
   staticAddress = ip: {
@@ -104,9 +111,9 @@ let
         for machine in [gateway, attacker]:
             machine.wait_for_unit("multi-user.target")
 
-        public_url = "http://${adminIps.backend}:3000/"
-        pgadmin_url = "http://${adminIps.backend}:5050/"
-        shoko_url = "http://${adminIps.backend}:8111/"
+        public_url = "http://${monitoringIps.exporter}:3000/"
+        pgadmin_url = "http://${monitoringIps.exporter}:5050/"
+        shoko_url = "http://${monitoringIps.exporter}:8111/"
 
         with subtest("only the gateway reaches the allowed backend"):
             gateway.succeed(f"curl -fsS --max-time 10 -o /dev/null {public_url}")
@@ -120,6 +127,100 @@ let
             gateway.fail(f"curl -o /dev/null -fsS --max-time 10 {shoko_url}")
             attacker.fail(f"curl -o /dev/null -fsS --max-time 10 {shoko_url}")
       '';
+    };
+
+    # Prove that Prometheus starts, loads its rules, discovers and scrapes a
+    # node exporter, and keeps its own service ports internal-only.
+    monitoring-health = pkgs.testers.nixosTest {
+      name = "monitoring-health";
+
+      nodes = {
+        monitor = { lib, ... }: {
+          imports = [
+            ../modules/features/networking-options.nix
+            ../modules/features/node-exporter.nix
+            ../modules/features/prometheus-server.nix
+          ];
+
+          networking.firewall.enable = true;
+          networking.nftables.enable = true;
+          networking.interfaces.eth1.ipv4.addresses = [ (staticAddress monitoringIps.monitor) ];
+
+          # Map the real Prometheus scrape configuration onto this two-node
+          # test topology: r730 is the reachable node exporter and r730xd is
+          # Prometheus itself.
+          networking.fleet = lib.mkForce {
+            r730.ip = monitoringIps.exporter;
+            r730xd.ip = monitoringIps.monitor;
+            r820.ip = monitoringIps.unused;
+          };
+
+          networking.firewall.extraInputRules = '''
+            ip saddr ${monitoringIps.exporter} tcp dport 9100 accept
+          ''';
+        };
+
+        exporter = { lib, ... }: {
+          imports = [
+            ../modules/features/node-exporter.nix
+          ];
+
+          networking.firewall.enable = true;
+          networking.nftables.enable = true;
+          networking.interfaces.eth1.ipv4.addresses = [ (staticAddress monitoringIps.exporter) ];
+
+          networking.firewall.extraInputRules = '''
+            ip saddr ${monitoringIps.monitor} tcp dport 9100 accept
+          ''';
+        };
+      };
+
+      testScript = '''
+        start_all()
+
+        monitor.wait_for_unit("nftables.service")
+        monitor.wait_for_unit("prometheus.service")
+        monitor.wait_for_unit("prometheus-node-exporter.service")
+
+        exporter.wait_for_unit("nftables.service")
+        exporter.wait_for_unit("prometheus-node-exporter.service")
+
+        with subtest("Prometheus becomes ready and healthy"):
+            monitor.succeed("curl -fsS --max-time 10 http://127.0.0.1:9090/-/ready")
+            monitor.succeed("curl -fsS --max-time 10 http://127.0.0.1:9090/-/healthy")
+
+        with subtest("Prometheus loads its alert rules"):
+            rules = monitor.succeed(
+                "curl -fsS --max-time 10 http://127.0.0.1:9090/api/v1/rules"
+            )
+            if '"status":"success"' not in rules:
+                raise Exception("Prometheus did not return its rules successfully")
+
+        with subtest("Prometheus scrapes the node exporter"):
+            monitor.wait_until_succeeds(
+                """
+                curl -fsS --max-time 10 \
+                  'http://127.0.0.1:9090/api/v1/query?query=up%7Binstance%3D%22${monitoringIps.exporter}%3A9100%22%7D' \
+                  | grep -q '"value":[1,"1"]'
+                """,
+                timeout=60,
+            )
+
+        with subtest("monitoring services remain unreachable from the exporter"):
+            exporter.fail(
+                "curl -o /dev/null -fsS --max-time 10 "
+                f"http://${monitoringIps.monitor}:9090/-/ready"
+            )
+            exporter.fail(
+                "curl -o /dev/null -fsS --max-time 10 "
+                f"http://${monitoringIps.monitor}:9115/probe"
+            )
+
+        with subtest("the Blackbox exporter remains loopback-only"):
+            monitor.succeed(
+                "ss -ltn | grep -q '127.0.0.1:9115'"
+            )
+      ''';
     };
 
     # Prove that PostgreSQL TCP authentication remains limited to an explicit
@@ -143,16 +244,16 @@ let
               password_encryption = "scram-sha-256";
             };
 
-            authentication = ''
+            authentication = '''
               local all all peer
 
               host testdb testuser 127.0.0.1/32 scram-sha-256
-            '';
+            ''';
           };
         };
       };
 
-      testScript = ''
+      testScript = '''
         database.start()
         database.wait_for_unit("postgresql.service")
 
@@ -161,10 +262,10 @@ let
         database.wait_for_unit("postgresql-setup.service")
 
         database.succeed(
-            "sudo -u postgres psql -c \"ALTER DATABASE testdb OWNER TO testuser;\""
+            "sudo -u postgres psql -c \\"ALTER DATABASE testdb OWNER TO testuser;\\""
         )
         database.succeed(
-            "sudo -u postgres psql -c \"ALTER ROLE testuser WITH PASSWORD 'testpass';\""
+            "sudo -u postgres psql -c \\"ALTER ROLE testuser WITH PASSWORD 'testpass';\\""
         )
 
         with subtest("the configured database user can connect over TCP"):
@@ -184,7 +285,7 @@ let
             config = database.succeed(f"cat {hba_path}")
             if "host all all" in config:
                 raise Exception("PostgreSQL contains a broad host/all/all rule")
-      '';
+      ''';
     };
 
     # Prove that PostgreSQL is reachable from the explicitly authorized Synapse
@@ -198,9 +299,9 @@ let
           networking.nftables.enable = true;
           networking.interfaces.eth1.ipv4.addresses = [ (staticAddress postgresIps.database) ];
 
-          networking.firewall.extraInputRules = ''
+          networking.firewall.extraInputRules = '''
             ip saddr ${postgresIps.synapse} tcp dport 5432 accept
-          '';
+          ''';
 
           services.postgresql = {
             enable = true;
@@ -211,16 +312,16 @@ let
               password_encryption = "scram-sha-256";
             };
 
-            authentication = ''
+            authentication = '''
               local all all peer
 
               host testdb testuser ${postgresIps.synapse}/32 scram-sha-256
-            '';
+            ''';
 
-            initialScript = pkgs.writeText "postgresql-reachability-init.sql" ''
+            initialScript = pkgs.writeText "postgresql-reachability-init.sql" '''
               CREATE USER testuser WITH PASSWORD 'testpass';
               CREATE DATABASE testdb OWNER testuser;
-            '';
+            ''';
           };
         };
 
@@ -239,7 +340,7 @@ let
         };
       };
 
-      testScript = ''
+      testScript = '''
         start_all()
 
         database.wait_for_unit("nftables.service")
@@ -267,7 +368,7 @@ let
             hba = database.succeed(f"cat {hba_path}")
             if "${postgresIps.synapse}" not in hba:
                 raise Exception("PostgreSQL does not authorize the Synapse address")
-      '';
+      ''';
     };
   };
 in

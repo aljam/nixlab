@@ -6,7 +6,7 @@
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-25.11";
 
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
-    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+    nixos-hardware.url = "github:nixos-hardware/nixos-hardware/master";
     artcraft.url = "github:Hy4ri/artcraft-flake";
 
     # TODO: Re-enable when deploying a mail server.
@@ -152,6 +152,11 @@
         admin-isolation = import ./tests/runtime-isolation.nix {
           pkgs = nixpkgs.legacyPackages.${system};
           test = "admin-isolation";
+        };
+
+        monitoring-health = import ./tests/runtime-isolation.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+          test = "monitoring-health";
         };
 
         postgresql-auth = import ./tests/runtime-isolation.nix {

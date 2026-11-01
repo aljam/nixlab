@@ -111,7 +111,7 @@ pkgs.testers.nixosTest {
                 f"Expected one backend firewall exception, found {len(backend_rules)}"
             )
 
-        if f"ip saddr ${haproxyAddress}" not in backend_rules[0]:
+        if "ip saddr ${haproxyAddress}" not in backend_rules[0]:
             raise Exception("The backend firewall exception is not scoped to HAProxy")
   '';
 }

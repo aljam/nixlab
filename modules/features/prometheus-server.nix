@@ -1,6 +1,8 @@
 { config, lib, pkgs, ... }:
 
 {
+  imports = [ ./pfsense-root-ca.nix ];
+
   # Prometheus, Alertmanager, and the Blackbox exporter are internal-only.
   # Grafana is the internet-facing monitoring surface.
   assertions = [

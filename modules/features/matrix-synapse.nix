@@ -3,6 +3,8 @@ let
   rtcDomain = "rtc.${config.networking.myDomain}";
 in
 {
+  imports = [ ./pfsense-root-ca.nix ];
+
   networking.proxyBackendPorts = [ 8008 ];
 
   sops.secrets = {

@@ -1,9 +1,21 @@
 { config, lib, pkgs, ... }:
 
 {
-  networking.proxyBackendPorts = [
-    9090
-    9115
+  # Prometheus, Alertmanager, and the Blackbox exporter are internal-only.
+  # Grafana is the internet-facing monitoring surface.
+  assertions = [
+    {
+      assertion = !(lib.elem 9090 config.networking.proxyBackendPorts);
+      message = "Prometheus must not be exposed through the HAProxy backend allowlist.";
+    }
+    {
+      assertion = !(lib.elem 9115 config.networking.proxyBackendPorts);
+      message = "The Prometheus Blackbox exporter must not be exposed through the HAProxy backend allowlist.";
+    }
+    {
+      assertion = !(lib.elem 9093 config.networking.proxyBackendPorts);
+      message = "Alertmanager must not be exposed through the HAProxy backend allowlist.";
+    }
   ];
 
   services.prometheus = {

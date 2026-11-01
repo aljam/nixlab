@@ -14,6 +14,10 @@ let
     "vaultwarden-admin-token"
   ];
 
+  grafanaExposed = lib.elem 3000 config.networking.proxyBackendPorts;
+  grafanaAnonymous = config.services.grafana.settings.auth.anonymous.enabled or false;
+  grafanaSignup = config.services.grafana.settings.users.allow_sign_up or false;
+
   postgresAuth = config.services.postgresql.authentication or "";
   postgresPort = config.services.postgresql.settings.port or 5432;
   proxyBackendPorts = config.networking.proxyBackendPorts;
@@ -59,6 +63,18 @@ in
       message = "SOPS secrets must use mode 0400; 0640 is allowed only for documented Grafana and Vaultwarden exceptions.";
     }
 
+    # Grafana is the internet-facing monitoring dashboard. It must require
+    # authentication and must not permit self-registration.
+    {
+      assertion = !grafanaExposed || !grafanaAnonymous;
+      message = "Grafana must disable anonymous access when exposed through the HAProxy backend allowlist.";
+    }
+
+    {
+      assertion = !grafanaExposed || !grafanaSignup;
+      message = "Grafana must disable self-registration when exposed through the HAProxy backend allowlist.";
+    }
+
     # Prevent regression to broad PostgreSQL authentication rules.
     {
       assertion = !(lib.hasInfix "host all all" postgresAuth);
@@ -77,6 +93,22 @@ in
     {
       assertion = !(lib.elem postgresPort proxyBackendPorts);
       message = "PostgreSQL must not be exposed through the HAProxy backend allowlist.";
+    }
+
+    # Prometheus, Blackbox, and Alertmanager are internal-only.
+    {
+      assertion = !(lib.elem 9090 proxyBackendPorts);
+      message = "Prometheus must not be exposed through the HAProxy backend allowlist.";
+    }
+
+    {
+      assertion = !(lib.elem 9115 proxyBackendPorts);
+      message = "The Prometheus Blackbox exporter must not be exposed through the HAProxy backend allowlist.";
+    }
+
+    {
+      assertion = !(lib.elem 9093 proxyBackendPorts);
+      message = "Alertmanager must not be exposed through the HAProxy backend allowlist.";
     }
 
     # Services using the shared bind address must never listen on every

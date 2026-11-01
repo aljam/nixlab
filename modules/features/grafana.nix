@@ -23,8 +23,15 @@
         http_port = 3000;
       };
       security = {
+        admin_user = "aljam";
         admin_password = "$__file{/run/secrets/grafana-admin-password}";
         secret_key = "$__file{/run/secrets/grafana-secret-key}";
+      };
+      auth.anonymous = {
+        enabled = false;
+      };
+      users = {
+        allow_sign_up = false;
       };
     };
   };

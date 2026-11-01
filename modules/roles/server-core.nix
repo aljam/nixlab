@@ -49,8 +49,8 @@ in
   # Container runtime
   virtualisation.podman = {
     enable = true;
-    dockerCompat = true;
-    dockerSocket.enable = true;
+    dockerCompat = false;
+    dockerSocket.enable = false;
   };
 
   # Hardware monitoring

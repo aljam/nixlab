@@ -12,19 +12,13 @@ import pathlib
 import re
 import sys
 
+from sops_policy import POLICY
+
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SOPS_CONFIG = ROOT / ".sops.yaml"
 SECRETS_DIR = ROOT / "secrets"
 
-EXPECTED_RECIPIENTS = {
-    "secrets/common.yaml": {"aljam", "navi", "oryx", "r730", "r730xd", "r820"},
-    "secrets/nas.yaml": {"aljam", "navi", "oryx"},
-    "secrets/database.yaml": {"aljam", "r820"},
-    "secrets/matrix.yaml": {"aljam", "r730xd", "r820"},
-    "secrets/vaultwarden.yaml": {"aljam", "r730xd", "r820"},
-    "secrets/monitoring.yaml": {"aljam", "r730", "r730xd", "r820"},
-    "secrets/media.yaml": {"aljam", "r730xd"},
-}
+EXPECTED_RECIPIENTS = POLICY
 
 REQUIRED_ALIASES = {
     "aljam",

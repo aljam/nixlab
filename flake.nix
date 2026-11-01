@@ -141,6 +141,15 @@
           program = "${nixpkgs.legacyPackages.${system}.writeShellScript "deploy-all" ''
             set -euo pipefail
 
+            if [[ -n "$(git status --porcelain)" ]]; then
+              echo "Refusing to deploy: Git working tree is dirty." >&2
+              echo "Commit or stash changes, then retry." >&2
+              exit 1
+            fi
+
+            echo "==> Running flake checks"
+            nix --extra-experimental-features 'nix-command flakes' flake check --show-trace
+
             hosts=("$@")
 
             if (( ''${#hosts[@]} == 0 )); then

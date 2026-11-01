@@ -27,12 +27,13 @@ creation_rules:
           - *navi
           - *oryx
 
-  # PostgreSQL / pgAdmin.
+  # PostgreSQL / pgAdmin. r820 runs PostgreSQL and needs its pgAdmin secret.
   - path_regex: secrets/database\.yaml$
     key_groups:
       - age:
           - *aljam
           - *r730xd
+          - *r820
 
   # Matrix Synapse and Matrix RTC / LiveKit.
   - path_regex: secrets/matrix\.yaml$

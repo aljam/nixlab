@@ -12,6 +12,7 @@
     ../../modules/features/prometheus-server.nix
     ../../modules/features/matrix-synapse.nix
     ../../modules/features/matrix-rtc.nix
+    ../../modules/features/static-site.nix
   ];
 
   boot.kernelPackages = pkgs.linuxPackages_6_1;
@@ -19,4 +20,6 @@
   boot.kernelParams = [ "zfs.zfs_arc_max=68719476736" ];
 
   networking.hostId = "d2083fdc"; # Required for ZFS
+
+  modules.features.static-site.enable = true;
 }

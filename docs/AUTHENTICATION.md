@@ -32,6 +32,7 @@ For every public hostname, record:
 | `lidarr.derezzed.info` | Lidarr | 8686 | Application authentication | Review | N/A | N/A | Review | Pending |
 | `bazarr.derezzed.info` | Bazarr | 6767 | Application authentication | Review | N/A | N/A | Review | Pending |
 | `prowlarr.derezzed.info` | Prowlarr | 9696 | Application authentication | Review | N/A | N/A | Review | Pending |
+| `shoko.derezzed.info` | Shoko | 8111 | Review | Review | Review | Review | Review | Pending |
 | `qb.derezzed.info` | qBittorrent | 8080 | qBittorrent WebUI username/password | Public, authenticated | N/A | Not supported | None | 2026-11-01 |
 | `home.derezzed.info` | Homepage | 8082 | None; public dashboard | No admin UI | N/A | N/A | None | Pending |
 | `derezzed.info` / `www.derezzed.info` | Static landing page | 8083 | None | None | N/A | N/A | None | Pending |

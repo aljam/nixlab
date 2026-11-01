@@ -1,0 +1,45 @@
+name: Image security
+
+on:
+  schedule:
+    - cron: '47 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  trivy:
+    name: Scan ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: livekit
+            image: docker.io/livekit/livekit-server:latest
+          - name: lk-jwt-service
+            image: ghcr.io/element-hq/lk-jwt-service:latest
+          - name: bgutil-pot-provider
+            image: docker.io/brainicism/bgutil-ytdlp-pot-provider:latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Scan container image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ matrix.image }}
+          format: table
+          exit-code: '0'
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+
+      - name: Record scan result
+        run: |
+          echo "image=${{ matrix.image }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "status=report-only" >> "$GITHUB_STEP_SUMMARY"

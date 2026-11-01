@@ -74,6 +74,19 @@ jobs:
       - name: Check SOPS recipient policy
         run: python3 scripts/check-sops-recipients.py
 
+  sops-recovery-drill:
+    name: Validate SOPS recovery drill
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Check drill syntax
+        run: bash -n scripts/sops-recovery-drill.sh
+
+      - name: Run non-decrypting recovery drill
+        run: bash scripts/sops-recovery-drill.sh --host r730xd
+
   nix:
     name: Evaluate Nix checks
     runs-on: ubuntu-latest

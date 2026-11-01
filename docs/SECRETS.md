@@ -33,6 +33,29 @@ The audit validates the declarative recipient policy. It does not decrypt
 secret files or verify that an encrypted file was most recently re-encrypted
 with the current policy.
 
+## Recovery drill
+
+Run the host-specific recovery drill before relying on a new or rebuilt host:
+
+```bash
+bash scripts/sops-recovery-drill.sh --host r730xd
+```
+
+The drill validates the recipient policy, resolves the selected host's SOPS
+recipient, lists the secret files intended for that host, and prints the
+recovery checklist.
+
+To exercise decryption from a local SOPS identity that is authorized for the
+host's allowed files, run:
+
+```bash
+bash scripts/sops-recovery-drill.sh --host r730xd --decrypt
+```
+
+CI runs the non-decrypting drill for `r730xd` and validates the script syntax.
+Decryption requires a real SOPS identity and must be run locally or from a
+trusted administrative environment.
+
 ## Changing recipients
 
 After changing a creation rule in `.sops.yaml`, re-encrypt the affected file

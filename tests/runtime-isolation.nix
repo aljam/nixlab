@@ -116,16 +116,16 @@ let
               password_encryption = "scram-sha-256";
             };
 
-            authentication = '''
+            authentication = ''
               local all all peer
 
               host testdb testuser 127.0.0.1/32 scram-sha-256
-            ''';
+            '';
 
-            initialScript = '''
+            initialScript = ''
               CREATE USER testuser WITH PASSWORD 'testpass';
               CREATE DATABASE testdb OWNER testuser;
-            ''';
+            '';
           };
         };
       };

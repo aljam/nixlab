@@ -128,10 +128,15 @@ let
       name = "postgresql-auth";
 
       nodes = {
-        database = { lib, pkgs, ... }: {
+        database = { lib, ... }: {
           services.postgresql = {
             enable = true;
             enableTCPIP = true;
+
+            ensureDatabases = [ "testdb" ];
+            ensureUsers = [
+              { name = "testuser"; }
+            ];
 
             settings = {
               listen_addresses = lib.mkForce "127.0.0.1";
@@ -143,11 +148,6 @@ let
 
               host testdb testuser 127.0.0.1/32 scram-sha-256
             '';
-
-            initialScript = pkgs.writeText "postgresql-auth-test-init.sql" ''
-              CREATE USER testuser WITH PASSWORD 'testpass';
-              CREATE DATABASE testdb OWNER testuser;
-            '';
           };
         };
       };
@@ -155,6 +155,17 @@ let
       testScript = ''
         database.start()
         database.wait_for_unit("postgresql.service")
+
+        # ensureUsers runs in PostgreSQL setup. Wait for it before transferring
+        # database ownership or setting the role password.
+        database.wait_for_unit("postgresql-setup.service")
+
+        database.succeed(
+            "sudo -u postgres psql -c \"ALTER DATABASE testdb OWNER TO testuser;\""
+        )
+        database.succeed(
+            "sudo -u postgres psql -c \"ALTER ROLE testuser WITH PASSWORD 'testpass';\""
+        )
 
         with subtest("the configured database user can connect over TCP"):
             database.succeed(

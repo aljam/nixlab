@@ -18,7 +18,7 @@ SECRETS_DIR = ROOT / "secrets"
 EXPECTED_RECIPIENTS = {
     "secrets/common.yaml": {"aljam", "navi", "oryx", "r730", "r730xd", "r820"},
     "secrets/nas.yaml": {"aljam", "navi", "oryx"},
-    "secrets/database.yaml": {"aljam", "r730xd"},
+    "secrets/database.yaml": {"aljam", "r730xd", "r820"},
     "secrets/matrix.yaml": {"aljam", "r730xd"},
     "secrets/vaultwarden.yaml": {"aljam", "r730xd"},
     "secrets/monitoring.yaml": {"aljam", "r730xd"},

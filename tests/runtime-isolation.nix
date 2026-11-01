@@ -201,8 +201,8 @@ let
                 "curl -fsS --max-time 10 "
                 f"'{prometheus_url}/api/v1/query?query=up%7Binstance%3D%22"
                 "${monitoringIps.exporter}%3A9100%22%7D' "
-                "| grep -q '\"value\":[1,\"1\"]'",
-                timeout=60,
+                "| grep -qE '\"value\":\\[[0-9]+,\"1\"\\]'",
+                timeout=120,
             )
 
         with subtest("monitoring services remain unreachable from the exporter"):

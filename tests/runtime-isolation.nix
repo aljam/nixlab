@@ -106,7 +106,7 @@ let
       name = "postgresql-auth";
 
       nodes = {
-        database = { lib, ... }: {
+        database = { lib, pkgs, ... }: {
           services.postgresql = {
             enable = true;
             enableTCPIP = true;
@@ -122,7 +122,7 @@ let
               host testdb testuser 127.0.0.1/32 scram-sha-256
             '';
 
-            initialScript = ''
+            initialScript = pkgs.writeText "postgresql-auth-test-init.sql" ''
               CREATE USER testuser WITH PASSWORD 'testpass';
               CREATE DATABASE testdb OWNER testuser;
             '';

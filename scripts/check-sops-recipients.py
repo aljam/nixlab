@@ -35,7 +35,7 @@ REQUIRED_ALIASES = {
 }
 
 ALIAS_DEFINITION = re.compile(
-    r"^\s*-\s*&([A-Za-z0-9_-]+)\s+(\S+)(?:\s.*)?$",
+    r"^\s*-\s*&([A-Za-z0-9_-]+)\s+(\S+)(?:[ \t].*)?$",
     re.MULTILINE,
 )
 ALIAS_REFERENCE = re.compile(r"\*([A-Za-z0-9_-]+)")

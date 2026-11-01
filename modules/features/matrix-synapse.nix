@@ -12,6 +12,11 @@
       sopsFile = ../../secrets/matrix.yaml;
       owner = "matrix-synapse";
     };
+
+    pfsense-root-ca = {
+      sopsFile = ../../secrets/matrix.yaml;
+      owner = "matrix-synapse";
+    };
   };
 
   services.matrix-synapse = {
@@ -41,8 +46,9 @@
         args = {
           database = "matrix-synapse";
           user = "matrix-synapse";
-          host = config.networking.fleet.r820.ip;
-          sslmode = "require";
+          host = "r820.derezzed.info";
+          sslmode = "verify-full";
+          sslrootcert = config.sops.secrets.pfsense-root-ca.path;
           cp_min = 5;
           cp_max = 10;
         };

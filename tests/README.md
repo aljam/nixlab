@@ -1,26 +1,20 @@
 # Tests
 
-## CI checks
+The flake maintains two active checks:
 
-The security workflow performs two checks:
+## `nftables-input-rules`
 
-- Gitleaks scans the working tree and the complete Git history. The checkout uses `fetch-depth: 0`, so deleted or superseded secrets are included in the scan. Findings are redacted in CI output.
-- `nix flake check --show-trace` evaluates the repository's flake checks.
+A fast, VM-free evaluation check that validates custom nftables input rules
+across every host. It rejects overly broad rules that accept traffic without a
+meaningful match condition.
 
-Run the secret scan locally with:
+## `firewall-isolation`
 
-```sh
-gitleaks detect --source . --redact --verbose
-```
+A NixOS VM integration test that validates network isolation between backend
+services, the HAProxy gateway, and untrusted LAN hosts.
 
-Run the Nix checks locally with:
+## Removed tests
 
-```sh
-nix flake check --show-trace
-```
-
-## Configuration assertions
-
-`security.nix` contains reusable NixOS assertions for baseline security policy. Import it from a test configuration or from the appropriate host test when the host configuration is available. Keep assertions focused on invariants, such as requiring SSH keys instead of passwords and ensuring privileged services do not run with unsafe defaults.
-
-Do not place real credentials, tokens, private keys, or decrypted SOPS output in tests or fixtures. If a historical secret is found, revoke or rotate it even after removing it from Git history.
+The former service-health, service-isolation, backup, and standalone security
+assertion tests were removed because they were unused or invalid. Their useful
+sudo and SSH checks are now enforced by `modules/features/security-policy.nix`.

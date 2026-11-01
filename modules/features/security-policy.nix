@@ -1,13 +1,4 @@
-# Cross-cutting security policies evaluated for every host.
-#
-# These assertions turn the repository's security decisions into build-time
-# checks. They are intentionally conservative: a policy should be added here
-# only when violating it represents a real security or exposure regression.
-{
-  config,
-  lib,
-  ...
-}:
+{ lib, config, ... }:
 
 let
   sopsSecrets = lib.attrValues config.sops.secrets;
@@ -94,6 +85,22 @@ in
         !(config.roles.server.enable or false)
         || !gamingEnabled;
       message = "Steam, GameScope, and gaming firewall rules must not be enabled on server hosts.";
+    }
+
+    # If sudo is enabled, administrative commands must require a password.
+    {
+      assertion =
+        !(config.security.sudo.enable or false)
+        || config.security.sudo.wheelNeedsPassword;
+      message = "sudo must require a password when enabled.";
+    }
+
+    # SSH must remain key-only; password authentication is disabled centrally.
+    {
+      assertion =
+        !(config.services.openssh.enable or false)
+        || config.services.openssh.settings.PasswordAuthentication == false;
+      message = "SSH password authentication must remain disabled.";
     }
   ];
 }

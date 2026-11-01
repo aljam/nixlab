@@ -154,6 +154,11 @@
           test = "admin-isolation";
         };
 
+        monitoring-health = import ./tests/runtime-isolation.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+          test = "monitoring-health";
+        };
+
         postgresql-auth = import ./tests/runtime-isolation.nix {
           pkgs = nixpkgs.legacyPackages.${system};
           test = "postgresql-auth";

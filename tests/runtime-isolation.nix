@@ -7,6 +7,7 @@
 #
 # Import with:
 #   import ./runtime-isolation.nix { pkgs = ...; test = "admin-isolation"; }
+#   import ./runtime-isolation.nix { pkgs = ...; test = "monitoring-health"; }
 #   import ./runtime-isolation.nix { pkgs = ...; test = "postgresql-auth"; }
 #   import ./runtime-isolation.nix { pkgs = ...; test = "postgresql-reachability"; }
 {
@@ -17,8 +18,6 @@
 let
   inherit (pkgs) lib;
 
-  # Static addresses keep the generated nftables and PostgreSQL HBA rules
-  # aligned with the addresses actually used by the test VMs.
   adminIps = {
     backend = "192.168.1.10";
     gateway = "192.168.1.11";
@@ -29,6 +28,12 @@ let
     database = "192.168.1.20";
     synapse = "192.168.1.21";
     unrelated = "192.168.1.22";
+  };
+
+  monitoringIps = {
+    exporter = "192.168.1.30";
+    monitor = "192.168.1.31";
+    unused = "192.168.1.32";
   };
 
   staticAddress = ip: {
@@ -48,9 +53,6 @@ let
     };
 
   tests = {
-    # Prove that pgAdmin and Shoko stand-ins remain unreachable from other LAN
-    # machines even if their application processes listen on every interface.
-    # The allowed backend port remains reachable only by the HAProxy gateway.
     admin-isolation = pkgs.testers.nixosTest {
       name = "admin-isolation";
 
@@ -63,7 +65,6 @@ let
 
           networking.firewall.enable = true;
           networking.nftables.enable = true;
-
           networking.interfaces.eth1.ipv4.addresses = [ (staticAddress adminIps.backend) ];
 
           networking.fleet = lib.mkForce {
@@ -122,8 +123,103 @@ let
       '';
     };
 
-    # Prove that PostgreSQL TCP authentication remains limited to an explicit
-    # database/user pair and rejects an unknown role.
+    monitoring-health = pkgs.testers.nixosTest {
+      name = "monitoring-health";
+
+      nodes = {
+        monitor = { lib, ... }: {
+          imports = [
+            ../modules/features/networking-options.nix
+            ../modules/features/node-exporter.nix
+            ../modules/features/prometheus-server.nix
+          ];
+
+          options.networking.servicesBindAddress = lib.mkOption {
+            type = lib.types.str;
+          };
+
+          config = {
+            networking.servicesBindAddress = monitoringIps.monitor;
+            networking.firewall.enable = true;
+            networking.nftables.enable = true;
+            networking.interfaces.eth1.ipv4.addresses = [ (staticAddress monitoringIps.monitor) ];
+
+            networking.fleet = lib.mkForce {
+              r730.ip = monitoringIps.exporter;
+              r730xd.ip = monitoringIps.monitor;
+              r820.ip = monitoringIps.unused;
+            };
+
+            networking.firewall.extraInputRules = ''
+              ip saddr ${monitoringIps.exporter} tcp dport 9100 accept
+            '';
+          };
+        };
+
+        exporter = { lib, ... }: {
+          imports = [ ../modules/features/node-exporter.nix ];
+
+          networking.firewall.enable = true;
+          networking.nftables.enable = true;
+          networking.interfaces.eth1.ipv4.addresses = [ (staticAddress monitoringIps.exporter) ];
+
+          networking.firewall.extraInputRules = ''
+            ip saddr ${monitoringIps.monitor} tcp dport 9100 accept
+          '';
+        };
+      };
+
+      testScript = ''
+        start_all()
+
+        monitor.wait_for_unit("nftables.service")
+        monitor.wait_for_unit("prometheus.service")
+        monitor.wait_for_unit("prometheus-node-exporter.service")
+
+        exporter.wait_for_unit("nftables.service")
+        exporter.wait_for_unit("prometheus-node-exporter.service")
+
+        prometheus_url = "http://${monitoringIps.monitor}:9090"
+
+        with subtest("Prometheus becomes ready and healthy"):
+            monitor.wait_until_succeeds(
+                f"curl -fsS --max-time 10 {prometheus_url}/-/ready",
+                timeout=60,
+            )
+            monitor.succeed(f"curl -fsS --max-time 10 {prometheus_url}/-/healthy")
+
+        with subtest("Prometheus loads its alert rules"):
+            rules = monitor.succeed(
+                f"curl -fsS --max-time 10 {prometheus_url}/api/v1/rules"
+            )
+
+            if '"status":"success"' not in rules:
+                raise Exception("Prometheus did not load its rules successfully")
+
+        with subtest("Prometheus scrapes the node exporter"):
+            monitor.wait_until_succeeds(
+                "curl -fsS --max-time 10 "
+                f"'{prometheus_url}/api/v1/targets?state=active' "
+                "| grep -A5 '\"scrapeUrl\":\"http://${monitoringIps.exporter}:9100/metrics\"' "
+                "| grep -q '\"health\":\"up\"'",
+                timeout=120,
+            )
+
+        with subtest("monitoring services remain unreachable from the exporter"):
+            exporter.fail(
+                "curl -o /dev/null -fsS --max-time 10 "
+                "http://${monitoringIps.monitor}:9090/-/ready"
+            )
+            exporter.fail(
+                "curl -o /dev/null -fsS --max-time 10 "
+                "http://${monitoringIps.monitor}:9115/probe"
+            )
+
+        with subtest("the Blackbox exporter remains loopback-only"):
+            monitor.succeed("ss -ltn | grep -q '127.0.0.1:9115'")
+      '';
+    };
+
     postgresql-auth = pkgs.testers.nixosTest {
       name = "postgresql-auth";
 
@@ -134,9 +230,7 @@ let
             enableTCPIP = true;
 
             ensureDatabases = [ "testdb" ];
-            ensureUsers = [
-              { name = "testuser"; }
-            ];
+            ensureUsers = [ { name = "testuser"; } ];
 
             settings = {
               listen_addresses = lib.mkForce "127.0.0.1";
@@ -155,13 +249,10 @@ let
       testScript = ''
         database.start()
         database.wait_for_unit("postgresql.service")
-
-        # ensureUsers runs in PostgreSQL setup. Wait for it before transferring
-        # database ownership or setting the role password.
         database.wait_for_unit("postgresql-setup.service")
 
         database.succeed(
-            "sudo -u postgres psql -c \"ALTER DATABASE testdb OWNER TO testuser;\""
+            "sudo -u postgres psql -c 'ALTER DATABASE testdb OWNER TO testuser;'"
         )
         database.succeed(
             "sudo -u postgres psql -c \"ALTER ROLE testuser WITH PASSWORD 'testpass';\""
@@ -187,8 +278,6 @@ let
       '';
     };
 
-    # Prove that PostgreSQL is reachable from the explicitly authorized Synapse
-    # host, while an unrelated LAN host cannot reach the database port.
     postgresql-reachability = pkgs.testers.nixosTest {
       name = "postgresql-reachability";
 

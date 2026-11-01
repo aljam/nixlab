@@ -34,7 +34,10 @@ REQUIRED_ALIASES = {
     "r820",
 }
 
-ALIAS_DEFINITION = re.compile(r"^\s*-\s*&([A-Za-z0-9_-]+)\s+(\S+)\s*$", re.MULTILINE)
+ALIAS_DEFINITION = re.compile(
+    r"^\s*-\s*&([A-Za-z0-9_-]+)\s+(\S+)(?:\s+#.*)?$",
+    re.MULTILINE,
+)
 ALIAS_REFERENCE = re.compile(r"\*([A-Za-z0-9_-]+)")
 RULE_SPLIT = re.compile(r"^(?=\s*-\s*path_regex:\s*)", re.MULTILINE)
 PATH_REGEX = re.compile(r"^\s*-\s*path_regex:\s*(\S+)\s*$", re.MULTILINE)

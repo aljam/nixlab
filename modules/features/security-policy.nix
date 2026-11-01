@@ -14,6 +14,19 @@ let
     (lib.unique proxyBackendPorts)
     proxyBackendPorts;
 
+  # Remote PostgreSQL clients must explicitly negotiate TLS. Loopback rules
+  # are exempt because their traffic does not traverse a network interface.
+  plaintextRemotePostgresRules = lib.filter
+    (line:
+      let
+        trimmed = lib.strings.trim line;
+      in
+      lib.strings.hasPrefix "host " trimmed
+      && !(lib.strings.hasInfix "127.0.0.1/32" trimmed)
+      && !(lib.strings.hasInfix "::1/128" trimmed)
+    )
+    (lib.strings.splitString "\n" postgresAuth);
+
   gamingEnabled =
     (config.programs.steam.enable or false)
     || (config.programs.gamescope.enable or false);
@@ -66,6 +79,12 @@ in
     {
       assertion = !(lib.hasInfix "host all all" postgresAuth);
       message = "PostgreSQL authentication must not contain broad host/all/all rules.";
+    }
+
+    # Remote PostgreSQL authentication must explicitly require TLS.
+    {
+      assertion = plaintextRemotePostgresRules == [ ];
+      message = "PostgreSQL authentication must use hostssl for every non-loopback client rule.";
     }
 
     # pgAdmin is a powerful administrative interface and must remain

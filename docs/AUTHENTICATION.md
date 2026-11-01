@@ -29,9 +29,9 @@ For every public hostname, record:
 | `audiobookshelf.derezzed.info` | Audiobookshelf | 13378 | Local accounts | Review | Review | Review | Review | Pending |
 | `radarr.derezzed.info` | Radarr | 7878 | Application authentication | Public, authenticated | N/A | Not supported | Protected | 2026-11-01 |
 | `sonarr.derezzed.info` | Sonarr | 8989 | Application authentication | Public, authenticated | N/A | Not supported | Protected | 2026-11-01 |
-| `lidarr.derezzed.info` | Lidarr | 8686 | Application authentication | Review | N/A | N/A | Review | Pending |
-| `bazarr.derezzed.info` | Bazarr | 6767 | Application authentication | Review | N/A | N/A | Review | Pending |
-| `prowlarr.derezzed.info` | Prowlarr | 9696 | Application authentication | Review | N/A | N/A | Review | Pending |
+| `lidarr.derezzed.info` | Lidarr | 8686 | Application authentication | Public, authenticated | N/A | Not supported | Protected | 2026-11-01 |
+| `bazarr.derezzed.info` | Bazarr | 6767 | Application authentication | Public, authenticated | N/A | Not supported | Protected | 2026-11-01 |
+| `prowlarr.derezzed.info` | Prowlarr | 9696 | Application authentication | Public, authenticated | N/A | Not supported | Protected | 2026-11-01 |
 | `shoko.derezzed.info` | Shoko | 8111 | Review | Review | Review | Review | Review | Pending |
 | `qb.derezzed.info` | qBittorrent | 8080 | qBittorrent WebUI username/password | Public, authenticated | N/A | Not supported | None | 2026-11-01 |
 | `home.derezzed.info` | Homepage | 8082 | None; public dashboard | No admin UI | N/A | N/A | None | Pending |
@@ -49,12 +49,22 @@ Use VPN access when remote administration is required.
 
 ## Priority review order
 
-1. **Lidarr, Bazarr, Prowlarr** — Confirm forms authentication is enabled and
-   API keys are protected.
-2. **Audiobookshelf** — Confirm separate administrator and user accounts, and
+1. **Audiobookshelf** — Confirm separate administrator and user accounts, and
    review API tokens.
 
 ## Completed reviews
+
+### Lidarr, Bazarr, and Prowlarr — 2026-11-01
+
+- All three services use application authentication and require login before
+  library, indexer, and settings data are accessible.
+- Default credentials are not in use.
+- API keys are protected and were not exposed through the public interfaces,
+  logs, or dashboards.
+- Connected integrations were reviewed; no unused integrations or unintended
+  users were identified.
+- Lidarr, Bazarr, and Prowlarr do not provide native multi-factor
+  authentication.
 
 ### Radarr and Sonarr — 2026-11-01
 

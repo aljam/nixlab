@@ -19,16 +19,13 @@ creation_rules:
           - *r730xd
           - *r820
 
-  # NAS credentials are needed by every host that imports nas-mount.nix.
+  # NAS credentials are needed only by the desktop hosts that mount the NAS.
   - path_regex: secrets/nas\.yaml$
     key_groups:
       - age:
           - *aljam
           - *navi
           - *oryx
-          - *r730
-          - *r730xd
-          - *r820
 
   # PostgreSQL / pgAdmin.
   - path_regex: secrets/database\.yaml$

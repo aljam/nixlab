@@ -32,7 +32,6 @@ For every public hostname, record:
 | `lidarr.derezzed.info` | Lidarr | 8686 | Application authentication | Public, authenticated | N/A | Not supported | Protected | 2026-11-01 |
 | `bazarr.derezzed.info` | Bazarr | 6767 | Application authentication | Public, authenticated | N/A | Not supported | Protected | 2026-11-01 |
 | `prowlarr.derezzed.info` | Prowlarr | 9696 | Application authentication | Public, authenticated | N/A | Not supported | Protected | 2026-11-01 |
-| `shoko.derezzed.info` | Shoko | 8111 | Review | Review | Review | Review | Review | Pending |
 | `qb.derezzed.info` | qBittorrent | 8080 | qBittorrent WebUI username/password | Public, authenticated | N/A | Not supported | None | 2026-11-01 |
 | `home.derezzed.info` | Homepage | 8082 | None; public dashboard | No admin UI | N/A | N/A | None | 2026-11-01 |
 | `derezzed.info` / `www.derezzed.info` | Static landing page | 8083 | None | None | N/A | N/A | None | 2026-11-01 |
@@ -48,6 +47,15 @@ Shoko remains enabled for local media integrations, but it is not added to
 Use VPN access when remote administration is required.
 
 ## Completed reviews
+
+### Shoko — 2026-11-01
+
+- Shoko is intentionally LAN-only and is not publicly routed through HAProxy.
+- It is excluded from `networking.proxyBackendPorts` and the public Homepage
+  dashboard.
+- It remains enabled for local Jellyfin and other media integrations.
+- Remote administration requires LAN or VPN access.
+- The service security review is complete.
 
 ### Homepage and static landing page — 2026-11-01
 
@@ -156,12 +164,6 @@ Use VPN access when remote administration is required.
 - CSRF protection and Host header validation are enabled.
 - The default `admin` / `adminadmin` credentials are not in use.
 - No API key is exposed through the public WebUI.
-
-### Shoko — 2026-11-01
-
-- Removed from the public HAProxy backend allowlist and Homepage dashboard.
-- Remains enabled for LAN-only media integrations.
-- Remote administration requires VPN access.
 
 ## Required controls
 

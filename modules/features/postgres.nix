@@ -7,6 +7,8 @@
 #   admin-only route only if explicitly needed.
 # - TCP database authentication is limited to explicit database/user pairs.
 # - The firewall permits only the Matrix Synapse host to reach PostgreSQL.
+# - Remote PostgreSQL connections require TLS using the pfSense-issued server
+#   certificate installed at stable paths below.
 {
   config,
   pkgs,
@@ -33,6 +35,10 @@
       );
 
       password_encryption = "scram-sha-256";
+
+      ssl = true;
+      ssl_cert_file = "/var/lib/postgresql/ssl/server.crt";
+      ssl_key_file = "/var/lib/postgresql/ssl/server.key";
     };
 
     authentication = lib.mkOverride 10 ''

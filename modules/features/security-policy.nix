@@ -13,6 +13,11 @@ let
   sopsSecrets = lib.attrValues config.sops.secrets;
 
   postgresAuth = config.services.postgresql.authentication or "";
+  postgresPort = config.services.postgresql.settings.port or 5432;
+  proxyBackendPorts = config.networking.proxyBackendPorts;
+  duplicateProxyPorts = lib.lists.subtractLists
+    (lib.unique proxyBackendPorts)
+    proxyBackendPorts;
 in
 {
   assertions = [
@@ -35,6 +40,29 @@ in
     {
       assertion = !(lib.elem 5050 config.networking.proxyBackendPorts);
       message = "pgAdmin must not be exposed through the HAProxy backend allowlist.";
+    }
+
+    # PostgreSQL is a sensitive backend service and must not be exposed
+    # through the HAProxy backend allowlist.
+    {
+      assertion = !(lib.elem postgresPort proxyBackendPorts);
+      message = "PostgreSQL must not be exposed through the HAProxy backend allowlist.";
+    }
+
+    # Services using the shared bind address must never listen on every
+    # interface; use loopback or an explicit fleet service address.
+    {
+      assertion =
+        config.networking.servicesBindAddress != "0.0.0.0"
+        && config.networking.servicesBindAddress != "::";
+      message = "servicesBindAddress must not bind services to every interface.";
+    }
+
+    # Duplicate backend ports make the exposure allowlist misleading and are
+    # usually a configuration mistake.
+    {
+      assertion = duplicateProxyPorts == [ ];
+      message = "HAProxy backend ports must not contain duplicates.";
     }
 
     # Autobrr should use the host's service address rather than every interface.

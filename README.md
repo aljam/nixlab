@@ -51,7 +51,6 @@ nixlab/
 │   └── roles/             # Role modules (common, server-core, desktop-node, media-node, storage-node, ai-node, mail-node)
 ├── secrets/               # SOPS-encrypted secrets, split by service or trust boundary
 │   ├── common.yaml        # Fleet-wide user/login secrets
-│   ├── nas.yaml           # CIFS credentials
 │   ├── database.yaml      # PostgreSQL / pgAdmin
 │   ├── matrix.yaml        # Matrix Synapse and Matrix RTC / LiveKit
 │   ├── vaultwarden.yaml   # Vaultwarden
@@ -77,22 +76,20 @@ nixlab/
 - Age key (host SSH Ed25519 key) for SOPS decryption
 - Access to the Cachix binary cache (see [CACHIX.md](CACHIX.md))
 
-### Running Tests
+### Running Checks
 
 ```bash
-# Run all checks (evaluations + firewall test)
+# Run every evaluation and NixOS test
 nix flake check
 
-# Run only the firewall test
-nix build .#checks.x86_64-linux.firewall
-```
+# Show a full trace when a check fails
+nix flake check --show-trace
 
-### Formatting
-
-```bash
 # Format all Nix files (nixfmt via treefmt)
 nix fmt
 ```
+
+The checks include firewall isolation, nftables input rules, administrative-service isolation, PostgreSQL authentication, and PostgreSQL LAN reachability.
 
 ### CI/CD
 

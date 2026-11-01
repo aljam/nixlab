@@ -8,6 +8,7 @@
 # Import with:
 #   import ./runtime-isolation.nix { pkgs = ...; test = "admin-isolation"; }
 #   import ./runtime-isolation.nix { pkgs = ...; test = "postgresql-auth"; }
+#   import ./runtime-isolation.nix { pkgs = ...; test = "postgresql-reachability"; }
 {
   pkgs,
   test ? "admin-isolation",
@@ -151,6 +152,90 @@ let
             config = database.succeed(f"cat {hba_path}")
             if "host all all" in config:
                 raise Exception("PostgreSQL contains a broad host/all/all rule")
+      '';
+    };
+
+    # Prove that PostgreSQL is reachable from the explicitly authorized Synapse
+    # host, while an unrelated LAN host cannot reach the database port.
+    postgresql-reachability = pkgs.testers.nixosTest {
+      name = "postgresql-reachability";
+
+      nodes = {
+        database =
+          { nodes, lib, pkgs, ... }:
+          {
+            networking.firewall.enable = true;
+            networking.nftables.enable = true;
+
+            networking.firewall.extraInputRules = ''
+              ip saddr ${nodes.synapse.networking.primaryIPAddress} tcp dport 5432 accept
+            '';
+
+            services.postgresql = {
+              enable = true;
+              enableTCPIP = true;
+
+              settings = {
+                listen_addresses = lib.mkForce "*";
+                password_encryption = "scram-sha-256";
+              };
+
+              authentication = ''
+                local all all peer
+
+                host testdb testuser ${nodes.synapse.networking.primaryIPAddress}/32 scram-sha-256
+              '';
+
+              initialScript = pkgs.writeText "postgresql-reachability-init.sql" ''
+                CREATE USER testuser WITH PASSWORD 'testpass';
+                CREATE DATABASE testdb OWNER testuser;
+              '';
+            };
+          };
+
+        synapse = { pkgs, ... }: {
+          environment.systemPackages = [ pkgs.postgresql ];
+          networking.firewall.enable = true;
+          networking.nftables.enable = true;
+        };
+
+        unrelated = { pkgs, ... }: {
+          environment.systemPackages = [ pkgs.postgresql ];
+          networking.firewall.enable = true;
+          networking.nftables.enable = true;
+        };
+      };
+
+      testScript = ''
+        start_all()
+
+        database.wait_for_unit("nftables.service")
+        database.wait_for_unit("postgresql.service")
+
+        for machine in [synapse, unrelated]:
+            machine.wait_for_unit("multi-user.target")
+
+        synapse_ip = synapse.succeed("hostname -I").split()[0]
+
+        with subtest("the authorized Synapse host reaches PostgreSQL"):
+            synapse.succeed(
+                "PGCONNECT_TIMEOUT=10 PGPASSWORD=testpass psql "
+                f"-h {database.name} -U testuser -d testdb -c 'SELECT 1' >&2"
+            )
+
+        with subtest("an unrelated LAN host cannot reach PostgreSQL"):
+            unrelated.fail(
+                "PGCONNECT_TIMEOUT=10 PGPASSWORD=testpass psql "
+                f"-h {database.name} -U testuser -d testdb -c 'SELECT 1' >&2"
+            )
+
+        with subtest("PostgreSQL authorizes only the Synapse address for TCP"):
+            hba_path = database.succeed(
+                "sudo -u postgres psql -Atc 'SHOW hba_file'"
+            ).strip()
+            hba = database.succeed(f"cat {hba_path}")
+            if synapse_ip not in hba:
+                raise Exception(f"PostgreSQL does not authorize Synapse address {synapse_ip}")
       '';
     };
   };

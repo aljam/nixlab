@@ -1,7 +1,7 @@
 { config, lib, pkgs, ... }:
 
 let
-  relayPort = 9094;
+  relayPort = 9095;
 
   ntfyAlertRelay = pkgs.writers.writePython3 "ntfy-alert-relay" { } ''
     import json

@@ -1,4 +1,7 @@
 { config, lib, ... }:
+let
+  rtcDomain = "rtc.${config.networking.myDomain}";
+in
 {
   networking.proxyBackendPorts = [ 8008 ];
 
@@ -42,7 +45,7 @@
         "org.matrix.msc4143.rtc_foci" = [
           {
             type = "livekit";
-            livekit_service_url = "https://rtc.derezzed.info/livekit/jwt";
+            livekit_service_url = "https://${rtcDomain}/livekit/jwt";
           }
         ];
       };
@@ -52,7 +55,7 @@
         args = {
           database = "matrix-synapse";
           user = "matrix-synapse";
-          host = "r820.derezzed.info";
+          host = config.networking.fleet.r820.ip;
           sslmode = "verify-full";
           sslrootcert = config.sops.secrets.pfsense-root-ca.path;
           cp_min = 5;
@@ -91,8 +94,8 @@
       matrix_rtc.transports = [
         {
           type = "livekit";
-          url = "wss://rtc.derezzed.info/livekit/sfu";
-          livekit_service_url = "https://rtc.derezzed.info/livekit/jwt";
+          url = "wss://${rtcDomain}/livekit/sfu";
+          livekit_service_url = "https://${rtcDomain}/livekit/jwt";
         }
       ];
     };

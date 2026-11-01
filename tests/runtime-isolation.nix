@@ -106,13 +106,13 @@ let
       name = "postgresql-auth";
 
       nodes = {
-        database = { ... }: {
+        database = { lib, ... }: {
           services.postgresql = {
             enable = true;
             enableTCPIP = true;
 
             settings = {
-              listen_addresses = "127.0.0.1";
+              listen_addresses = lib.mkForce "127.0.0.1";
               password_encryption = "scram-sha-256";
             };
 

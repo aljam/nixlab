@@ -154,6 +154,12 @@
           hosts = self.nixosConfigurations;
         };
 
+        # Runtime checks for SOPS encryption/decryption permissions, service
+        # listeners, and narrowly scoped firewall exceptions.
+        runtime-security = import ./tests/runtime-security.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
         # Runtime checks that administrative services and PostgreSQL remain
         # isolated even if their application processes listen more broadly.
         admin-isolation = import ./tests/runtime-isolation.nix {

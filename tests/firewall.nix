@@ -72,9 +72,13 @@ in
 
     backend.wait_for_unit("nftables.service")
     backend.wait_for_unit("backend-app.service")
-    backend.wait_for_open_port(${toString backendPort})
+    backend.wait_until_succeeds(
+        "curl -fsS --max-time 2 http://127.0.0.1:${toString backendPort}/ >/dev/null"
+    )
     backend.wait_for_unit("prometheus-node-exporter.service")
-    backend.wait_for_open_port(${toString exporterPort})
+    backend.wait_until_succeeds(
+        "curl -fsS --max-time 2 http://127.0.0.1:${toString exporterPort}/metrics >/dev/null"
+    )
 
     for machine in [gateway, prometheus, attacker]:
         machine.wait_for_unit("multi-user.target")

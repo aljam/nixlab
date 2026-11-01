@@ -43,11 +43,8 @@ in
     "8.8.8.8"
   ];
 
-  # Firewall: Allow HTTP/HTTPS for reverse proxy
-  networking.firewall.allowedTCPPorts = [
-    80
-    443
-  ];
+  # Backend servers are reached through the pfSense HAProxy gateway.
+  # Do not allow direct HTTP/HTTPS ingress here.
 
   # Container runtime
   virtualisation.podman = {

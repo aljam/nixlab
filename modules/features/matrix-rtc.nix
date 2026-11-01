@@ -14,7 +14,7 @@
   ...
 }:
 let
-  rtcDomain = "rtc.derezzed.info";
+  rtcDomain = "rtc.${config.networking.myDomain}";
 
   hostIp = config.networking.fleet.r730xd.ip;
 

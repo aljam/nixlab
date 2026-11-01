@@ -147,6 +147,16 @@
           hosts = self.nixosConfigurations;
         };
 
+        # Runtime checks that administrative services and PostgreSQL remain
+        # isolated even if their application processes listen more broadly.
+        admin-isolation =
+          nixpkgs.legacyPackages.${system}.testers.runNixOSTest
+            (import ./tests/runtime-isolation.nix { test = "admin-isolation"; });
+
+        postgresql-auth =
+          nixpkgs.legacyPackages.${system}.testers.runNixOSTest
+            (import ./tests/runtime-isolation.nix { test = "postgresql-auth"; });
+
         # End-to-end network isolation test.
         firewall-isolation =
           nixpkgs.legacyPackages.${system}.testers.runNixOSTest

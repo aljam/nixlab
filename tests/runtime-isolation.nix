@@ -288,7 +288,7 @@ let
           networking.interfaces.eth1.ipv4.addresses = [ (staticAddress postgresIps.database) ];
 
           networking.firewall.extraInputRules = ''
-            ip saddr ${postgresIps.synapse} tcp dport 5432 accept
+            ip saddr ${postgresIps.synapse} tcp dport 5432 accept comment "Matrix Synapse PostgreSQL"
           '';
 
           services.postgresql = {
@@ -348,6 +348,22 @@ let
                 "PGCONNECT_TIMEOUT=10 PGPASSWORD=testpass psql "
                 f"-h ${postgresIps.database} -U testuser -d testdb -c 'SELECT 1' >&2"
             )
+
+        with subtest("PostgreSQL has exactly one Synapse firewall exception"):
+            ruleset = database.succeed("nft list ruleset")
+            postgres_rules = [
+                line.strip()
+                for line in ruleset.splitlines()
+                if "tcp dport 5432 accept" in line
+            ]
+
+            if len(postgres_rules) != 1:
+                raise Exception(
+                    f"Expected one PostgreSQL firewall exception, found {len(postgres_rules)}"
+                )
+
+            if f"ip saddr ${postgresIps.synapse}" not in postgres_rules[0]:
+                raise Exception("The PostgreSQL firewall exception is not scoped to Synapse")
 
         with subtest("PostgreSQL authorizes only the Synapse address for TCP"):
             hba_path = database.succeed(

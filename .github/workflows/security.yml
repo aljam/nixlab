@@ -64,6 +64,16 @@ jobs:
               )
           PY
 
+  sops-recipients:
+    name: Audit SOPS recipients
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Check SOPS recipient policy
+        run: python3 scripts/check-sops-recipients.py
+
   nix:
     name: Evaluate Nix checks
     runs-on: ubuntu-latest

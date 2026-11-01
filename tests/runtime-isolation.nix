@@ -17,6 +17,25 @@
 let
   inherit (pkgs) lib;
 
+  # Static addresses keep the generated nftables and PostgreSQL HBA rules
+  # aligned with the addresses actually used by the test VMs.
+  adminIps = {
+    backend = "192.168.1.10";
+    gateway = "192.168.1.11";
+    attacker = "192.168.1.12";
+  };
+
+  postgresIps = {
+    database = "192.168.1.20";
+    synapse = "192.168.1.21";
+    unrelated = "192.168.1.22";
+  };
+
+  staticAddress = ip: {
+    address = ip;
+    prefixLength = 24;
+  };
+
   httpServer =
     pkgs: port:
     {
@@ -36,39 +55,41 @@ let
       name = "admin-isolation";
 
       nodes = {
-        backend =
-          { nodes, pkgs, ... }:
-          {
-            imports = [
-              ../modules/features/networking-options.nix
-              ../modules/features/reverse-proxy-backends.nix
-            ];
+        backend = { pkgs, ... }: {
+          imports = [
+            ../modules/features/networking-options.nix
+            ../modules/features/reverse-proxy-backends.nix
+          ];
 
-            networking.firewall.enable = true;
-            networking.nftables.enable = true;
+          networking.firewall.enable = true;
+          networking.nftables.enable = true;
 
-            networking.fleet = lib.mkForce {
-              proxy.ip = nodes.gateway.networking.primaryIPAddress;
-              r730xd.ip = nodes.attacker.networking.primaryIPAddress;
-            };
+          networking.interfaces.eth1.ipv4.addresses = [ (staticAddress adminIps.backend) ];
 
-            networking.proxyBackendPorts = [ 3000 ];
-
-            systemd.services = {
-              public-backend = httpServer pkgs 3000;
-              pgadmin-standin = httpServer pkgs 5050;
-              shoko-standin = httpServer pkgs 8111;
-            };
+          networking.fleet = lib.mkForce {
+            proxy.ip = adminIps.gateway;
+            r730xd.ip = adminIps.attacker;
           };
+
+          networking.proxyBackendPorts = [ 3000 ];
+
+          systemd.services = {
+            public-backend = httpServer pkgs 3000;
+            pgadmin-standin = httpServer pkgs 5050;
+            shoko-standin = httpServer pkgs 8111;
+          };
+        };
 
         gateway = { ... }: {
           networking.firewall.enable = true;
           networking.nftables.enable = true;
+          networking.interfaces.eth1.ipv4.addresses = [ (staticAddress adminIps.gateway) ];
         };
 
         attacker = { ... }: {
           networking.firewall.enable = true;
           networking.nftables.enable = true;
+          networking.interfaces.eth1.ipv4.addresses = [ (staticAddress adminIps.attacker) ];
         };
       };
 
@@ -83,9 +104,9 @@ let
         for machine in [gateway, attacker]:
             machine.wait_for_unit("multi-user.target")
 
-        public_url = "http://backend:3000/"
-        pgadmin_url = "http://backend:5050/"
-        shoko_url = "http://backend:8111/"
+        public_url = "http://${adminIps.backend}:3000/"
+        pgadmin_url = "http://${adminIps.backend}:5050/"
+        shoko_url = "http://${adminIps.backend}:8111/"
 
         with subtest("only the gateway reaches the allowed backend"):
             gateway.succeed(f"curl -fsS --max-time 10 -o /dev/null {public_url}")
@@ -161,48 +182,49 @@ let
       name = "postgresql-reachability";
 
       nodes = {
-        database =
-          { nodes, lib, pkgs, ... }:
-          {
-            networking.firewall.enable = true;
-            networking.nftables.enable = true;
+        database = { lib, pkgs, ... }: {
+          networking.firewall.enable = true;
+          networking.nftables.enable = true;
+          networking.interfaces.eth1.ipv4.addresses = [ (staticAddress postgresIps.database) ];
 
-            networking.firewall.extraInputRules = ''
-              ip saddr ${nodes.synapse.networking.primaryIPAddress} tcp dport 5432 accept
+          networking.firewall.extraInputRules = ''
+            ip saddr ${postgresIps.synapse} tcp dport 5432 accept
+          '';
+
+          services.postgresql = {
+            enable = true;
+            enableTCPIP = true;
+
+            settings = {
+              listen_addresses = lib.mkForce "*";
+              password_encryption = "scram-sha-256";
+            };
+
+            authentication = ''
+              local all all peer
+
+              host testdb testuser ${postgresIps.synapse}/32 scram-sha-256
             '';
 
-            services.postgresql = {
-              enable = true;
-              enableTCPIP = true;
-
-              settings = {
-                listen_addresses = lib.mkForce "*";
-                password_encryption = "scram-sha-256";
-              };
-
-              authentication = ''
-                local all all peer
-
-                host testdb testuser ${nodes.synapse.networking.primaryIPAddress}/32 scram-sha-256
-              '';
-
-              initialScript = pkgs.writeText "postgresql-reachability-init.sql" ''
-                CREATE USER testuser WITH PASSWORD 'testpass';
-                CREATE DATABASE testdb OWNER testuser;
-              '';
-            };
+            initialScript = pkgs.writeText "postgresql-reachability-init.sql" ''
+              CREATE USER testuser WITH PASSWORD 'testpass';
+              CREATE DATABASE testdb OWNER testuser;
+            '';
           };
+        };
 
         synapse = { pkgs, ... }: {
           environment.systemPackages = [ pkgs.postgresql ];
           networking.firewall.enable = true;
           networking.nftables.enable = true;
+          networking.interfaces.eth1.ipv4.addresses = [ (staticAddress postgresIps.synapse) ];
         };
 
         unrelated = { pkgs, ... }: {
           environment.systemPackages = [ pkgs.postgresql ];
           networking.firewall.enable = true;
           networking.nftables.enable = true;
+          networking.interfaces.eth1.ipv4.addresses = [ (staticAddress postgresIps.unrelated) ];
         };
       };
 
@@ -215,18 +237,16 @@ let
         for machine in [synapse, unrelated]:
             machine.wait_for_unit("multi-user.target")
 
-        synapse_ip = synapse.succeed("hostname -I").split()[0]
-
         with subtest("the authorized Synapse host reaches PostgreSQL"):
             synapse.succeed(
                 "PGCONNECT_TIMEOUT=10 PGPASSWORD=testpass psql "
-                f"-h {database.name} -U testuser -d testdb -c 'SELECT 1' >&2"
+                f"-h ${postgresIps.database} -U testuser -d testdb -c 'SELECT 1' >&2"
             )
 
         with subtest("an unrelated LAN host cannot reach PostgreSQL"):
             unrelated.fail(
                 "PGCONNECT_TIMEOUT=10 PGPASSWORD=testpass psql "
-                f"-h {database.name} -U testuser -d testdb -c 'SELECT 1' >&2"
+                f"-h ${postgresIps.database} -U testuser -d testdb -c 'SELECT 1' >&2"
             )
 
         with subtest("PostgreSQL authorizes only the Synapse address for TCP"):
@@ -234,8 +254,8 @@ let
                 "sudo -u postgres psql -Atc 'SHOW hba_file'"
             ).strip()
             hba = database.succeed(f"cat {hba_path}")
-            if synapse_ip not in hba:
-                raise Exception(f"PostgreSQL does not authorize Synapse address {synapse_ip}")
+            if "${postgresIps.synapse}" not in hba:
+                raise Exception("PostgreSQL does not authorize the Synapse address")
       '';
     };
   };

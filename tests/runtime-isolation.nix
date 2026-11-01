@@ -222,11 +222,11 @@ let
         with subtest("monitoring services remain unreachable from the exporter"):
             exporter.fail(
                 "curl -o /dev/null -fsS --max-time 10 "
-                f"http://${monitoringIps.monitor}:9090/-/ready"
+                "http://${monitoringIps.monitor}:9090/-/ready"
             )
             exporter.fail(
                 "curl -o /dev/null -fsS --max-time 10 "
-                f"http://${monitoringIps.monitor}:9115/probe"
+                "http://${monitoringIps.monitor}:9115/probe"
             )
 
         with subtest("the Blackbox exporter remains loopback-only"):

@@ -15,6 +15,7 @@
       "before 4am on monday"
     ]
   },
+  "pinDigests": true,
   "packageRules": [
     {
       "description": "Group Nix flake lock-file maintenance",

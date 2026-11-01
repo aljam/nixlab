@@ -170,9 +170,6 @@ let
       };
 
       testScript = ''
-        import json
-        import urllib.request
-
         start_all()
 
         monitor.wait_for_unit("nftables.service")
@@ -192,32 +189,21 @@ let
             monitor.succeed(f"curl -fsS --max-time 10 {prometheus_url}/-/healthy")
 
         with subtest("Prometheus loads its alert rules"):
-            with urllib.request.urlopen(
-                f"{prometheus_url}/api/v1/rules", timeout=10
-            ) as response:
-                rules = json.load(response)
+            rules = monitor.succeed(
+                f"curl -fsS --max-time 10 {prometheus_url}/api/v1/rules"
+            )
 
-            if rules.get("status") != "success":
+            if '"status":"success"' not in rules:
                 raise Exception("Prometheus did not load its rules successfully")
 
         with subtest("Prometheus scrapes the node exporter"):
-            query = (
-                f"{prometheus_url}/api/v1/query?query=up%7Binstance%3D%22"
-                "${monitoringIps.exporter}%3A9100%22%7D"
-            )
-
-            def exporter_is_up():
-                with urllib.request.urlopen(query, timeout=10) as response:
-                    result = json.load(response)["data"]["result"]
-
-                return bool(result) and result[0]["value"][1] == "1"
-
             monitor.wait_until_succeeds(
-                "python3 -c 'import sys; sys.exit(0)'", timeout=60
+                "curl -fsS --max-time 10 "
+                f"'{prometheus_url}/api/v1/query?query=up%7Binstance%3D%22"
+                "${monitoringIps.exporter}%3A9100%22%7D' "
+                "| grep -q '\"value\":[1,\"1\"]'",
+                timeout=60,
             )
-
-            if not exporter_is_up():
-                raise Exception("Prometheus did not scrape the node exporter")
 
         with subtest("monitoring services remain unreachable from the exporter"):
             exporter.fail(
@@ -337,6 +323,7 @@ let
         unrelated = { pkgs, ... }: {
           environment.systemPackages = [ pkgs.postgresql ];
           networking.firewall.enable = true;
+          networking.nftables.enable = true;
           networking.interfaces.eth1.ipv4.addresses = [ (staticAddress postgresIps.unrelated) ];
         };
       };

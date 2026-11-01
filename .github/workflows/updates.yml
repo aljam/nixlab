@@ -30,17 +30,29 @@ jobs:
         run: nix flake update
 
       - name: Create update pull request
-        uses: peter-evans/create-pull-request@v7
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: chore/flake-update
-          delete-branch: true
-          title: "chore: update flake lock"
-          commit-message: "chore: update flake lock"
-          body: |
-            Automated weekly `nix flake update`.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-            Review the changed inputs, run `nix flake check`, and build the
-            affected hosts before merging.
-          labels: |
-            dependencies
+          branch="chore/flake-update"
+          git checkout -b "$branch"
+
+          if git diff --quiet; then
+            echo "No flake.lock changes; skipping pull request."
+            exit 0
+          fi
+
+          git add flake.lock
+          git commit -m "chore: update flake lock"
+          git push --force origin "$branch"
+
+          existing=$(gh pr list --head "$branch" --state open --json number --jq 'length')
+          if [ "$existing" -eq 0 ]; then
+            gh pr create \
+              --base main \
+              --head "$branch" \
+              --title "chore: update flake lock" \
+              --body "Automated weekly nix flake update. Review the changed inputs, run nix flake check, and build the affected hosts before merging."
+          fi

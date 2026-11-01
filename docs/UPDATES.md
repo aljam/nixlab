@@ -3,6 +3,15 @@
 This repository uses controlled, reviewed updates. Do not enable unattended
 upgrades on fleet hosts.
 
+## CI coverage
+
+Pull-request CI builds `navi` to keep routine review inexpensive. Pushes to
+`main` and manual workflow runs build all five hosts: `navi`, `oryx`, `r820`,
+`r730`, and `r730xd`.
+
+For a high-risk change, run the CI workflow manually from the branch before
+merging so the complete fleet is built.
+
 ## Regular update flow
 
 1. Create an update branch.
@@ -59,6 +68,9 @@ Then investigate the failed generation before attempting another deployment.
 The `updates` workflow opens a weekly pull request containing an updated
 `flake.lock`. Review its changed inputs, run the normal validation flow, and
 merge only when CI passes.
+
+Dependabot opens weekly pull requests for GitHub Actions dependency updates.
+Review each workflow change before merging.
 
 Container images are intentionally excluded from automatic updates for now.
 When floating image tags are pinned, revisit automated image-update pull

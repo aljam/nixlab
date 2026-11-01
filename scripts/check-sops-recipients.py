@@ -112,7 +112,8 @@ def main() -> None:
     errors = []
 
     secret_paths = {
-        path.as_posix() for path in SECRETS_DIR.glob("*.yaml")
+        path.relative_to(ROOT).as_posix()
+        for path in SECRETS_DIR.glob("*.yaml")
     }
     expected_paths = set(EXPECTED_RECIPIENTS)
 

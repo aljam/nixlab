@@ -5,14 +5,14 @@
     sopsFile = ../../secrets/monitoring.yaml;
     owner = "grafana";
     group = "grafana";
-    mode = "0640";
+    mode = "0400";
   };
 
   sops.secrets."grafana-secret-key" = {
     sopsFile = ../../secrets/monitoring.yaml;
     owner = "grafana";
     group = "grafana";
-    mode = "0640";
+    mode = "0400";
   };
 
   services.grafana = {

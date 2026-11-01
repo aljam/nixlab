@@ -14,6 +14,11 @@ pkgs.testers.nixosTest {
   name = "runtime-security";
 
   nodes.machine = { pkgs, ... }: {
+    environment.systemPackages = [
+      pkgs.age
+      pkgs.sops
+    ];
+
     networking.firewall.enable = true;
     networking.nftables.enable = true;
 

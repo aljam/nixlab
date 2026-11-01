@@ -10,7 +10,7 @@ fleet-wide fallback rule.
 |---|---|---|
 | `secrets/common.yaml` | `aljam`, all hosts | Shared user/login secrets. |
 | `secrets/nas.yaml` | `aljam`, `navi`, `oryx` | NAS credentials for desktop hosts that mount the NAS. |
-| `secrets/database.yaml` | `aljam`, `r730xd` | PostgreSQL and pgAdmin secrets. |
+| `secrets/database.yaml` | `aljam`, `r730xd`, `r820` | PostgreSQL and pgAdmin secrets. |
 | `secrets/matrix.yaml` | `aljam`, `r730xd` | Matrix Synapse, MatrixRTC, LiveKit, and pfSense CA secrets. |
 | `secrets/vaultwarden.yaml` | `aljam`, `r730xd` | Vaultwarden secrets. |
 | `secrets/monitoring.yaml` | `aljam`, `r730xd` | Grafana and alerting secrets. |
@@ -26,12 +26,15 @@ above. The audit verifies that:
 - every expected host and administrator recipient is defined exactly once;
 - every recipient reference resolves to a defined key;
 - every secret file has exactly one explicit creation rule;
-- each rule grants exactly the recipients documented for that file; and
-- no fleet-wide fallback rule exists.
+- each rule grants exactly the recipients documented for that file;
+- no fleet-wide fallback rule exists; and
+- the age recipients embedded in each encrypted file exactly match that file’s
+  declared policy.
 
-The audit validates the declarative recipient policy. It does not decrypt
-secret files or verify that an encrypted file was most recently re-encrypted
-with the current policy.
+The encrypted-recipient check reads SOPS metadata only. It does not decrypt
+secret files, but it detects recipient drift introduced directly by
+`sops updatekeys` or another tool that changes an encrypted file without
+updating `.sops.yaml`.
 
 ## Recovery drill
 

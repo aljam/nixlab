@@ -18,6 +18,13 @@
     }
   ];
 
+  sops.secrets."pfsense-root-ca" = {
+    sopsFile = ../../secrets/monitoring.yaml;
+    owner = "prometheus";
+    group = "prometheus";
+    mode = "0400";
+  };
+
   services.prometheus = {
     enable = true;
     port = 9090;
@@ -173,7 +180,7 @@
                 preferred_ip_protocol = "ip4";
                 tls = true;
                 tls_config = {
-                  insecure_skip_verify = true;
+                  ca_file = config.sops.secrets.pfsense-root-ca.path;
                 };
               };
             };

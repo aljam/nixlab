@@ -75,13 +75,12 @@ let
 in
 pkgs.runCommand "public-service-hardening"
   {
-    passAsFile = [ "failureFile" ];
     inherit failureFile;
   }
   ''
-    if [ -s "$failureFilePath" ]; then
+    if [ -s "$failureFile" ]; then
       echo "Public-service hardening checks failed:" >&2
-      cat "$failureFilePath" >&2
+      cat "$failureFile" >&2
       exit 1
     fi
 

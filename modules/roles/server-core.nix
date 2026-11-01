@@ -37,11 +37,7 @@ in
 
   # Gateway and DNS from fleet configuration
   networking.defaultGateway = gateway;
-  networking.nameservers = [
-    gateway
-    "1.1.1.1"
-    "8.8.8.8"
-  ];
+  networking.nameservers = [ gateway ];
 
   # Backend servers are reached through the pfSense HAProxy gateway.
   # Do not allow direct HTTP/HTTPS ingress here.
@@ -49,8 +45,8 @@ in
   # Container runtime
   virtualisation.podman = {
     enable = true;
-    dockerCompat = true;
-    dockerSocket.enable = true;
+    dockerCompat = false;
+    dockerSocket.enable = false;
   };
 
   # Hardware monitoring

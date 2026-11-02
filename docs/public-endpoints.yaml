@@ -81,3 +81,15 @@ endpoints:
     expected_status: 200
     require_hsts: true
     min_tls_version: "1.2"
+
+  - name: matrix
+    url: https://matrix.derezzed.info
+    expected_status: 200
+    require_hsts: true
+    min_tls_version: "1.2"
+
+  - name: matrix-rtc
+    url: https://rtc.derezzed.info
+    expected_status: 200
+    require_hsts: true
+    min_tls_version: "1.2"

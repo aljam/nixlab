@@ -1,0 +1,18 @@
+# Public HAProxy frontends served by pfSense.
+#
+# This file is consumed by .github/workflows/edge-security.yml.
+# Add only hostnames that are intentionally reachable from the public Internet.
+#
+# Fields:
+#   name: Human-readable service name.
+#   url: Public HTTPS URL probed by CI.
+#   expected_status: HTTP status expected after redirects.
+#   require_hsts: Whether Strict-Transport-Security must be present.
+#   min_tls_version: Minimum acceptable TLS protocol version.
+
+endpoints:
+  - name: example-public-service
+    url: https://example.example.com
+    expected_status: 200
+    require_hsts: true
+    min_tls_version: "1.2"

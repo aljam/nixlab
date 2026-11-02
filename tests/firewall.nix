@@ -70,18 +70,20 @@ in
   testScript = ''
     start_all()
 
-    backend.wait_for_unit("nftables.service")
-    backend.wait_for_unit("backend-app.service")
-    backend.wait_until_succeeds(
-        "curl -fsS --max-time 2 http://127.0.0.1:${toString backendPort}/ >/dev/null"
-    )
-    backend.wait_for_unit("prometheus-node-exporter.service")
-    backend.wait_until_succeeds(
-        "curl -fsS --max-time 2 http://127.0.0.1:${toString exporterPort}/metrics >/dev/null"
-    )
+    backend.wait_for_unit("nftables.service", timeout=60)
+
+    backend.log("waiting for backend-app")
+    backend.wait_for_unit("backend-app.service", timeout=60)
+    backend.wait_for_open_port(${toString backendPort}, timeout=60)
+    backend.log("backend-app is ready")
+
+    backend.log("waiting for node exporter")
+    backend.wait_for_unit("prometheus-node-exporter.service", timeout=60)
+    backend.wait_for_open_port(${toString exporterPort}, timeout=60)
+    backend.log("node exporter is ready")
 
     for machine in [gateway, prometheus, attacker]:
-        machine.wait_for_unit("multi-user.target")
+        machine.wait_for_unit("multi-user.target", timeout=120)
 
     # Reach the backend by name: the test driver puts every machine's vlan1
     # address in /etc/hosts, so traffic leaves over the LAN interface and the
@@ -98,11 +100,13 @@ in
         machine.fail(f"curl -o /dev/null -fsS --max-time 10 {url}")
 
     with subtest("only the gateway reaches a backend port"):
+        gateway.log("checking backend port isolation")
         reachable(gateway, backend_url)
         unreachable(attacker, backend_url)
         unreachable(prometheus, backend_url)
 
     with subtest("only the prometheus server reaches node_exporter"):
+        prometheus.log("checking node exporter isolation")
         reachable(prometheus, metrics_url)
         unreachable(attacker, metrics_url)
         unreachable(gateway, metrics_url)

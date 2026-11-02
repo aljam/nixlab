@@ -97,27 +97,37 @@ let
       testScript = ''
         start_all()
 
-        backend.wait_for_unit("nftables.service")
-        backend.wait_for_unit("public-backend.service")
-        backend.wait_for_unit("pgadmin-standin.service")
-        backend.wait_for_unit("shoko-standin.service")
+        backend.wait_for_unit("nftables.service", timeout=60)
+
+        for service, port in [
+            ("public-backend.service", 3000),
+            ("pgadmin-standin.service", 5050),
+            ("shoko-standin.service", 8111),
+        ]:
+            backend.log(f"waiting for {service}")
+            backend.wait_for_unit(service, timeout=60)
+            backend.wait_for_open_port(port, timeout=60)
+            backend.log(f"{service} is ready on port {port}")
 
         for machine in [gateway, attacker]:
-            machine.wait_for_unit("multi-user.target")
+            machine.wait_for_unit("multi-user.target", timeout=120)
 
         public_url = "http://${adminIps.backend}:3000/"
         pgadmin_url = "http://${adminIps.backend}:5050/"
         shoko_url = "http://${adminIps.backend}:8111/"
 
         with subtest("only the gateway reaches the allowed backend"):
+            gateway.log("checking allowed backend access")
             gateway.succeed(f"curl -fsS --max-time 10 -o /dev/null {public_url}")
             attacker.fail(f"curl -o /dev/null -fsS --max-time 10 {public_url}")
 
         with subtest("pgAdmin remains unreachable from other LAN hosts"):
+            gateway.log("checking pgAdmin isolation")
             gateway.fail(f"curl -o /dev/null -fsS --max-time 10 {pgadmin_url}")
             attacker.fail(f"curl -o /dev/null -fsS --max-time 10 {pgadmin_url}")
 
         with subtest("Shoko remains unreachable from other LAN hosts"):
+            gateway.log("checking Shoko isolation")
             gateway.fail(f"curl -o /dev/null -fsS --max-time 10 {shoko_url}")
             attacker.fail(f"curl -o /dev/null -fsS --max-time 10 {shoko_url}")
       '';

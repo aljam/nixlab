@@ -78,6 +78,9 @@
             ++ [
               ./hosts/${hostname}/configuration.nix
               ./users/aljam/nixos.nix
+              {
+                system.configurationRevision = self.rev or self.dirtyRev or "";
+              }
             ]
             ++ extraModules;
         };

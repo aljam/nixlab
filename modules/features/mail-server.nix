@@ -32,6 +32,11 @@ in
   security.acme = {
     acceptTerms = true;
     defaults.email = "aljam@${primaryDomain}";
+
+    certs."mail.${primaryDomain}" = {
+      dnsProvider = "cloudflare";
+      environmentFile = config.sops.secrets."acme/cloudflare-api-token".path;
+    };
   };
 
   mailserver = {
@@ -49,7 +54,7 @@ in
 
     aliases = aliases;
 
-    x509.useACMEHost = config.mailserver.fqdn;
+    x509.useACMEHost = "mail.${primaryDomain}";
 
     enableImap = true;
     enableImapSsl = true;
@@ -57,18 +62,17 @@ in
     enableSubmissionSsl = true;
   };
 
-  services.nginx = {
-    enable = true;
-    virtualHosts.${config.mailserver.fqdn} = {
-      enableACME = true;
-    };
+  sops.secrets."acme/cloudflare-api-token" = {
+    sopsFile = ../../secrets/acme.yaml;
+    owner = "acme";
+    group = "acme";
+    mode = "0400";
   };
 
   networking.firewall.allowedTCPPorts = [
     25
     587
     993
-    80
   ];
 
   assertions = [

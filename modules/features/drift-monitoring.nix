@@ -5,9 +5,11 @@
 #
 # - Number of listening TCP and UDP sockets.
 # - SHA-256 of the active nftables ruleset.
+# - Active NixOS configuration revision.
 #
-# These metrics make unexpected listeners and out-of-band firewall edits
-# visible to Prometheus without exposing any new network service.
+# These metrics make unexpected listeners, out-of-band firewall edits, and
+# untracked deployments visible to Prometheus without exposing any new network
+# service.
 {
   config,
   lib,
@@ -29,6 +31,7 @@ let
     tcp_listeners="$(ss -Hltn | wc -l)"
     udp_listeners="$(ss -Hlun | wc -l)"
     ruleset_hash="$(nft list ruleset | sha256sum | cut -d' ' -f1)"
+    revision="$(nixos-version --configuration-revision 2>/dev/null || true)"
 
     cat > "$tmp" <<EOF
     # HELP nixlab_listening_tcp_sockets Number of listening TCP sockets.
@@ -42,6 +45,10 @@ let
     # HELP nixlab_nftables_ruleset_sha256 Active nftables ruleset identity.
     # TYPE nixlab_nftables_ruleset_sha256 gauge
     nixlab_nftables_ruleset_sha256{hash="$ruleset_hash"} 1
+
+    # HELP nixlab_system_revision Active NixOS configuration revision.
+    # TYPE nixlab_system_revision gauge
+    nixlab_system_revision{revision="$revision"} 1
     EOF
 
     mv "$tmp" "$output"

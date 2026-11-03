@@ -89,6 +89,18 @@ groups:
             {{ $labels.instance }} has a new nftables ruleset hash. Confirm the
             change came from a reviewed NixOS deployment.
 
+      - alert: DeploymentRevisionUnknown
+        expr: >-
+          nixlab_system_revision{revision=~"^$|dirty.*"} == 1
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Host is running an untracked configuration"
+          description: >-
+            {{ $labels.instance }} is running a dirty or unknown NixOS revision.
+            Redeploy from a committed flake revision.
+
   - name: matrix
     rules:
       - alert: MatrixClientAPIUnreachable

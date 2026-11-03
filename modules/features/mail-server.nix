@@ -75,7 +75,7 @@ in
   systemd.services.${acmeService} = {
     preStart = ''
       install -d -m 0700 -o acme -g acme /run/cloudflare-acme
-      token="$(sed -n 's/^cloudflare-api-token=//p' ${tokenFile})"
+      token="$(cat ${tokenFile})"
       printf '%s\n' "CLOUDFLARE_DNS_API_TOKEN=$token" > /run/cloudflare-acme/environment
       chown acme:acme /run/cloudflare-acme/environment
       chmod 0400 /run/cloudflare-acme/environment

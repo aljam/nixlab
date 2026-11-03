@@ -29,6 +29,11 @@ let
   );
 in
 {
+  security.acme = {
+    acceptTerms = true;
+    defaults.email = "aljam@${primaryDomain}";
+  };
+
   mailserver = {
     enable = true;
     stateVersion = 5;

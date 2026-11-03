@@ -5,6 +5,11 @@ let
   primaryDomain = config.networking.domains.primary;
   matrixUrl = "https://matrix.${primaryDomain}";
   rtcUrl = "https://rtc.${primaryDomain}";
+  physicalHosts = [
+    "r730"
+    "r730xd"
+    "r820"
+  ];
 in
 {
   options.modules.features.prometheus-server = {
@@ -99,6 +104,17 @@ in
               };
             }
           ];
+        }
+
+        {
+          job_name = "smartctl";
+
+          static_configs = map (host: {
+            targets = [ "${config.networking.fleet.${host}.ip}:9633" ];
+            labels = {
+              inherit instance host;
+            };
+          }) physicalHosts;
         }
 
         {

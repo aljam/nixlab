@@ -16,4 +16,14 @@
       "nvme"
     ];
   };
+
+  services.smartd = {
+    enable = true;
+    autodetect = true;
+  };
+
+  services.prometheus.exporters.smartctl = {
+    enable = true;
+    port = 9633;
+  };
 }

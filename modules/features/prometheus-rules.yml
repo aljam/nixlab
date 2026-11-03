@@ -61,6 +61,66 @@ groups:
           summary: "Host memory pressure"
           description: "{{ $labels.instance }} has less than 10% available memory."
 
+  - name: disk-health
+    rules:
+      - alert: SmartHealthFailed
+        expr: smartctl_device_smart_status == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "SMART health check failed"
+          description: >-
+            Device {{ $labels.device }} on {{ $labels.instance }} reports a failed
+            SMART health status. Stop using it for new data and replace it after
+            confirming backups and pool redundancy.
+
+      - alert: DiskTemperatureHigh
+        expr: smartctl_device_temperature > 60
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk temperature is high"
+          description: >-
+            Device {{ $labels.device }} on {{ $labels.instance }} has been above
+            60 C for 15 minutes. Check airflow, fans, and drive placement.
+
+      - alert: DiskTemperatureCritical
+        expr: smartctl_device_temperature > 70
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Disk temperature is critical"
+          description: >-
+            Device {{ $labels.device }} on {{ $labels.instance }} has been above
+            70 C for five minutes. Investigate cooling immediately.
+
+      - alert: DiskReallocatedSectors
+        expr: smartctl_device_reallocated_sectors > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk has reallocated sectors"
+          description: >-
+            Device {{ $labels.device }} on {{ $labels.instance }} reports
+            {{ $value }} reallocated sectors. Monitor the trend and plan a
+            replacement if the count increases.
+
+      - alert: DiskPendingSectors
+        expr: smartctl_device_pending_sectors > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk has pending sectors"
+          description: >-
+            Device {{ $labels.device }} on {{ $labels.instance }} reports
+            {{ $value }} pending sectors. Run a non-destructive SMART test and
+            prepare for replacement if the count does not clear.
+
   - name: runtime-drift
     rules:
       - alert: ListeningTCPSocketsIncreased

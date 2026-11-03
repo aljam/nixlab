@@ -35,19 +35,92 @@ jobs:
       - name: Flake check
         run: nix flake check --print-build-logs
 
-  build-hosts:
+  select-hosts:
     needs: check
+    runs-on: ubuntu-latest
+    outputs:
+      hosts: ${{ steps.select.outputs.hosts }}
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Select affected hosts
+        id: select
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import subprocess
+
+          event = os.environ["EVENT_NAME"]
+          all_hosts = ["navi", "oryx", "r820", "r730", "r730xd"]
+
+          if event != "pull_request":
+              hosts = all_hosts
+          else:
+              base = os.environ["BASE_SHA"]
+              head = os.environ["HEAD_SHA"]
+              changed = subprocess.check_output(
+                  ["git", "diff", "--name-only", base, head], text=True
+              ).splitlines()
+
+              host_paths = {
+                  "navi": ["hosts/navi/"],
+                  "oryx": ["hosts/oryx/"],
+                  "r820": ["hosts/r820/"],
+                  "r730": ["hosts/r730/"],
+                  "r730xd": ["hosts/r730xd/"],
+              }
+
+              shared_paths = [
+                  "flake.nix",
+                  "flake.lock",
+                  "modules/",
+                  "users/",
+                  "tests/",
+                  ".github/workflows/ci.yml",
+              ]
+
+              hosts = []
+              for host, prefixes in host_paths.items():
+                  affected = any(
+                      path.startswith(prefix)
+                      for path in changed
+                      for prefix in prefixes
+                  )
+                  if affected:
+                      hosts.append(host)
+
+              shared_changed = any(
+                  path == shared_path or path.startswith(shared_path)
+                  for path in changed
+                  for shared_path in shared_paths
+              )
+
+              if shared_changed:
+                  hosts = all_hosts
+
+              hosts = sorted(set(hosts))
+
+          print("Selected hosts:", ", ".join(hosts) or "none")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write(f"hosts={json.dumps(hosts)}\n")
+          PY
+
+  build-hosts:
+    needs: select-hosts
+    if: needs.select-hosts.outputs.hosts != '[]'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        # Keep pull-request CI inexpensive; build the full fleet on main and
-        # manual dispatch runs.
-        host: ${{
-          github.event_name == 'pull_request'
-          && fromJSON('["navi"]')
-          || fromJSON('["navi", "oryx", "r820", "r730", "r730xd"]')
-        }}
+        host: ${{ fromJSON(needs.select-hosts.outputs.hosts) }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -89,7 +162,19 @@ jobs:
         run: nix path-info --recursive "${{ steps.build.outputs.path }}" | cachix push aljam
 
   summary:
-    needs: [check, build-hosts]
+    needs: [check, select-hosts, build-hosts]
+    if: always()
     runs-on: ubuntu-latest
     steps:
-      - run: echo "✅ Host builds and cache upload completed"
+      - name: Report selected hosts
+        run: |
+          hosts='${{ needs.select-hosts.outputs.hosts }}'
+          result='${{ needs.build-hosts.result }}'
+          echo "Affected hosts: $hosts"
+          echo "Host build result: $result"
+
+          if [ "$result" = "failure" ] || [ "$result" = "cancelled" ]; then
+            exit 1
+          fi
+
+          echo "✅ CI completed"

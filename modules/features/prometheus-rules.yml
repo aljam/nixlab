@@ -89,6 +89,35 @@ groups:
             {{ $labels.instance }} has a new nftables ruleset hash. Confirm the
             change came from a reviewed NixOS deployment.
 
+  - name: matrix
+    rules:
+      - alert: MatrixClientAPIUnreachable
+        expr: probe_success{job="blackbox-matrix-client"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Matrix client API is unreachable"
+          description: "The Matrix client versions endpoint did not return HTTP 200 for five minutes."
+
+      - alert: MatrixFederationAPIUnreachable
+        expr: probe_success{job="blackbox-matrix-federation"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Matrix federation API is unreachable"
+          description: "The Matrix server-key endpoint did not return HTTP 200 for five minutes."
+
+      - alert: MatrixRTCUnreachable
+        expr: probe_success{job="blackbox-matrix-rtc"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Matrix RTC is unreachable"
+          description: "The Matrix RTC frontend did not return HTTP 200 for five minutes."
+
   - name: postgresql
     rules:
       - alert: PostgreSQLUnreachable

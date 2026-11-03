@@ -10,6 +10,24 @@ let
     "r730xd"
     "r820"
   ];
+
+  publicEndpoints = [
+    { name = "homepage"; url = "https://home.derezzed.info"; }
+    { name = "jellyfin"; url = "https://jellyfin.derezzed.info"; }
+    { name = "seerr"; url = "https://seerr.derezzed.info"; }
+    { name = "audiobookshelf"; url = "https://audiobookshelf.derezzed.info"; }
+    { name = "sonarr"; url = "https://sonarr.derezzed.info"; }
+    { name = "radarr"; url = "https://radarr.derezzed.info"; }
+    { name = "prowlarr"; url = "https://prowlarr.derezzed.info"; }
+    { name = "bazarr"; url = "https://bazarr.derezzed.info"; }
+    { name = "lidarr"; url = "https://lidarr.derezzed.info"; }
+    { name = "qbittorrent"; url = "https://qb.derezzed.info"; }
+    { name = "autobrr"; url = "https://autobrr.derezzed.info"; }
+    { name = "grafana"; url = "https://grafana.derezzed.info"; }
+    { name = "vaultwarden"; url = "https://vault.derezzed.info"; }
+    { name = "matrix"; url = "https://matrix.derezzed.info"; }
+    { name = "matrix-rtc"; url = "https://rtc.derezzed.info"; }
+  ];
 in
 {
   options.modules.features.prometheus-server = {
@@ -116,6 +134,37 @@ in
               host = host;
             };
           }) physicalHosts;
+        }
+
+        {
+          job_name = "blackbox-public";
+          metrics_path = "/probe";
+          params = {
+            module = [ "http_2xx" ];
+          };
+
+          static_configs = map (endpoint: {
+            targets = [ endpoint.url ];
+            labels = {
+              instance = endpoint.name;
+              endpoint = endpoint.name;
+            };
+          }) publicEndpoints;
+
+          relabel_configs = [
+            {
+              source_labels = [ "__address__" ];
+              target_label = "__param_target";
+            }
+            {
+              source_labels = [ "__param_target" ];
+              target_label = "instance";
+            }
+            {
+              target_label = "__address__";
+              replacement = "127.0.0.1:9115";
+            }
+          ];
         }
 
         {

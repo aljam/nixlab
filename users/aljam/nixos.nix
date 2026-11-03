@@ -5,7 +5,7 @@
     isNormalUser = true;
     extraGroups = [ "wheel" ];
     openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB0Y44h2FhGd7E8jXp3kZ0Y9M6B1uJ4tS7vQ2wE5rT8y aljam@navi"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHzrMiro1XD8krk5Kb4EWQ+rGjmgKXha/OuOmUZcopRL aljam@navi"
     ];
     hashedPasswordFile = config.sops.secrets.aljam_password.path;
   };

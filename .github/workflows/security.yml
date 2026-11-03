@@ -30,6 +30,16 @@ jobs:
         with:
           args: detect --source . --redact --verbose
 
+  ssh-key-hygiene:
+    name: Require descriptive SSH key comments
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Check SSH key comments
+        run: python3 scripts/check-ssh-key-comments.py
+
   sops-policy:
     name: Require explicit SOPS rules
     runs-on: ubuntu-latest

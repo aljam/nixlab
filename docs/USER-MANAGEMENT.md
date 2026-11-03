@@ -41,6 +41,34 @@ These allowlists are OR-ed by OpenSSH, so adding a user to `wheel` intentionally
 - Do not add a user to both `AllowUsers` and `wheel` unless both grants are intentional.
 - Prefer a dedicated non-administrative user for service or automation access.
 
+## SSH key hygiene
+
+Every authorized public key must include a unique `user@device` comment. This makes the key inventory understandable and makes rotation safer.
+
+```text
+ssh-ed25519 AAAA... aljam@navi
+ssh-ed25519 AAAA... aljam@work-laptop
+```
+
+CI rejects keys with no comment or a comment that does not follow the `user@device` convention.
+
+### Key inventory
+
+| User | Devices | Key comment | Status |
+|---|---|---|---|
+| `aljam` | Desktop and laptop | `aljam@navi` | Active; the same key is currently installed on both devices. Rotate to separate per-device keys when convenient. |
+
+### Rotating a key
+
+1. Generate a new key on the device.
+2. Add its public key with a `user@device` comment.
+3. Deploy the affected host.
+4. Confirm the new key can authenticate.
+5. Remove the old key and deploy again.
+6. Update the key inventory above.
+
+Do not reuse one key across multiple devices. If a device is lost or decommissioned, remove its key promptly and rotate the key if there is any possibility it was exposed.
+
 ## Passwords
 
 User passwords are SOPS-encrypted and exposed through `hashedPasswordFile`.

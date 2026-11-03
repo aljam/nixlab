@@ -56,6 +56,7 @@ let
 in
 {
   services.prometheus.exporters.node = {
+    enable = true;
     enabledCollectors = [ "textfile" ];
     extraFlags = [
       "--collector.textfile.directory=${textfileDirectory}"

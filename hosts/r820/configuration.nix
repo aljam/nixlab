@@ -13,6 +13,8 @@
 
   roles.server.enable = true;
 
+  programs.fish.enable = true;
+
   # Remote builder configuration
   nix.settings.trusted-users = [ "root" "aljam" ];
   nix.settings.allowed-users = [ "@users" ];

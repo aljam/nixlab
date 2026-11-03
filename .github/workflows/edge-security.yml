@@ -26,11 +26,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          yq_available=false
-          if command -v yq >/dev/null 2>&1; then
-            yq_available=true
-          fi
-
           python3 - <<'PY'
           import json
           import yaml
@@ -68,6 +63,44 @@ jobs:
 
             protocol=$(curl -sSIL -o /dev/null -w '%{http_version}' --max-time 20 "$url")
             echo "$name: HTTP $status, protocol $protocol"
+          done < <(jq -c '.[]' /tmp/endpoints.json)
+
+          exit "$failures"
+
+      - name: Validate minimum TLS version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          failures=0
+
+          while IFS= read -r row; do
+            name=$(jq -r '.name' <<<"$row")
+            url=$(jq -r '.url' <<<"$row")
+            min_tls=$(jq -r '.min_tls_version' <<<"$row")
+            host=$(jq -r '.url' <<<"$row" | sed -E 's#^https://([^/:]+).*#\1#')
+
+            echo "==> Checking TLS for $name ($host; minimum $min_tls)"
+
+            if [[ "$min_tls" != "1.2" ]]; then
+              echo "::error::$name declares unsupported minimum TLS version $min_tls; this workflow currently enforces TLS 1.2"
+              failures=$((failures + 1))
+              continue
+            fi
+
+            if openssl s_client -brief -tls1_2 -connect "$host:443" -servername "$host" </dev/null 2>&1 | grep -q '^CONNECTION ESTABLISHED'; then
+              echo "$name accepts TLS 1.2"
+            else
+              echo "::error::$name did not negotiate TLS 1.2"
+              failures=$((failures + 1))
+            fi
+
+            if openssl s_client -brief -tls1_1 -connect "$host:443" -servername "$host" </dev/null 2>&1 | grep -q '^CONNECTION ESTABLISHED'; then
+              echo "::error::$name still accepts TLS 1.1"
+              failures=$((failures + 1))
+            else
+              echo "$name rejects TLS 1.1"
+            fi
           done < <(jq -c '.[]' /tmp/endpoints.json)
 
           exit "$failures"

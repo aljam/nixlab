@@ -35,7 +35,7 @@ in
 
     certs."mail.${primaryDomain}" = {
       dnsProvider = "cloudflare";
-      environmentFile = config.sops.secrets."acme/cloudflare-api-token".path;
+      environmentFile = config.sops.secrets."cloudflare-api-token".path;
     };
   };
 
@@ -62,7 +62,7 @@ in
     enableSubmissionSsl = true;
   };
 
-  sops.secrets."acme/cloudflare-api-token" = {
+  sops.secrets."cloudflare-api-token" = {
     sopsFile = ../../secrets/acme.yaml;
     owner = "acme";
     group = "acme";

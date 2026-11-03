@@ -112,7 +112,8 @@ in
           static_configs = map (host: {
             targets = [ "${config.networking.fleet.${host}.ip}:9633" ];
             labels = {
-              inherit instance host;
+              instance = host;
+              host = host;
             };
           }) physicalHosts;
         }

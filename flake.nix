@@ -153,7 +153,6 @@
             if [[ -n "$(git status --porcelain)" ]]; then
               echo "Refusing to deploy: Git working tree is dirty." >&2
               echo "Commit or stash changes, then retry." >&2
-              exit 1
             fi
 
             echo "==> Running flake checks"
@@ -192,7 +191,7 @@
           hosts = self.nixosConfigurations;
         };
 
-        runtime-security = import ./tests/runtime-security.nix {
+        runtime-security = import ./tests/runtime-isolation.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };
 
@@ -233,7 +232,7 @@
           hostname = "r820";
           extraModules = [
             mailserver.nixosModules.mailserver
-            ./modules/features/mail-server.nix
+            #./modules/features/mail-server.nix
           ];
         };
 

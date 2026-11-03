@@ -61,6 +61,34 @@ groups:
           summary: "Host memory pressure"
           description: "{{ $labels.instance }} has less than 10% available memory."
 
+  - name: runtime-drift
+    rules:
+      - alert: ListeningTCPSocketsIncreased
+        expr: >-
+          nixlab_listening_tcp_sockets
+          > (nixlab_listening_tcp_sockets offset 1h)
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Listening TCP socket count increased"
+          description: >-
+            {{ $labels.instance }} has more listening TCP sockets than one hour ago.
+            Verify whether a new service was intentionally deployed.
+
+      - alert: NftablesRulesetDrift
+        expr: >-
+          nixlab_nftables_ruleset_sha256
+          unless nixlab_nftables_ruleset_sha256 offset 1h
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "nftables ruleset changed"
+          description: >-
+            {{ $labels.instance }} has a new nftables ruleset hash. Confirm the
+            change came from a reviewed NixOS deployment.
+
   - name: postgresql
     rules:
       - alert: PostgreSQLUnreachable

@@ -1,5 +1,8 @@
 { config, lib, pkgs, ... }:
 
+let
+  securityDashboard = pkgs.writeText "security-posture.json" (builtins.readFile ./grafana/security-posture.json);
+in
 {
   sops.secrets."grafana-admin-password" = {
     sopsFile = ../../secrets/monitoring.yaml;
@@ -30,6 +33,37 @@
       "auth.anonymous".enabled = false;
       users = {
         allow_sign_up = false;
+      };
+    };
+
+    provision = {
+      enable = true;
+      datasources.settings = {
+        apiVersion = 1;
+        datasources = [
+          {
+            name = "Prometheus";
+            uid = "prometheus";
+            type = "prometheus";
+            access = "proxy";
+            url = "http://127.0.0.1:9090";
+            isDefault = true;
+            editable = false;
+          }
+        ];
+      };
+
+      dashboards.settings = {
+        apiVersion = 1;
+        providers = [
+          {
+            name = "NixLab security";
+            options = {
+              path = securityDashboard;
+              foldersFromFilesStructure = false;
+            };
+          }
+        ];
       };
     };
   };

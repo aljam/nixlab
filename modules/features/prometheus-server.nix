@@ -59,6 +59,29 @@ in
       }
     ];
 
+    sops.secrets.ntfy-url = {
+      sopsFile = ../../secrets/monitoring.yaml;
+      owner = "alertmanager";
+    };
+
+    sops.templates.alertmanager-ntfy = {
+      owner = "alertmanager";
+      content = ''
+        route:
+          receiver: ntfy
+          group_by: ["alertname", "instance"]
+          group_wait: 30s
+          group_interval: 5m
+          repeat_interval: 4h
+
+        receivers:
+          - name: ntfy
+            webhook_configs:
+              - url: "${config.sops.placeholder."ntfy-url"}"
+                send_resolved: true
+      '';
+    };
+
     services.prometheus = {
       enable = true;
       port = 9090;
@@ -75,6 +98,13 @@ in
           ];
         }
       ];
+
+      alertmanager = {
+        enable = true;
+        port = 9093;
+        listenAddress = "127.0.0.1";
+        configFile = config.sops.templates.alertmanager-ntfy.path;
+      };
 
       globalConfig = {
         scrape_interval = "15s";

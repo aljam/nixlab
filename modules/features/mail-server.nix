@@ -36,7 +36,7 @@ in
 
     loginAccounts = {
       "aljam@${primaryDomain}" = {
-        hashedPasswordFile = config.sops.secrets."mail/aljam-password-hash".path;
+        hashedPasswordFile = config.sops.secrets.aljam_password.path;
       };
     };
 
@@ -63,20 +63,11 @@ in
     '';
   };
 
-  sops.secrets = {
-    "mail/aljam-password-hash" = {
-      sopsFile = ../../secrets/mail.yaml;
-      owner = config.mailserver.user;
-      group = config.mailserver.group;
-      mode = "0400";
-    };
-
-    "mail/postfix-sasl-passwd" = {
-      sopsFile = ../../secrets/mail.yaml;
-      owner = config.services.postfix.user;
-      group = config.services.postfix.group;
-      mode = "0400";
-    };
+  sops.secrets."mail/postfix-sasl-passwd" = {
+    sopsFile = ../../secrets/mail.yaml;
+    owner = config.services.postfix.user;
+    group = config.services.postfix.group;
+    mode = "0400";
   };
 
   networking.firewall.allowedTCPPorts = [

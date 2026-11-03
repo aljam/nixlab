@@ -11,7 +11,14 @@ additional domains:
 - `glowrunner.xyz`
 
 The mail hostname is `mail.derezzed.info`. The initial mailbox is
-`aljam@derezzed.info`. Role aliases on every domain forward to that mailbox.
+`aljam@derezzed.info`. Its password reuses the existing `aljam_password`
+secret from `secrets/common.yaml`.
+
+Role aliases on every domain forward to that mailbox:
+
+- `postmaster@`
+- `abuse@`
+- `webmaster@`
 
 ## Services
 
@@ -25,7 +32,7 @@ All outbound mail is relayed through SendPulse at `[smtp-pulse.com]:587`.
 
 ## Before first deployment
 
-### 1. Create the SOPS secret file
+### 1. Create the mail relay secret
 
 Create `secrets/mail.yaml` and add an explicit creation rule for it in
 `.sops.yaml`. Scope the rule to `aljam` and `r820`.
@@ -37,19 +44,15 @@ sops --editor vim secrets/mail.yaml
 Use this structure:
 
 ```yaml
-aljam-password-hash: ARGON2ID_PASSWORD_HASH
 postfix-sasl-passwd: |
   [smtp-pulse.com]:587 SENDPULSE_LOGIN:SENDPULSE_PASSWORD
 ```
 
-Generate the mailbox password hash with:
-
-```bash
-nix-shell -p mkpasswd --run 'mkpasswd -m yescrypt'
-```
-
 Copy the SendPulse SMTP login and password from **SMTP → Settings → General**.
 Do not commit either value in plaintext.
+
+The mailbox password is not duplicated here. The mail server reuses the
+existing `aljam_password` secret from `secrets/common.yaml`.
 
 ### 2. Update the lockfile
 
@@ -124,14 +127,14 @@ Verify:
 - Postfix and Dovecot are active.
 - The message is submitted to SendPulse over TLS.
 - `aljam@derezzed.info` receives the message.
-- IMAPS login works on port 993.
+- IMAPS login works on port 993 using the existing `aljam` password.
 - SPF, DKIM, and DMARC checks pass for outbound mail.
 - Ports 25, 587, and 993 are not proxied through HAProxy.
 
 ## Adding a mailbox
 
-Add an entry under `mailserver.loginAccounts`, create its password hash in
-`secrets/mail.yaml`, and rebuild `r820`.
+Add an entry under `mailserver.loginAccounts`, create its password hash in the
+appropriate SOPS secret file, and rebuild `r820`.
 
 ## Adding a domain
 

@@ -121,6 +121,48 @@ groups:
             {{ $value }} pending sectors. Run a non-destructive SMART test and
             prepare for replacement if the count does not clear.
 
+  - name: public-endpoints
+    rules:
+      - alert: PublicEndpointDown
+        expr: probe_success{job="blackbox-public"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Public endpoint is unreachable"
+          description: >-
+            The public endpoint {{ $labels.endpoint }} did not return HTTP 200 for
+            five minutes. Check pfSense HAProxy, DNS, certificate renewal, and
+            the backend service.
+
+      - alert: PublicCertificateExpiringSoon
+        expr: >-
+          probe_ssl_earliest_cert_expiry{job="blackbox-public"}
+          - time()
+          < 14 * 24 * 60 * 60
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Public certificate expires soon"
+          description: >-
+            The TLS certificate for {{ $labels.endpoint }} expires in less than
+            14 days. Verify automated renewal.
+
+      - alert: PublicCertificateExpiringCritical
+        expr: >-
+          probe_ssl_earliest_cert_expiry{job="blackbox-public"}
+          - time()
+          < 7 * 24 * 60 * 60
+        for: 1h
+        labels:
+          severity: critical
+        annotations:
+          summary: "Public certificate expires imminently"
+          description: >-
+            The TLS certificate for {{ $labels.endpoint }} expires in less than
+            seven days. Renew it immediately.
+
   - name: runtime-drift
     rules:
       - alert: ListeningTCPSocketsIncreased

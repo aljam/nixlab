@@ -52,8 +52,24 @@ For each public service, record and verify:
   administrators.
 - Session lifetime, cookie security flags, and logout behavior.
 - Whether rate limiting or brute-force protection is configured.
-- Whether service-to-service credentials are stored in SOPS and scoped to the
-  minimum required permissions.
+- Whether service-to-service credentials are stored in SOPS and scoped to
+  the minimum required permissions.
+
+## Availability and certificate monitoring
+
+Prometheus probes every hostname in `docs/public-endpoints.yaml` through the
+Blackbox exporter using the `blackbox-public` scrape job.
+
+- `PublicEndpointDown` fires when an endpoint fails to return HTTP 200 for five
+  minutes.
+- `PublicCertificateExpiringSoon` fires when a public TLS certificate has fewer
+  than 14 days remaining.
+- `PublicCertificateExpiringCritical` fires when a public TLS certificate has
+  fewer than seven days remaining.
+
+When adding or removing a public hostname, update both
+`docs/public-endpoints.yaml` and the `publicEndpoints` list in
+`modules/features/prometheus-server.nix`.
 
 ## Internal-only services
 
@@ -80,3 +96,4 @@ Before merging an exposure change:
 5. Confirm the service requires authentication appropriate to its sensitivity.
 6. Confirm TLS, redirects, certificate renewal, and required headers work.
 7. Confirm the service is absent from public dashboards if it is internal-only.
+8. Confirm the endpoint is included in public endpoint monitoring.

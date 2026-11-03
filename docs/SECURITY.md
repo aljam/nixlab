@@ -10,6 +10,20 @@ This favors timely patching over bit-for-bit reproducibility. Before a major
 container upgrade, inspect upstream release notes and verify service health
 after deployment.
 
+## Dependency vulnerabilities
+
+The `Vulnerability scanning` workflow runs OSV-Scanner weekly and whenever
+`flake.lock` or the scanning workflow changes.
+
+It uploads a JSON report as a workflow artifact and fails when it identifies
+actionable CVE or GitHub Security Advisory findings. Review the artifact,
+determine whether the affected package is present in a deployed host closure,
+and prioritize a Nixpkgs or flake-input update when it is.
+
+A finding is not automatically exploitable. Record the decision to patch,
+mitigate, or accept the risk, including the affected service and compensating
+control.
+
 ## SOPS secrets
 
 Secrets are service-scoped to reduce blast radius. NAS credentials are
@@ -52,8 +66,17 @@ Alertmanager listens only on loopback and is intentionally excluded from
 `networking.proxyBackendPorts`. Prometheus reaches it locally at
 `127.0.0.1:9093`.
 
-Alerts are currently visible only in the Prometheus and Alertmanager UIs; no
-external notification receiver is configured.
+Critical and warning alerts are relayed to the Ntfy topic configured by the
+SOPS-managed `ntfy-url` secret. A dedicated loopback relay service receives
+Alertmanager webhooks on `127.0.0.1:9094`, formats the notification, and
+forwards it to Ntfy.
+
+Alerts are grouped by alert name and instance; unresolved alerts repeat every
+four hours, and recovery notifications are sent.
+
+The Ntfy URL is never committed to the repository. To change the destination,
+update `ntfy-url` in `secrets/monitoring.yaml` with SOPS and redeploy the
+monitoring host.
 
 ## CI
 

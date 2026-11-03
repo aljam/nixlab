@@ -31,6 +31,7 @@ in
 {
   mailserver = {
     enable = true;
+    stateVersion = 5;
     fqdn = "mail.${primaryDomain}";
     domains = mailDomains;
 
@@ -42,7 +43,7 @@ in
 
     extraVirtualAliases = aliases;
 
-    certificateScheme = "acme";
+    x509.useACMEHost = config.mailserver.fqdn;
 
     enableImap = true;
     enableImapSsl = true;
@@ -50,17 +51,24 @@ in
     enableSubmissionSsl = true;
   };
 
+  services.nginx = {
+    enable = true;
+    virtualHosts.${config.mailserver.fqdn} = {
+      enableACME = true;
+    };
+  };
+
   services.postfix = {
     mapFiles.sasl_passwd = config.sops.secrets."mail/postfix-sasl-passwd".path;
 
-    extraConfig = ''
-      smtp_sasl_auth_enable = yes
-      smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
-      smtp_sasl_security_options = noanonymous
-      smtp_sasl_tls_security_options = noanonymous
-      smtp_tls_security_level = encrypt
-      relayhost = [smtp-pulse.com]:587
-    '';
+    settings.main = {
+      relayhost = "[smtp-pulse.com]:587";
+      smtp_sasl_auth_enable = true;
+      smtp_sasl_password_maps = "hash:/etc/postfix/sasl_passwd";
+      smtp_sasl_security_options = "noanonymous";
+      smtp_sasl_tls_security_options = "noanonymous";
+      smtp_tls_security_level = "encrypt";
+    };
   };
 
   sops.secrets."mail/postfix-sasl-passwd" = {
@@ -74,6 +82,7 @@ in
     25
     587
     993
+    80
   ];
 
   assertions = [

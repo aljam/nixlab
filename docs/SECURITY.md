@@ -19,6 +19,33 @@ credentials.
 Every secret file must have an explicit SOPS creation rule. There is no
 fleet-wide fallback rule.
 
+## Audit logging
+
+Hosts retain persistent systemd journal logs for up to 30 days, with a 2 GiB
+per-host journal cap. Audit records are stored in `/var/lib/audit` and are
+restricted to `root`.
+
+Audit rules record:
+
+- `sudo` execution and changes to sudo policy.
+- Changes to users, groups, passwords, and shadow files.
+- Changes to SSH configuration and SSH-related files.
+- Changes to audit configuration or audit logs.
+
+Review recent security-relevant activity with:
+
+```bash
+sudo journalctl --since "24 hours ago" -u sshd -u sudo
+sudo ausearch -k sudo-execution --start recent
+sudo ausearch -k identity-change --start recent
+sudo ausearch -k sshd-config-change --start recent
+sudo aureport --auth
+```
+
+For an incident, preserve logs before rebuilding or replacing the affected
+host. Journal and audit logs are local by design; do not rely on them as the
+only copy during a compromise.
+
 ## Alertmanager
 
 Alertmanager listens only on loopback and is intentionally excluded from
@@ -50,3 +77,4 @@ The repository enforces these invariants at evaluation time:
 - Server hosts do not enable Steam or GameScope.
 - SSH password authentication, interactive authentication, and direct root
   login remain disabled.
+- Audit logging remains enabled.

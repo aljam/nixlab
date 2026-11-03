@@ -15,6 +15,7 @@ POLICY = {
     "secrets/vaultwarden.yaml": {"aljam", "r730xd", "r820"},
     "secrets/monitoring.yaml": {"aljam", "r730", "r730xd", "r820"},
     "secrets/media.yaml": {"aljam", "r730xd"},
+    "secrets/acme.yaml": {"aljam", "r820"},
 }
 
 

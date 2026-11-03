@@ -8,6 +8,7 @@
     ../../modules/features/libvirt.nix
     ../../modules/features/postgres.nix
     ../../modules/features/nix-builder.nix
+    ../../modules/features/mail-server.nix
     #../../modules/roles/mail-node.nix
   ];
 

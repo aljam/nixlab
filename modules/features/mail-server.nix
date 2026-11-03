@@ -36,6 +36,10 @@ in
     certs."mail.${primaryDomain}" = {
       dnsProvider = "cloudflare";
       environmentFile = config.sops.templates."cloudflare-acme-env".path;
+
+      extraLegoFlags = [
+        "--dns.resolvers=1.1.1.1:53,8.8.8.8:53"
+      ];
     };
   };
 

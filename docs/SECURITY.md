@@ -52,10 +52,13 @@ Alertmanager listens only on loopback and is intentionally excluded from
 `networking.proxyBackendPorts`. Prometheus reaches it locally at
 `127.0.0.1:9093`.
 
-Critical and warning alerts are delivered to the Ntfy topic configured by the
-SOPS-managed `ntfy-url` secret. Alerts are grouped by alert name and instance;
-unresolved alerts repeat every four hours, and recovery notifications are
-sent.
+Critical and warning alerts are relayed to the Ntfy topic configured by the
+SOPS-managed `ntfy-url` secret. A dedicated loopback relay service receives
+Alertmanager webhooks on `127.0.0.1:9094`, formats the notification, and
+forwards it to Ntfy.
+
+Alerts are grouped by alert name and instance; unresolved alerts repeat every
+four hours, and recovery notifications are sent.
 
 The Ntfy URL is never committed to the repository. To change the destination,
 update `ntfy-url` in `secrets/monitoring.yaml` with SOPS and redeploy the

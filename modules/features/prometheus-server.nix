@@ -28,6 +28,11 @@ let
     { name = "matrix"; url = "https://matrix.derezzed.info"; }
     { name = "matrix-rtc"; url = "https://rtc.derezzed.info"; }
   ];
+
+  ntfyRelayScript = pkgs.writers.writePython3 "alertmanager-ntfy-relay" {
+    libraries = [ ];
+    flakeIgnore = [ "E501" ];
+  } (builtins.readFile ../scripts/alertmanager-ntfy-relay.py);
 in
 {
   options.modules.features.prometheus-server = {
@@ -57,29 +62,51 @@ in
         assertion = !(lib.elem 9093 config.networking.proxyBackendPorts);
         message = "Alertmanager must not be exposed through the HAProxy backend allowlist.";
       }
+      {
+        assertion = !(lib.elem 9094 config.networking.proxyBackendPorts);
+        message = "The Ntfy relay must not be exposed through the HAProxy backend allowlist.";
+      }
     ];
+
+    users.users.ntfy-relay = {
+      isSystemUser = true;
+      group = "ntfy-relay";
+    };
+
+    users.groups.ntfy-relay = { };
 
     sops.secrets.ntfy-url = {
       sopsFile = ../../secrets/monitoring.yaml;
-      owner = "alertmanager";
+      owner = "ntfy-relay";
     };
 
-    sops.templates.alertmanager-ntfy = {
-      owner = "alertmanager";
-      content = ''
-        route:
-          receiver: ntfy
-          group_by: ["alertname", "instance"]
-          group_wait: 30s
-          group_interval: 5m
-          repeat_interval: 4h
+    systemd.services.alertmanager-ntfy-relay = {
+      description = "Alertmanager to Ntfy relay";
+      wantedBy = [ "multi-user.target" ];
+      after = [ "network.target" ];
 
-        receivers:
-          - name: ntfy
-            webhook_configs:
-              - url: "${config.sops.placeholder."ntfy-url"}"
-                send_resolved: true
-      '';
+      serviceConfig = {
+        Type = "simple";
+        User = "ntfy-relay";
+        Group = "ntfy-relay";
+        ExecStart = "${pkgs.python3}/bin/python3 ${ntfyRelayScript}";
+        Environment = "NTFY_URL_FILE=${config.sops.secrets.ntfy-url.path}";
+        Restart = "on-failure";
+        RestartSec = "5s";
+
+        NoNewPrivileges = true;
+        PrivateTmp = true;
+        ProtectSystem = "strict";
+        ProtectHome = true;
+        PrivateDevices = true;
+        ProtectKernelTunables = true;
+        ProtectKernelModules = true;
+        ProtectControlGroups = true;
+        RestrictAddressFamilies = [ "AF_INET" "AF_INET6" ];
+        RestrictNamespaces = true;
+        LockPersonality = true;
+        MemoryDenyWriteExecute = true;
+      };
     };
 
     services.prometheus = {
@@ -103,7 +130,28 @@ in
         enable = true;
         port = 9093;
         listenAddress = "127.0.0.1";
-        configFile = config.sops.templates.alertmanager-ntfy.path;
+
+        configuration = {
+          route = {
+            receiver = "ntfy";
+            group_by = [ "alertname" "instance" ];
+            group_wait = "30s";
+            group_interval = "5m";
+            repeat_interval = "4h";
+          };
+
+          receivers = [
+            {
+              name = "ntfy";
+              webhook_configs = [
+                {
+                  url = "http://127.0.0.1:9094/";
+                  send_resolved = true;
+                }
+              ];
+            }
+          ];
+        };
       };
 
       globalConfig = {

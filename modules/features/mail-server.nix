@@ -63,26 +63,6 @@ in
     };
   };
 
-  services.postfix = {
-    mapFiles.sasl_passwd = config.sops.secrets."mail/postfix-sasl-passwd".path;
-
-    settings.main = {
-      relayhost = "[smtp-pulse.com]:587";
-      smtp_sasl_auth_enable = true;
-      smtp_sasl_password_maps = "hash:/etc/postfix/sasl_passwd";
-      smtp_sasl_security_options = "noanonymous";
-      smtp_sasl_tls_security_options = "noanonymous";
-      smtp_tls_security_level = "encrypt";
-    };
-  };
-
-  sops.secrets."mail/postfix-sasl-passwd" = {
-    sopsFile = ../../secrets/mail.yaml;
-    owner = config.services.postfix.user;
-    group = config.services.postfix.group;
-    mode = "0400";
-  };
-
   networking.firewall.allowedTCPPorts = [
     25
     587

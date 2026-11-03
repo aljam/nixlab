@@ -17,7 +17,6 @@
     ../features/sops.nix
     ../features/ssh.nix
     ../features/security-policy.nix
-    ../features/drift-monitoring.nix
   ];
 
   options.networking.servicesBindAddress = lib.mkOption {

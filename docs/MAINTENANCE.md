@@ -13,6 +13,7 @@ runbook.
 | Monthly | Update flake inputs, review the lockfile diff, and run full validation. |
 | Monthly | Trigger the full-host CI workflow manually. |
 | Quarterly | Audit SOPS recipients and remove access for retired hosts or users. |
+| Quarterly | Complete the [security review checklist](SECURITY-REVIEW.md). |
 | Quarterly | Review architecture, networking, secrets, update, and recovery documentation. |
 
 ## Update flake inputs
@@ -111,6 +112,7 @@ recovery procedures, update the relevant documents:
 - `docs/NETWORKING.md`
 - `docs/SECRETS.md`
 - `docs/SECURITY.md`
+- `docs/SECURITY-REVIEW.md`
 - `docs/UPDATE.md`
 - `docs/RECOVERY.md`
 - `docs/USER-MANAGEMENT.md`

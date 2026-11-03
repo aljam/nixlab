@@ -24,6 +24,37 @@ A finding is not automatically exploitable. Record the decision to patch,
 mitigate, or accept the risk, including the affected service and compensating
 control.
 
+### Triage a finding
+
+For each OSV finding:
+
+1. Identify the affected package and version.
+2. Determine whether that package is present in a deployed host closure:
+
+   ```bash
+   nix why-depends .#nixosConfigurations.HOSTNAME.config.system.build.toplevel \
+     nixpkgs#PACKAGE_NAME
+   ```
+
+   Replace `HOSTNAME` and `PACKAGE_NAME` with the affected host and package.
+   If the command reports no dependency path, record the finding as not
+   deployed rather than treating it as an immediate host risk.
+
+3. If the package is deployed, identify the exposed service or attack surface.
+4. Choose one outcome:
+
+   - **Patch**: update Nixpkgs, a flake input, or the affected container image.
+   - **Mitigate**: restrict exposure, disable an affected feature, or apply a
+     compensating control.
+   - **Accept**: document why the finding does not apply, including the
+     affected host, service, and review date.
+
+5. Record the CVE/GHSA, affected hosts, decision, owner, and follow-up date in
+   the security review notes.
+
+Do not paste secret values, tokens, private keys, or decrypted secret contents
+into review notes or issues.
+
 ## SOPS secrets
 
 Secrets are service-scoped to reduce blast radius. NAS credentials are
@@ -43,8 +74,8 @@ Audit rules record:
 
 - `sudo` execution and changes to sudo policy.
 - Changes to users, groups, passwords, and shadow files.
-- Changes to SSH configuration and SSH-related files.
-- Changes to audit configuration or audit logs.
+- Changes to the SSH daemon configuration.
+- Changes to audit configuration.
 
 Review recent security-relevant activity with:
 
@@ -59,6 +90,16 @@ sudo aureport --auth
 For an incident, preserve logs before rebuilding or replacing the affected
 host. Journal and audit logs are local by design; do not rely on them as the
 only copy during a compromise.
+
+To preserve evidence from a host before a rebuild or replacement, copy the
+journals and audit logs to trusted administrative storage:
+
+```bash
+sudo journalctl --export > journal-HOSTNAME-YYYY-MM-DD.export
+sudo tar -C /var/lib -czf audit-HOSTNAME-YYYY-MM-DD.tar.gz audit
+```
+
+Store exports only in an access-controlled administrative location.
 
 ## Alertmanager
 

@@ -65,3 +65,10 @@ creation_rules:
       - age:
           - *aljam
           - *r730xd
+
+  # SendPulse SMTP relay credentials for the r820 mail server.
+  - path_regex: secrets/mail\.yaml$
+    key_groups:
+      - age:
+          - *aljam
+          - *r820

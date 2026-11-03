@@ -35,6 +35,11 @@
       url = "github:nix-community/NUR";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    mailserver = {
+      url = "gitlab:simple-nixos-mailserver/nixos-mailserver?host=gitlab.com";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -50,6 +55,7 @@
       artcraft,
       nix-flatpak,
       nixos-hardware,
+      mailserver,
       ...
     }@inputs:
     let
@@ -225,6 +231,10 @@
 
         r820 = mkHost {
           hostname = "r820";
+          extraModules = [
+            mailserver.nixosModules.mailserver
+            ./modules/features/mail-server.nix
+          ];
         };
 
         r730 = mkHost {

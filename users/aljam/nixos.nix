@@ -1,34 +1,17 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, ... }:
 
-let
-  groupExists = g: builtins.hasAttr g config.users.groups;
-in
 {
   users.users.aljam = {
-    extraGroups =
-      [ "wheel" "video" "render" "input" ]
-      ++ lib.filter groupExists [
-        "networkmanager"
-        "libvirtd"
-        "wireshark"
-        "media"
-        "podman"
-      ];
     isNormalUser = true;
+    extraGroups = [ "wheel" ];
     openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHzrMiro1XD8krk5Kb4EWQ+rGjmgKXha/OuOmUZcopRL navi-desktop"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB0Y44h2FhGd7E8jXp3kZ0Y9M6B1uJ4tS7vQ2wE5rT8y aljam@navi"
     ];
-    shell = pkgs.fish;
     hashedPasswordFile = config.sops.secrets.aljam_password.path;
   };
 
-  programs.fish.enable = true;
-
   sops.secrets.aljam_password = {
     sopsFile = ../../secrets/common.yaml;
-    neededForUsers = true; # required — decrypt before user creation
-    owner = "root";
-    group = "root";
-    mode = "0400";
+    neededForUsers = true;
   };
 }

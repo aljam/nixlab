@@ -46,7 +46,7 @@ These allowlists are OR-ed by OpenSSH, so adding a user to `wheel` intentionally
 Every authorized public key must include a unique `user@device` comment. This makes the key inventory understandable and makes rotation safer.
 
 ```text
-ssh-ed25519 AAAA... aljam@navi-desktop
+ssh-ed25519 AAAA... aljam@navi
 ssh-ed25519 AAAA... aljam@work-laptop
 ```
 
@@ -54,9 +54,9 @@ CI rejects keys with no comment or a comment that does not follow the `user@devi
 
 ### Key inventory
 
-| User | Device | Key comment | Status |
+| User | Devices | Key comment | Status |
 |---|---|---|---|
-| `aljam` | `navi-desktop` | `navi-desktop` | Active; rename to `aljam@navi-desktop` on next rotation |
+| `aljam` | Desktop and laptop | `aljam@navi` | Active; the same key is currently installed on both devices. Rotate to separate per-device keys when convenient. |
 
 ### Rotating a key
 

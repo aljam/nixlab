@@ -55,17 +55,33 @@ jobs:
 
           config = pathlib.Path(".sops.yaml").read_text()
           patterns = re.findall(r"^\s*-\s*path_regex:\s*(.+)$", config, re.MULTILINE)
-          fallback = "secrets/.*\\.yaml$"
+          broad_patterns = [
+              "secrets/.*\\.yaml$",
+              "secrets/.*",
+              ".*",
+          ]
           missing = []
 
           for path in sorted(pathlib.Path("secrets").glob("*.yaml")):
               rel = path.as_posix()
               explicit = any(
-                  pattern != fallback and re.fullmatch(pattern, rel)
+                  pattern not in broad_patterns and re.fullmatch(pattern, rel)
                   for pattern in patterns
               )
               if not explicit:
                   missing.append(rel)
+
+          broad = [
+              pattern
+              for pattern in patterns
+              if pattern in broad_patterns
+          ]
+
+          if broad:
+              raise SystemExit(
+                  "Broad SOPS fallback creation rules are forbidden:\n"
+                  + "\n".join(f"- {pattern}" for pattern in broad)
+              )
 
           if missing:
               raise SystemExit(

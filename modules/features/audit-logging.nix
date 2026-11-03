@@ -28,13 +28,12 @@
       "-w /etc/shadow -p wa -k identity-change"
       "-w /etc/gshadow -p wa -k identity-change"
 
-      # SSH configuration and keys
+      # SSH configuration
       "-w /etc/ssh/sshd_config -p wa -k sshd-config-change"
-      "-w /etc/ssh/ -p wa -k ssh-config-change"
+      "-w /etc/ssh/sshd_config.d/ -p wa -k sshd-config-change"
 
       # Audit policy changes
       "-w /etc/audit/ -p wa -k audit-config-change"
-      "-w /var/lib/audit/ -p wa -k audit-log-change"
     ];
   };
 

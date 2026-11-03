@@ -17,6 +17,7 @@
     ../features/sops.nix
     ../features/ssh.nix
     ../features/security-policy.nix
+    ../features/drift-monitoring.nix
   ];
 
   options.networking.servicesBindAddress = lib.mkOption {
@@ -48,11 +49,9 @@
       LC_ADDRESS = "en_CA.UTF-8";
       LC_IDENTIFICATION = "en_CA.UTF-8";
       LC_MEASUREMENT = "en_CA.UTF-8";
-      LC_MONETARY = "en_CA.UTF-8";
       LC_NAME = "en_CA.UTF-8";
       LC_NUMERIC = "en_CA.UTF-8";
       LC_PAPER = "en_CA.UTF-8";
-      LC_TELEPHONE = "en_CA.UTF-8";
       LC_TIME = "en_CA.UTF-8";
     };
 

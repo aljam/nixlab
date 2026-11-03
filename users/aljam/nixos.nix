@@ -13,5 +13,6 @@
   sops.secrets.aljam_password = {
     sopsFile = ../../secrets/common.yaml;
     neededForUsers = true;
+    owner = "aljam";
   };
 }

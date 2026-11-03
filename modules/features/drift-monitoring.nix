@@ -55,14 +55,14 @@ let
   '';
 in
 {
-  services.prometheus.exporters.node = {
-    enabledCollectors = [ "textfile" ];
-    extraFlags = [
-      "--collector.textfile.directory=${textfileDirectory}"
-    ];
-  };
-
   config = lib.mkIf config.services.prometheus.exporters.node.enable {
+    services.prometheus.exporters.node = {
+      enabledCollectors = [ "textfile" ];
+      extraFlags = [
+        "--collector.textfile.directory=${textfileDirectory}"
+      ];
+    };
+
     systemd.services.nixlab-drift-metrics = {
       description = "Collect NixOS runtime drift metrics";
       after = [ "network.target" "nftables.service" ];

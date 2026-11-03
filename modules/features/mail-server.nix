@@ -37,6 +37,7 @@ in
   mailserver = {
     enable = true;
     stateVersion = 5;
+    localDnsResolver = false;
     fqdn = "mail.${primaryDomain}";
     domains = mailDomains;
 

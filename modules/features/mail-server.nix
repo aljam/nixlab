@@ -27,6 +27,9 @@ let
       }) roleAliases
     ) mailDomains
   );
+
+  acmeService = "acme-order-renew-mail.${primaryDomain}";
+  tokenFile = config.sops.secrets."cloudflare-api-token".path;
 in
 {
   security.acme = {
@@ -35,7 +38,7 @@ in
 
     certs."mail.${primaryDomain}" = {
       dnsProvider = "cloudflare";
-      environmentFile = config.sops.secrets."CLOUDFLARE_DNS_API_TOKEN".path;
+      environmentFile = config.sops.secrets."cloudflare-api-token".path;
     };
   };
 
@@ -62,11 +65,25 @@ in
     enableSubmissionSsl = true;
   };
 
-  sops.secrets."CLOUDFLARE_DNS_API_TOKEN" = {
+  sops.secrets."cloudflare-api-token" = {
     sopsFile = ../../secrets/acme.yaml;
     owner = "acme";
     group = "acme";
     mode = "0400";
+  };
+
+  systemd.services.${acmeService} = {
+    preStart = ''
+      install -d -m 0700 -o acme -g acme /run/cloudflare-acme
+      token="$(sed -n 's/^cloudflare-api-token=//p' ${tokenFile})"
+      printf '%s\n' "CLOUDFLARE_DNS_API_TOKEN=$token" > /run/cloudflare-acme/environment
+      chown acme:acme /run/cloudflare-acme/environment
+      chmod 0400 /run/cloudflare-acme/environment
+    '';
+    serviceConfig = {
+      RuntimeDirectory = "cloudflare-acme";
+      RuntimeDirectoryMode = "0700";
+    };
   };
 
   networking.firewall.allowedTCPPorts = [

@@ -55,48 +55,46 @@ let
   '';
 in
 {
-  config = lib.mkIf config.services.prometheus.exporters.node.enable {
-    services.prometheus.exporters.node = {
-      enabledCollectors = [ "textfile" ];
-      extraFlags = [
-        "--collector.textfile.directory=${textfileDirectory}"
-      ];
+  services.prometheus.exporters.node = {
+    enabledCollectors = [ "textfile" ];
+    extraFlags = [
+      "--collector.textfile.directory=${textfileDirectory}"
+    ];
+  };
+
+  systemd.services.nixlab-drift-metrics = {
+    description = "Collect NixOS runtime drift metrics";
+    after = [ "network.target" "nftables.service" ];
+    wants = [ "nftables.service" ];
+
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${driftScript}";
+      User = "node-exporter";
+      Group = "node-exporter";
+
+      StateDirectory = "nixlab-drift";
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      PrivateDevices = true;
+      ProtectKernelTunables = true;
+      ProtectKernelModules = true;
+      ProtectControlGroups = true;
+      RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_NETLINK" ];
+      LockPersonality = true;
     };
+  };
 
-    systemd.services.nixlab-drift-metrics = {
-      description = "Collect NixOS runtime drift metrics";
-      after = [ "network.target" "nftables.service" ];
-      wants = [ "nftables.service" ];
-
-      serviceConfig = {
-        Type = "oneshot";
-        ExecStart = "${driftScript}";
-        User = "node-exporter";
-        Group = "node-exporter";
-
-        StateDirectory = "nixlab-drift";
-        NoNewPrivileges = true;
-        PrivateTmp = true;
-        ProtectSystem = "strict";
-        ProtectHome = true;
-        PrivateDevices = true;
-        ProtectKernelTunables = true;
-        ProtectKernelModules = true;
-        ProtectControlGroups = true;
-        RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_NETLINK" ];
-        LockPersonality = true;
-      };
-    };
-
-    systemd.timers.nixlab-drift-metrics = {
-      description = "Collect NixOS runtime drift metrics every five minutes";
-      wantedBy = [ "timers.target" ];
-      timerConfig = {
-        OnBootSec = "2min";
-        OnUnitActiveSec = "5min";
-        AccuracySec = "30s";
-        Persistent = true;
-      };
+  systemd.timers.nixlab-drift-metrics = {
+    description = "Collect NixOS runtime drift metrics every five minutes";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "2min";
+      OnUnitActiveSec = "5min";
+      AccuracySec = "30s";
+      Persistent = true;
     };
   };
 }

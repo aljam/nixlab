@@ -40,13 +40,13 @@ in
     fqdn = "mail.${primaryDomain}";
     domains = mailDomains;
 
-    loginAccounts = {
+    accounts = {
       "aljam@${primaryDomain}" = {
         hashedPasswordFile = config.sops.secrets.aljam_password.path;
       };
     };
 
-    extraVirtualAliases = aliases;
+    aliases = aliases;
 
     x509.useACMEHost = config.mailserver.fqdn;
 

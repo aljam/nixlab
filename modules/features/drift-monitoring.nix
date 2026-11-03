@@ -50,7 +50,9 @@ in
 {
   services.prometheus.exporters.node = {
     enabledCollectors = [ "textfile" ];
-    textfileDirectory = textfileDirectory;
+    extraFlags = [
+      "--collector.textfile.directory=${textfileDirectory}"
+    ];
   };
 
   systemd.services.nixlab-drift-metrics = {

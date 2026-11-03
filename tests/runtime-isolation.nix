@@ -192,7 +192,11 @@ let
             raise
 
         monitor.wait_for_unit("prometheus-node-exporter.service", timeout=120)
-        monitor.wait_for_open_port(9090, timeout=120)
+        monitor.wait_for_open_port(
+            9090,
+            "${monitoringIps.monitor}",
+            timeout=120,
+        )
 
         exporter.wait_for_unit("nftables.service", timeout=120)
         exporter.wait_for_unit("prometheus-node-exporter.service", timeout=120)

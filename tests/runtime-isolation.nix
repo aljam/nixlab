@@ -182,12 +182,24 @@ let
       testScript = ''
         start_all()
 
-        monitor.wait_for_unit("nftables.service")
-        monitor.wait_for_unit("prometheus.service")
-        monitor.wait_for_unit("prometheus-node-exporter.service")
+        monitor.wait_for_unit("nftables.service", timeout=120)
 
-        exporter.wait_for_unit("nftables.service")
-        exporter.wait_for_unit("prometheus-node-exporter.service")
+        try:
+            monitor.wait_for_unit("prometheus.service", timeout=180)
+        except Exception:
+            monitor.succeed("systemctl status prometheus.service --no-pager || true")
+            monitor.succeed("journalctl -u prometheus.service -b --no-pager || true")
+            raise
+
+        monitor.wait_for_unit("prometheus-node-exporter.service", timeout=120)
+        monitor.wait_for_open_port(
+            9090,
+            "${monitoringIps.monitor}",
+            timeout=120,
+        )
+
+        exporter.wait_for_unit("nftables.service", timeout=120)
+        exporter.wait_for_unit("prometheus-node-exporter.service", timeout=120)
 
         prometheus_url = "http://${monitoringIps.monitor}:9090"
 

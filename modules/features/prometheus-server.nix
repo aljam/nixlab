@@ -64,7 +64,7 @@ in
       port = 9090;
       listenAddress = config.networking.servicesBindAddress;
 
-      ruleFiles = [ ./prometheus-rules.yml ];
+      ruleFiles = [ ./prometheus/rules/prometheus-rules.yml ];
 
       alertmanagers = [
         {

@@ -9,7 +9,7 @@
     shellAliases = {
       ls = "eza --icons";
       cat = "bat";
-      ssh = "kitty +kitten ssh";
+      ssh = "ssh";
     };
   };
 

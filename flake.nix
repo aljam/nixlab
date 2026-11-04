@@ -5,9 +5,20 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-25.11";
 
-    nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
-    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
-    artcraft.url = "github:Hy4ri/artcraft-flake";
+    nix-cachyos-kernel = {
+      url = "github:xddxdd/nix-cachyos-kernel/release";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nixos-hardware = {
+      url = "github:NixOS/nixos-hardware/master";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    artcraft = {
+      url = "github:Hy4ri/artcraft-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     sops-nix = {
       url = "github:Mic92/sops-nix";

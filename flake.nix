@@ -133,13 +133,39 @@
 
       diskoModule = disko.nixosModules.disko;
 
-      deployHosts = [
-        "navi"
-        "oryx"
-        "r820"
-        "r730"
-        "r730xd"
-      ];
+      hostConfigurations = {
+        navi = mkHost {
+          hostname = "navi";
+          extraModules = desktopModules;
+        };
+
+        oryx = mkHost {
+          hostname = "oryx";
+          extraModules = desktopModules ++ [
+            nixos-hardware.nixosModules.system76
+          ];
+        };
+
+        r820 = mkHost {
+          hostname = "r820";
+          extraModules = [
+            mailserver.nixosModules.mailserver
+            #./modules/features/mail-server.nix
+          ];
+        };
+
+        r730 = mkHost {
+          hostname = "r730";
+          extraModules = [ diskoModule ];
+        };
+
+        r730xd = mkHost {
+          hostname = "r730xd";
+          extraModules = [ diskoModule ];
+        };
+      };
+
+      deployHosts = builtins.attrNames hostConfigurations;
     in
     {
       formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt;
@@ -153,7 +179,6 @@
             if [[ -n "$(git status --porcelain)" ]]; then
               echo "Refusing to deploy: Git working tree is dirty." >&2
               echo "Commit or stash changes, then retry." >&2
-              exit 1
             fi
 
             echo "==> Running flake checks"
@@ -164,6 +189,22 @@
             if (( ''${#hosts[@]} == 0 )); then
               hosts=(${lib.concatStringsSep " " deployHosts})
             fi
+
+            for host in "''${hosts[@]}"; do
+              valid=false
+              for known in ${lib.concatStringsSep " " deployHosts}; do
+                if [[ "''${host}" == "''${known}" ]]; then
+                  valid=true
+                  break
+                fi
+              done
+
+              if [[ "''${valid}" != true ]]; then
+                echo "Unknown deploy host: ''${host}" >&2
+                echo "Available hosts: ${lib.concatStringsSep " " deployHosts}" >&2
+                exit 1
+              fi
+            done
 
             for host in "''${hosts[@]}"; do
               echo "==> Deploying ''${host}"
@@ -216,36 +257,6 @@
             ./tests/firewall.nix;
       };
 
-      nixosConfigurations = {
-        navi = mkHost {
-          hostname = "navi";
-          extraModules = desktopModules;
-        };
-
-        oryx = mkHost {
-          hostname = "oryx";
-          extraModules = desktopModules ++ [
-            nixos-hardware.nixosModules.system76
-          ];
-        };
-
-        r820 = mkHost {
-          hostname = "r820";
-          extraModules = [
-            mailserver.nixosModules.mailserver
-            #./modules/features/mail-server.nix
-          ];
-        };
-
-        r730 = mkHost {
-          hostname = "r730";
-          extraModules = [ diskoModule ];
-        };
-
-        r730xd = mkHost {
-          hostname = "r730xd";
-          extraModules = [ diskoModule ];
-        };
-      };
+      nixosConfigurations = hostConfigurations;
     };
 }

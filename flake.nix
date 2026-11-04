@@ -173,7 +173,6 @@
           hostname = "r820";
           extraModules = [
             mailserver.nixosModules.mailserver
-            #./modules/features/mail-server.nix
           ];
         };
 

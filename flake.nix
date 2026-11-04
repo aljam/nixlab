@@ -1,250 +1,260 @@
-{
-  description = "Aljam's Unified Homelab Flake";
+description = "Aljam's Unified Homelab Flake";
 
-  inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-25.11";
+inputs = {
+  nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+  nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-25.11";
 
-    nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
-    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
-    artcraft.url = "github:Hy4ri/artcraft-flake";
+  nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
+  nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+  artcraft.url = "github:Hy4ri/artcraft-flake";
 
-    sops-nix = {
-      url = "github:Mic92/sops-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    home-manager = {
-      url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    disko = {
-      url = "github:nix-community/disko";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    nix-flatpak.url = "github:gmodena/nix-flatpak";
-
-    hyprland = {
-      url = "github:hyprwm/Hyprland";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    nur = {
-      url = "github:nix-community/NUR";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    mailserver = {
-      url = "gitlab:simple-nixos-mailserver/nixos-mailserver?host=gitlab.com";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+  sops-nix = {
+    url = "github:Mic92/sops-nix";
+    inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs =
-    {
-      self,
-      nixpkgs,
-      nixpkgs-stable,
-      home-manager,
-      disko,
-      sops-nix,
-      nix-cachyos-kernel,
-      nur,
-      artcraft,
-      nix-flatpak,
-      nixos-hardware,
-      mailserver,
-      ...
-    }@inputs:
-    let
-      system = "x86_64-linux";
-      inherit (nixpkgs) lib;
+  home-manager = {
+    url = "github:nix-community/home-manager";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
 
-      pkgs-stable = import nixpkgs-stable {
+  disko = {
+    url = "github:nix-community/disko";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+
+  nix-flatpak.url = "github:gmodena/nix-flatpak";
+
+  hyprland = {
+    url = "github:hyprwm/Hyprland";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+
+  nur = {
+    url = "github:nix-community/NUR";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+
+  mailserver = {
+    url = "gitlab:simple-nixos-mailserver/nixos-mailserver?host=gitlab.com";
+    inputs.nixpkgs.follows = "nixpkgs";
+  };
+};
+
+outputs =
+  {
+    self,
+    nixpkgs,
+    nixpkgs-stable,
+    home-manager,
+    disko,
+    sops-nix,
+    nix-cachyos-kernel,
+    nur,
+    artcraft,
+    nix-flatpak,
+    nixos-hardware,
+    mailserver,
+    ...
+  }@inputs:
+  let
+    system = "x86_64-linux";
+    inherit (nixpkgs) lib;
+
+    pkgs-stable = import nixpkgs-stable {
+      inherit system;
+      config.allowUnfree = true;
+    };
+
+    mkHost =
+      {
+        hostname,
+        extraModules ? [ ],
+      }:
+      lib.nixosSystem {
         inherit system;
-        config.allowUnfree = true;
+
+        specialArgs = {
+          inherit inputs pkgs-stable hostname;
+        };
+
+        modules =
+          commonModules hostname
+          ++ [
+            ./hosts/${hostname}/configuration.nix
+            ./users/aljam/nixos.nix
+            {
+              system.configurationRevision = self.rev or self.dirtyRev or "";
+            }
+          ]
+          ++ extraModules;
       };
 
-      mkHost =
-        {
-          hostname,
-          extraModules ? [ ],
-        }:
-        lib.nixosSystem {
-          inherit system;
+    commonModules =
+      hostname:
+      [
+        ./modules/roles/common.nix
 
-          specialArgs = {
+        sops-nix.nixosModules.sops
+        nur.modules.nixos.default
+
+        home-manager.nixosModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.backupFileExtension = "backup";
+          home-manager.users.aljam = import ./users/aljam/home.nix;
+          home-manager.extraSpecialArgs = {
             inherit inputs pkgs-stable hostname;
           };
-
-          modules =
-            commonModules hostname
-            ++ [
-              ./hosts/${hostname}/configuration.nix
-              ./users/aljam/nixos.nix
-              {
-                system.configurationRevision = self.rev or self.dirtyRev or "";
-              }
-            ]
-            ++ extraModules;
-        };
-
-      commonModules =
-        hostname:
-        [
-          ./modules/roles/common.nix
-
-          sops-nix.nixosModules.sops
-          nur.modules.nixos.default
-
-          home-manager.nixosModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.backupFileExtension = "backup";
-            home-manager.users.aljam = import ./users/aljam/home.nix;
-            home-manager.extraSpecialArgs = {
-              inherit inputs pkgs-stable hostname;
-            };
-          }
-
-          {
-            nixpkgs.overlays = [
-              nix-cachyos-kernel.overlays.default
-            ];
-          }
-        ];
-
-      desktopModules = [
-        {
-          nixpkgs.overlays = [
-            artcraft.overlays.default
-          ];
-
-          home-manager.users.aljam.imports = [
-            ./users/aljam/home-gui.nix
-          ];
         }
 
-        nix-flatpak.nixosModules.nix-flatpak
+        {
+          nixpkgs.overlays = [
+            nix-cachyos-kernel.overlays.default
+          ];
+        }
       ];
 
-      diskoModule = disko.nixosModules.disko;
+    desktopModules = [
+      {
+        nixpkgs.overlays = [
+          artcraft.overlays.default
+        ];
 
-      deployHosts = [
-        "navi"
-        "oryx"
-        "r820"
-        "r730"
-        "r730xd"
-      ];
-    in
-    {
-      formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt;
+        home-manager.users.aljam.imports = [
+          ./users/aljam/home-gui.nix
+        ];
+      }
 
-      apps.${system} = {
-        deploy = {
-          type = "app";
-          program = "${nixpkgs.legacyPackages.${system}.writeShellScript "deploy-all" ''
-            set -euo pipefail
+      nix-flatpak.nixosModules.nix-flatpak
+    ];
 
-            if [[ -n "$(git status --porcelain)" ]]; then
-              echo "Refusing to deploy: Git working tree is dirty." >&2
-              echo "Commit or stash changes, then retry." >&2
-            fi
+    diskoModule = disko.nixosModules.disko;
 
-            echo "==> Running flake checks"
-            nix --extra-experimental-features 'nix-command flakes' flake check --show-trace
-
-            hosts=("$@")
-
-            if (( ''${#hosts[@]} == 0 )); then
-              hosts=(${lib.concatStringsSep " " deployHosts})
-            fi
-
-            for host in "''${hosts[@]}"; do
-              echo "==> Deploying ''${host}"
-              nixos-rebuild switch \\
-                --flake ".#''${host}" \\
-                --target-host "root@''${host}" \\
-                --use-remote-sudo
-            done
-          ''}";
-        };
+    hostConfigurations = {
+      navi = mkHost {
+        hostname = "navi";
+        extraModules = desktopModules;
       };
 
-      checks.${system} = {
-        nftables-input-rules = import ./tests/nftables-input-rules.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
-          hosts = self.nixosConfigurations;
-        };
-
-        service-exposure = import ./tests/service-exposure.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
-          hosts = self.nixosConfigurations;
-        };
-
-        public-service-hardening = import ./tests/public-service-hardening.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
-          hosts = self.nixosConfigurations;
-        };
-
-        runtime-security = import ./tests/runtime-isolation.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
-        };
-
-        admin-isolation = import ./tests/runtime-isolation.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
-          test = "admin-isolation";
-        };
-
-        monitoring-health = import ./tests/runtime-isolation.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
-          test = "monitoring-health";
-        };
-
-        postgresql-auth = import ./tests/runtime-isolation.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
-          test = "postgresql-auth";
-        };
-
-        firewall-isolation =
-          nixpkgs.legacyPackages.${system}.testers.runNixOSTest
-            ./tests/firewall.nix;
+      oryx = mkHost {
+        hostname = "oryx";
+        extraModules = desktopModules ++ [
+          nixos-hardware.nixosModules.system76
+        ];
       };
 
-      nixosConfigurations = {
-        navi = mkHost {
-          hostname = "navi";
-          extraModules = desktopModules;
-        };
+      r820 = mkHost {
+        hostname = "r820";
+        extraModules = [
+          mailserver.nixosModules.mailserver
+          #./modules/features/mail-server.nix
+        ];
+      };
 
-        oryx = mkHost {
-          hostname = "oryx";
-          extraModules = desktopModules ++ [
-            nixos-hardware.nixosModules.system76
-          ];
-        };
+      r730 = mkHost {
+        hostname = "r730";
+        extraModules = [ diskoModule ];
+      };
 
-        r820 = mkHost {
-          hostname = "r820";
-          extraModules = [
-            mailserver.nixosModules.mailserver
-            #./modules/features/mail-server.nix
-          ];
-        };
-
-        r730 = mkHost {
-          hostname = "r730";
-          extraModules = [ diskoModule ];
-        };
-
-        r730xd = mkHost {
-          hostname = "r730xd";
-          extraModules = [ diskoModule ];
-        };
+      r730xd = mkHost {
+        hostname = "r730xd";
+        extraModules = [ diskoModule ];
       };
     };
-}
+
+    deployHosts = builtins.attrNames hostConfigurations;
+  in
+  {
+    formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt;
+
+    apps.${system} = {
+      deploy = {
+        type = "app";
+        program = "${nixpkgs.legacyPackages.${system}.writeShellScript "deploy-all" ''
+          set -euo pipefail
+
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "Refusing to deploy: Git working tree is dirty." >&2
+            echo "Commit or stash changes, then retry." >&2
+          fi
+
+          echo "==> Running flake checks"
+          nix --extra-experimental-features 'nix-command flakes' flake check --show-trace
+
+          hosts=("$@")
+
+          if (( ''${#hosts[@]} == 0 )); then
+            hosts=(${lib.concatStringsSep " " deployHosts})
+          fi
+
+          for host in "''${hosts[@]}"; do
+            valid=false
+            for known in ${lib.concatStringsSep " " deployHosts}; do
+              if [[ "''${host}" == "''${known}" ]]; then
+                valid=true
+                break
+              fi
+            done
+
+            if [[ "''${valid}" != true ]]; then
+              echo "Unknown deploy host: ''${host}" >&2
+              echo "Available hosts: ${lib.concatStringsSep " " deployHosts}" >&2
+              exit 1
+            fi
+          done
+
+          for host in "''${hosts[@]}"; do
+            echo "==> Deploying ''${host}"
+            nixos-rebuild switch \\
+              --flake ".#''${host}" \\
+              --target-host "root@''${host}" \\
+              --use-remote-sudo
+          done
+        ''}";
+      };
+    };
+
+    checks.${system} = {
+      nftables-input-rules = import ./tests/nftables-input-rules.nix {
+        pkgs = nixpkgs.legacyPackages.${system};
+        hosts = self.nixosConfigurations;
+      };
+
+      service-exposure = import ./tests/service-exposure.nix {
+        pkgs = nixpkgs.legacyPackages.${system};
+        hosts = self.nixosConfigurations;
+      };
+
+      public-service-hardening = import ./tests/public-service-hardening.nix {
+        pkgs = nixpkgs.legacyPackages.${system};
+        hosts = self.nixosConfigurations;
+      };
+
+      runtime-security = import ./tests/runtime-isolation.nix {
+        pkgs = nixpkgs.legacyPackages.${system};
+      };
+
+      admin-isolation = import ./tests/runtime-isolation.nix {
+        pkgs = nixpkgs.legacyPackages.${system};
+        test = "admin-isolation";
+      };
+
+      monitoring-health = import ./tests/runtime-isolation.nix {
+        pkgs = nixpkgs.legacyPackages.${system};
+        test = "monitoring-health";
+      };
+
+      postgresql-auth = import ./tests/runtime-isolation.nix {
+        pkgs = nixpkgs.legacyPackages.${system};
+        test = "postgresql-auth";
+      };
+
+      firewall-isolation =
+        nixpkgs.legacyPackages.${system}.testers.runNixOSTest
+          ./tests/firewall.nix;
+    };
+
+    nixosConfigurations = hostConfigurations;
+  };

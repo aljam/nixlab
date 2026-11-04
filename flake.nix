@@ -130,6 +130,18 @@
 
       desktopModules = [
         {
+          programs.appimage = {
+            enable = true;
+            binfmt = true;
+            package = nixpkgs.legacyPackages.${system}.appimage-run.override {
+              extraPkgs = pkgs: [
+                pkgs.libxcrypt-legacy
+                pkgs.libffi
+                pkgs.libyaml
+              ];
+            };
+          };
+
           nixpkgs.overlays = [
             artcraft.overlays.default
           ];
@@ -181,6 +193,12 @@
     {
       formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt;
 
+      packages.${system} = {
+        firewall-isolation =
+          nixpkgs.legacyPackages.${system}.testers.runNixOSTest
+            ./tests/firewall.nix;
+      };
+
       apps.${system} = {
         deploy = {
           type = "app";
@@ -190,6 +208,7 @@
             if [[ -n "$(git status --porcelain)" ]]; then
               echo "Refusing to deploy: Git working tree is dirty." >&2
               echo "Commit or stash changes, then retry." >&2
+              exit 1
             fi
 
             echo "==> Running flake checks"
@@ -262,10 +281,6 @@
           pkgs = nixpkgs.legacyPackages.${system};
           test = "postgresql-auth";
         };
-
-        firewall-isolation =
-          nixpkgs.legacyPackages.${system}.testers.runNixOSTest
-            ./tests/firewall.nix;
       };
 
       nixosConfigurations = hostConfigurations;

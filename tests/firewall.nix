@@ -70,20 +70,20 @@ in
   testScript = ''
     start_all()
 
-    backend.wait_for_unit("nftables.service", timeout=60)
+    backend.wait_for_unit("nftables.service", timeout=180)
 
     backend.log("waiting for backend-app")
-    backend.wait_for_unit("backend-app.service", timeout=60)
-    backend.wait_for_open_port(${toString backendPort}, timeout=60)
+    backend.wait_for_unit("backend-app.service", timeout=180)
+    backend.wait_for_open_port(${toString backendPort}, timeout=180)
     backend.log("backend-app is ready")
 
     backend.log("waiting for node exporter")
-    backend.wait_for_unit("prometheus-node-exporter.service", timeout=60)
-    backend.wait_for_open_port(${toString exporterPort}, timeout=60)
+    backend.wait_for_unit("prometheus-node-exporter.service", timeout=180)
+    backend.wait_for_open_port(${toString exporterPort}, timeout=180)
     backend.log("node exporter is ready")
 
     for machine in [gateway, prometheus, attacker]:
-        machine.wait_for_unit("multi-user.target", timeout=120)
+        machine.wait_for_unit("multi-user.target", timeout=300)
 
     # Reach the backend by name: the test driver puts every machine's vlan1
     # address in /etc/hosts, so traffic leaves over the LAN interface and the

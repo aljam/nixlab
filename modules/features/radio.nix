@@ -3,9 +3,12 @@
   services.icecast = {
     enable = true;
     hostname = "radio.derezzed.info";
-    port = 8000;
     admin.password = "changeme-admin";
     extraConf = ''
+      <listen-socket>
+        <port>8000</port>
+      </listen-socket>
+
       <authentication>
         <source-password>changeme-source</source-password>
         <relay-password>changeme-relay</relay-password>

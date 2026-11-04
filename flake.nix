@@ -269,8 +269,11 @@
         };
 
         firewall-isolation =
-          nixpkgs.legacyPackages.${system}.testers.runNixOSTest
-            ./tests/firewall.nix;
+          (nixpkgs.legacyPackages.${system}.testers.runNixOSTest
+            ./tests/firewall.nix).overrideAttrs
+            (_: {
+              requiredSystemFeatures = [ "kvm" ];
+            });
       };
 
       nixosConfigurations = hostConfigurations;

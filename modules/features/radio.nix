@@ -4,7 +4,7 @@
     enable = true;
     hostname = "radio.derezzed.info";
     admin.password = "changeme-admin";
-    extraConf = ''
+    extraConfig = ''
       <listen-socket>
         <port>8000</port>
       </listen-socket>
@@ -14,6 +14,11 @@
         <relay-password>changeme-relay</relay-password>
       </authentication>
     '';
+  };
+
+  systemd.services.icecast = {
+    wants = [ "network-online.target" ];
+    after = [ "network-online.target" ];
   };
 
   services.liquidsoap.streams.radio = ''

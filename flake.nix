@@ -153,6 +153,7 @@
             if [[ -n "$(git status --porcelain)" ]]; then
               echo "Refusing to deploy: Git working tree is dirty." >&2
               echo "Commit or stash changes, then retry." >&2
+              exit 1
             fi
 
             echo "==> Running flake checks"

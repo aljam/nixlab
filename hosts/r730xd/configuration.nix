@@ -13,6 +13,7 @@
     ../../modules/features/matrix-synapse.nix
     ../../modules/features/matrix-rtc.nix
     ../../modules/features/static-site.nix
+    ../../modules/features/radio.nix
   ];
 
   boot.kernelPackages = pkgs.linuxPackages_6_1;

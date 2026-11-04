@@ -133,55 +133,88 @@ outputs =
           artcraft.overlays.default
         ];
 
-        home-manager.users.aljam.imports = [
-          ./users/aljam/home-gui.nix
-        ];
-      }
+      hostConfigurations = {
+        navi = mkHost {
+          hostname = "navi";
+          extraModules = desktopModules;
+        };
 
-      nix-flatpak.nixosModules.nix-flatpak
-    ];
+        oryx = mkHost {
+          hostname = "oryx";
+          extraModules = desktopModules ++ [
+            nixos-hardware.nixosModules.system76
+          ];
+        };
 
-    diskoModule = disko.nixosModules.disko;
+        r820 = mkHost {
+          hostname = "r820";
+          extraModules = [
+            mailserver.nixosModules.mailserver
+            #./modules/features/mail-server.nix
+          ];
+        };
 
-    deployHosts = [
-      "navi"
-      "oryx"
-      "r820"
-      "r730"
-      "r730xd"
-    ];
-  in
-  {
-    formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt;
+        r730 = mkHost {
+          hostname = "r730";
+          extraModules = [ diskoModule ];
+        };
 
-    apps.${system} = {
-      deploy = {
-        type = "app";
-        program = "${nixpkgs.legacyPackages.${system}.writeShellScript "deploy-all" ''
-          set -euo pipefail
+        r730xd = mkHost {
+          hostname = "r730xd";
+          extraModules = [ diskoModule ];
+        };
+      };
 
-          if [[ -n "$(git status --porcelain)" ]]; then
-            echo "Refusing to deploy: Git working tree is dirty." >&2
-            echo "Commit or stash changes, then retry." >&2
-          fi
+      deployHosts = builtins.attrNames hostConfigurations;
+    in
+    {
+      formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt;
 
-          echo "==> Running flake checks"
-          nix --extra-experimental-features 'nix-command flakes' flake check --show-trace
+      apps.${system} = {
+        deploy = {
+          type = "app";
+          program = "${nixpkgs.legacyPackages.${system}.writeShellScript "deploy-all" ''
+            set -euo pipefail
 
-          hosts=("$@")
+            if [[ -n "$(git status --porcelain)" ]]; then
+              echo "Refusing to deploy: Git working tree is dirty." >&2
+              echo "Commit or stash changes, then retry." >&2
+            fi
 
-          if (( ''${#hosts[@]} == 0 )); then
-            hosts=(${lib.concatStringsSep " " deployHosts})
-          fi
+            echo "==> Running flake checks"
+            nix --extra-experimental-features 'nix-command flakes' flake check --show-trace
 
-          for host in "''${hosts[@]}"; do
-            echo "==> Deploying ''${host}"
-            nixos-rebuild switch \\
-              --flake ".#''${host}" \\
-              --target-host "root@''${host}" \\
-              --use-remote-sudo
-          done
-        ''}";
+            hosts=("$@")
+
+            if (( ''${#hosts[@]} == 0 )); then
+              hosts=(${lib.concatStringsSep " " deployHosts})
+            fi
+
+            for host in "''${hosts[@]}"; do
+              valid=false
+              for known in ${lib.concatStringsSep " " deployHosts}; do
+                if [[ "''${host}" == "''${known}" ]]; then
+                  valid=true
+                  break
+                fi
+              done
+
+              if [[ "''${valid}" != true ]]; then
+                echo "Unknown deploy host: ''${host}" >&2
+                echo "Available hosts: ${lib.concatStringsSep " " deployHosts}" >&2
+                exit 1
+              fi
+            done
+
+            for host in "''${hosts[@]}"; do
+              echo "==> Deploying ''${host}"
+              nixos-rebuild switch \\
+                --flake ".#''${host}" \\
+                --target-host "root@''${host}" \\
+                --use-remote-sudo
+            done
+          ''}";
+        };
       };
     };
 
@@ -220,40 +253,6 @@ outputs =
         test = "postgresql-auth";
       };
 
-      firewall-isolation =
-        nixpkgs.legacyPackages.${system}.testers.runNixOSTest
-          ./tests/firewall.nix;
-    };
-
-    nixosConfigurations = {
-      navi = mkHost {
-        hostname = "navi";
-        extraModules = desktopModules;
-      };
-
-      oryx = mkHost {
-        hostname = "oryx";
-        extraModules = desktopModules ++ [
-          nixos-hardware.nixosModules.system76
-        ];
-      };
-
-      r820 = mkHost {
-        hostname = "r820";
-        extraModules = [
-          mailserver.nixosModules.mailserver
-          #./modules/features/mail-server.nix
-        ];
-      };
-
-      r730 = mkHost {
-        hostname = "r730";
-        extraModules = [ diskoModule ];
-      };
-
-      r730xd = mkHost {
-        hostname = "r730xd";
-        extraModules = [ diskoModule ];
-      };
+      nixosConfigurations = hostConfigurations;
     };
   };

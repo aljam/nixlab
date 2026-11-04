@@ -129,10 +129,18 @@
         ];
 
       desktopModules = [
-        ./modules/features/appimage.nix
-
         {
-          programs.appimage.enable = true;
+          programs.appimage = {
+            enable = true;
+            binfmt = true;
+            package = nixpkgs.legacyPackages.${system}.appimage-run.override {
+              extraPkgs = pkgs: [
+                pkgs.libxcrypt-legacy
+                pkgs.libffi
+                pkgs.libyaml
+              ];
+            };
+          };
 
           nixpkgs.overlays = [
             artcraft.overlays.default
@@ -184,6 +192,12 @@
     in
     {
       formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt;
+
+      packages.${system} = {
+        firewall-isolation =
+          nixpkgs.legacyPackages.${system}.testers.runNixOSTest
+            ./tests/firewall.nix;
+      };
 
       apps.${system} = {
         deploy = {
@@ -267,13 +281,6 @@
           pkgs = nixpkgs.legacyPackages.${system};
           test = "postgresql-auth";
         };
-
-        firewall-isolation =
-          (nixpkgs.legacyPackages.${system}.testers.runNixOSTest
-            ./tests/firewall.nix).overrideAttrs
-            (_: {
-              requiredSystemFeatures = [ "kvm" ];
-            });
       };
 
       nixosConfigurations = hostConfigurations;

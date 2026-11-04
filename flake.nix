@@ -197,6 +197,15 @@
         firewall-isolation =
           nixpkgs.legacyPackages.${system}.testers.runNixOSTest
             ./tests/firewall.nix;
+
+        runtime-security = import ./tests/runtime-isolation.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        admin-isolation = import ./tests/runtime-isolation.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+          test = "admin-isolation";
+        };
       };
 
       apps.${system} = {
@@ -261,15 +270,6 @@
         public-service-hardening = import ./tests/public-service-hardening.nix {
           pkgs = nixpkgs.legacyPackages.${system};
           hosts = self.nixosConfigurations;
-        };
-
-        runtime-security = import ./tests/runtime-isolation.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
-        };
-
-        admin-isolation = import ./tests/runtime-isolation.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
-          test = "admin-isolation";
         };
 
         monitoring-health = import ./tests/runtime-isolation.nix {

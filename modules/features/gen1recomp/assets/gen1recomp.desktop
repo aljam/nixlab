@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Gen1Recomp
+Comment=Native LÖVE recreation of Pokémon Gen 1 and 2
+Exec=gen1recomp
+Terminal=false
+Type=Application
+Categories=Game;

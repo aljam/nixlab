@@ -27,7 +27,7 @@ let
       makeWrapper ${pkgs.love}/bin/love "$out/bin/gen1recomp" \
         --add-flags "$out/share/gen1recomp/gen1recomp.love"
 
-      install -Dm644 ${./assets/gen1recomp.desktop} \
+      install -Dm644 ${./gen1recomp/assets/gen1recomp.desktop} \
         "$out/share/applications/gen1recomp.desktop"
     '';
   };

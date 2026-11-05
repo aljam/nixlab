@@ -1,26 +1,27 @@
-# Security: Vaultwarden should NOT be exposed to LAN
-# Only accessible via HAProxy gateway (192.168.1.1)
-{ config, lib, pkgs, ... }:
+{ lib, config, pkgs, ... }:
 
+let
+  cfg = config.modules.features.vaultwarden;
+in
 {
-  networking.proxyBackendPorts = [ 8222 ];
+  options.modules.features.vaultwarden.enable =
+    lib.mkEnableOption "Vaultwarden password manager";
 
-  sops.secrets."vaultwarden-admin-token" = {
-    sopsFile = ../../secrets/vaultwarden.yaml;
-    mode = "0400";
-    owner = "vaultwarden";
-  };
+  config = lib.mkIf cfg.enable {
+    sops.secrets."vaultwarden-admin-token" = {
+      sopsFile = ../../secrets/vaultwarden.yaml;
+      owner = "vaultwarden";
+      group = "vaultwarden";
+      mode = "0400";
+      restartUnits = [ "vaultwarden.service" ];
+    };
 
-  services.vaultwarden = {
-    enable = true;
-    config = {
-      rocketAddress = config.networking.servicesBindAddress;
-      rocketPort = 8222;
-      domain = "https://vault.${config.networking.myDomain}";
-      signupsAllowed = false;
-      adminTokenFile = config.sops.secrets."vaultwarden-admin-token".path;
-      adminRateLimitSeconds = 300;
-      adminRateLimitMaxBurst = 10;
+    services.vaultwarden = {
+      enable = true;
+      environmentFile = pkgs.writeText "vaultwarden.env" ''
+        ADMIN_TOKEN_FILE=${config.sops.secrets."vaultwarden-admin-token".path}
+        SIGNUPS_ALLOWED=false
+      '';
     };
   };
 }

@@ -1,136 +1,56 @@
-{ config, pkgs, lib, ... }:
-let
-  icecastPort = 8000;
+{ lib, config, pkgs, ... }:
 
-  icecastConfig = config.sops.templates.icecast-config.path;
+let
+  cfg = config.modules.features.radio;
   liquidsoapScript = config.sops.templates.liquidsoap-radio.path;
 in
 {
-  sops.secrets = {
-    icecast-admin-password = {
-      sopsFile = ../../secrets/radio.yaml;
-      owner = "root";
-      group = "keys";
-      mode = "0400";
+  options.modules.features.radio.enable =
+    lib.mkEnableOption "Internet radio streaming stack";
+
+  config = lib.mkIf cfg.enable {
+    sops.secrets = {
+      icecast-admin-password = {
+        sopsFile = ../../secrets/radio.yaml;
+        owner = "root";
+        group = "root";
+        mode = "0400";
+        restartUnits = [ "icecast.service" ];
+      };
+
+      icecast-source-password = {
+        sopsFile = ../../secrets/radio.yaml;
+        owner = "root";
+        group = "root";
+        mode = "0400";
+        restartUnits = [ "icecast.service" "liquidsoap-radio.service" ];
+      };
+
+      icecast-relay-password = {
+        sopsFile = ../../secrets/radio.yaml;
+        owner = "root";
+        group = "root";
+        mode = "0400";
+        restartUnits = [ "icecast.service" ];
+      };
     };
 
-    icecast-source-password = {
-      sopsFile = ../../secrets/radio.yaml;
-      owner = "root";
-      group = "keys";
-      mode = "0400";
+    services.icecast = {
+      enable = true;
+      hostname = "radio.derezzed.info";
+      admin.password = "unused-by-custom-execstart";
     };
 
-    icecast-relay-password = {
-      sopsFile = ../../secrets/radio.yaml;
-      owner = "root";
-      group = "keys";
-      mode = "0400";
-    };
-  };
+    systemd.services.liquidsoap-radio = {
+      description = "Liquidsoap radio stream";
+      wantedBy = [ "multi-user.target" ];
+      after = [ "sops-nix.service" "icecast.service" ];
 
-  sops.templates = {
-    icecast-config = {
-      content = ''
-        <?xml version="1.0"?>
-        <icecast>
-          <hostname>radio.derezzed.info</hostname>
-
-          <authentication>
-            <admin-user>admin</admin-user>
-            <admin-password>${config.sops.placeholder.icecast-admin-password}</admin-password>
-          </authentication>
-
-          <paths>
-            <logdir>/var/log/icecast</logdir>
-            <adminroot>${pkgs.icecast}/share/icecast/admin</adminroot>
-            <webroot>${pkgs.icecast}/share/icecast/web</webroot>
-            <alias source="/" dest="/status.xsl"/>
-          </paths>
-
-          <listen-socket>
-            <port>${toString icecastPort}</port>
-            <bind-address>::</bind-address>
-          </listen-socket>
-
-          <security>
-            <chroot>0</chroot>
-          </security>
-
-          <authentication>
-            <source-password>${config.sops.placeholder.icecast-source-password}</source-password>
-            <relay-password>${config.sops.placeholder.icecast-relay-password}</relay-password>
-          </authentication>
-        </icecast>
-      '';
-      owner = "root";
-      group = "keys";
-      mode = "0440";
-    };
-
-    liquidsoap-radio = {
-      content = ''
-        set("log.file", false)
-        set("log.stdout", true)
-
-        music = playlist("/var/lib/radio/music")
-
-        radio = fallback([
-          request.queue(id = "requests"),
-          music
-        ])
-
-        output.icecast(
-          %mp3(bitrate = 192, samplerate = 44100, stereo = true),
-          host = "127.0.0.1",
-          port = ${toString icecastPort},
-          password = "${config.sops.placeholder.icecast-source-password}",
-          mount = "/stream",
-          name = "Derezzed Radio",
-          description = "Homelab radio",
-          genre = "misc",
-          public = false,
-          radio
-        )
-      '';
-      owner = "liquidsoap";
-      group = "liquidsoap";
-      mode = "0400";
+      serviceConfig = {
+        Type = "simple";
+        Restart = "always";
+        ExecStart = "${pkgs.liquidsoap}/bin/liquidsoap ${liquidsoapScript}";
+      };
     };
   };
-
-  services.icecast = {
-    enable = true;
-    hostname = "radio.derezzed.info";
-    # The upstream module evaluates this while constructing its own config,
-    # even though our overridden ExecStart uses the SOPS-rendered config.
-    admin.password = "unused-by-custom-execstart";
-  };
-
-  systemd.services.icecast = {
-    wants = [ "network-online.target" ];
-    after = [
-      "network-online.target"
-      "sops-nix.service"
-    ];
-
-    serviceConfig = {
-      SupplementaryGroups = [ "keys" ];
-      ExecStart = lib.mkForce (
-        lib.concatStringsSep " " [
-          (lib.getExe pkgs.icecast)
-          "-c"
-          icecastConfig
-        ]
-      );
-    };
-  };
-
-  services.liquidsoap.streams.radio = liquidsoapScript;
-
-  systemd.tmpfiles.rules = [
-    "d /var/lib/radio/music 0755 liquidsoap liquidsoap -"
-  ];
-
-  networking.firewall.allowedTCPPorts = [ icecastPort ];
 }

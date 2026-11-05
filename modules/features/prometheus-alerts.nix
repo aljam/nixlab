@@ -76,6 +76,7 @@ in
     owner = "alertmanager";
     group = "alertmanager";
     mode = "0400";
+    restartUnits = [ "ntfy-alert-relay.service" ];
   };
 
   services.prometheus.alertmanager = {

@@ -1,1 +1,54 @@
-IyBTU0ggYWNjZXNzIGFuZCBicnV0ZS1mb3JjZSBwcm90ZWN0aW9uLgojCiMgU1NIIGFjY2VzcyBpcyBncm91cC1iYXNlZDogbWVtYmVycyBvZiBgd2hlZWxgIG1heSBsb2cgaW4gd2l0aCBwdWJsaWMga2V5cy4KIyBBZGRpbmcgYSB1c2VyIHRvIGB3aGVlbGAgaW50ZW50aW9uYWxseSBncmFudHMgdGhhdCB1c2VyIFNTSCBhY2Nlc3MgYW5kCiMgYWRtaW5pc3RyYXRpdmUgcHJpdmlsZWdlcy4KewogIGNvbmZpZywKICBsaWIsCiAgLi4uCn06Cgp7CiAgc2VydmljZXMub3BlbnNzaCA9IHsKICAgIGVuYWJsZSA9IHRydWU7CiAgICBzZXR0aW5ncyA9IHsKICAgICAgUGFzc3dvcmRBdXRoZW50aWNhdGlvbiA9IGZhbHNlOwogICAgICBQZXJtaXRSb290TG9naW4gPSAibm8iOwogICAgICBLYmRJbnRlcmFjdGl2ZUF1dGhlbnRpY2F0aW9uID0gZmFsc2U7CiAgICAgIEFsbG93R3JvdXBzID0gWyAid2hlZWwiIF07CiAgICAgIFgxMUZvcndhcmRpbmcgPSBmYWxzZTsKICAgICAgTWF4QXV0aFRyaWVzID0gMzsKICAgICAgTG9naW5HcmFjZVRpbWUgPSAyMDsKICAgIH07CiAgfTsKCiAgc2VydmljZXMuZmFpbDJiYW4gPSB7CiAgICBlbmFibGUgPSB0cnVlOwogICAgamFpbHMuc3NoZCA9IHsKICAgICAgZW5hYmxlZCA9IHRydWU7CiAgICAgIHNldHRpbmdzID0gewogICAgICAgIGZpbHRlciA9ICJzc2hkIjsKICAgICAgICBwb3J0ID0gInNzaCI7CiAgICAgICAgbG9ncGF0aCA9ICIlKHNzaGRfbG9nKXM7CiAgICAgIH07CiAgICB9OwogIH07CgogIHVzZXJzLm11dGFibGVVc2VycyA9IGZhbHNlOwoKICBhc3NlcnRpb25zID0gWwogICAgewogICAgICBhc3NlcnRpb24gPSBjb25maWcuc2VydmljZXMub3BlbnNzaC5zZXR0aW5ncy5QYXNzd29yZEF1dGhlbnRpY2F0aW9uID09IGZhbHNlOwogICAgICBtZXNzYWdlID0gIlNTSCBwYXNzd29yZCBhdXRoZW50aWNhdGlvbiBtdXN0IHJlbWFpbiBkaXNhYmxlZC4iOwogICAgfQogICAgewogICAgICBhc3NlcnRpb24gPSBjb25maWcuc2VydmljZXMub3BlbnNzaC5zZXR0aW5ncy5QZXJtaXRSb290TG9naW4gPT0gIm5vIjsKICAgICAgbWVzc2FnZSA9ICJEaXJlY3QgU1NIIHJvb3QgbG9naW4gbXVzdCByZW1haW4gZGlzYWJsZWQuIjsKICAgIH0KICAgIHsKICAgICAgYXNzZXJ0aW9uID0gY29uZmlnLnNlcnZpY2VzLm9wZW5zc2guc2V0dGluZ3MuS2JkSW50ZXJhY3RpdmVBdXRoZW50aWNhdGlvbiA9PSBmYWxzZTsKICAgICAgbWVzc2FnZSA9ICJTU0ggaW50ZXJhY3RpdmUgYXV0aGVudGljYXRpb24gbXVzdCByZW1haW4gZGlzYWJsZWQuIjsKICAgIH0KICBdOwp9Cg==
+# SSH access and brute-force protection.
+#
+# SSH access is group-based: members of `wheel` may log in with public keys.
+# Adding a user to `wheel` intentionally grants that user SSH access and
+# administrative privileges.
+{
+  config,
+  lib,
+  ...
+}:
+
+{
+  services.openssh = {
+    enable = true;
+    settings = {
+      PasswordAuthentication = false;
+      PermitRootLogin = "no";
+      KbdInteractiveAuthentication = false;
+      AllowGroups = [ "wheel" ];
+      X11Forwarding = false;
+      MaxAuthTries = 3;
+      LoginGraceTime = 20;
+    };
+  };
+
+  services.fail2ban = {
+    enable = true;
+    jails.sshd = {
+      enabled = true;
+      settings = {
+        filter = "sshd";
+        port = "ssh";
+        logpath = "%(sshd_log)s";
+      };
+    };
+  };
+
+  users.mutableUsers = false;
+
+  assertions = [
+    {
+      assertion = config.services.openssh.settings.PasswordAuthentication == false;
+      message = "SSH password authentication must remain disabled.";
+    }
+    {
+      assertion = config.services.openssh.settings.PermitRootLogin == "no";
+      message = "Direct SSH root login must remain disabled.";
+    }
+    {
+      assertion = config.services.openssh.settings.KbdInteractiveAuthentication == false;
+      message = "SSH interactive authentication must remain disabled.";
+    }
+  ];
+}

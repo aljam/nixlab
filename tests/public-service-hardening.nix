@@ -50,17 +50,17 @@ let
 
       vaultwardenChecks = lib.optionals vaultwardenEnabled (
         lib.flatten [
-          (lib.optional (isWildcard vaultwardenConfig.rocketAddress or "")
+          (lib.optional (isWildcard (vaultwardenConfig.ROCKET_ADDRESS or ""))
             "${hostname}: Vaultwarden must not bind to every interface")
-          (lib.optional vaultwardenConfig.signupsAllowed
+          (lib.optional ((vaultwardenConfig.SIGNUPS_ALLOWED or "true") == "true")
             "${hostname}: Vaultwarden must disable signups")
-          (lib.optional ((vaultwardenConfig.adminTokenFile or "") == "")
+          (lib.optional ((vaultwardenConfig.ADMIN_TOKEN_FILE or "") == "")
             "${hostname}: Vaultwarden must configure an admin token file")
-          (lib.optional ((vaultwardenConfig.adminRateLimitSeconds or 0) <= 0)
+          (lib.optional ((lib.toInt (vaultwardenConfig.ADMIN_RATELIMIT_SECONDS or "0")) <= 0)
             "${hostname}: Vaultwarden must configure a positive admin rate-limit interval")
-          (lib.optional ((vaultwardenConfig.adminRateLimitMaxBurst or 0) <= 0)
+          (lib.optional ((lib.toInt (vaultwardenConfig.ADMIN_RATELIMIT_MAX_BURST or "0")) <= 0)
             "${hostname}: Vaultwarden must configure a positive admin rate-limit burst")
-          (lib.optional (!(lib.hasPrefix "https://" (vaultwardenConfig.domain or "")))
+          (lib.optional (!(lib.hasPrefix "https://" (vaultwardenConfig.DOMAIN or "")))
             "${hostname}: Vaultwarden must use an HTTPS public domain")
         ]
       );

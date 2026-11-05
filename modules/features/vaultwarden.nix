@@ -18,10 +18,16 @@ in
 
     services.vaultwarden = {
       enable = true;
-      environmentFile = pkgs.writeText "vaultwarden.env" ''
-        ADMIN_TOKEN_FILE=${config.sops.secrets."vaultwarden-admin-token".path}
-        SIGNUPS_ALLOWED=false
-      '';
+
+      config = {
+        ROCKET_ADDRESS = "127.0.0.1";
+        ROCKET_PORT = "8222";
+        SIGNUPS_ALLOWED = "false";
+        DOMAIN = "https://vault.derezzed.info";
+        ADMIN_TOKEN_FILE = config.sops.secrets."vaultwarden-admin-token".path;
+        ADMIN_RATELIMIT_SECONDS = "60";
+        ADMIN_RATELIMIT_MAX_BURST = "3";
+      };
     };
   };
 }

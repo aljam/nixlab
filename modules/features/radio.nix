@@ -84,12 +84,10 @@ in
           <limits>
             <clients>100</clients>
             <sources>2</sources>
-            <threadpool>5</threadpool>
             <queue-size>102400</queue-size>
             <client-timeout>30</client-timeout>
             <header-timeout>15</header-timeout>
             <source-timeout>10</source-timeout>
-            <burst-on-connect>1</burst-on-connect>
             <burst-size>65536</burst-size>
           </limits>
 

@@ -1,7 +1,7 @@
 { config, lib, pkgs, ... }:
 
 let
-  securityDashboard = pkgs.writeText "security-posture.json" (builtins.readFile ./grafana/security-posture.json);
+  securityDashboard = pkgs.writeText "security-posture.json" (builtins.readFile ./assets/security-posture.json);
 in
 {
   sops.secrets."grafana-admin-password" = {

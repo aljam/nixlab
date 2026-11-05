@@ -6,7 +6,7 @@
     ../features/autobrr.nix
     ../features/recyclarr.nix
     ../features/vaultwarden.nix
-    ../features/grafana.nix
+    ../features/grafana
     ../features/youtube.nix
     ../features/servarr.nix
   ];

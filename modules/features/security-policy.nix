@@ -64,9 +64,9 @@ in
       "smtp_relay_password"
       "mail_password_aljam"
       "livekit-jwt-env"
-      "icecast-admin-password"
-      "icecast-relay-password"
-      "icecast-source-password"
+      "icecast_admin_password"
+      "icecast_relay_password"
+      "icecast_source_password"
     ];
     description = ''
       Names of SOPS secrets that are explicitly allowed to be owned by root.
@@ -95,7 +95,7 @@ in
     # service identity.
     {
       assertion = lib.all (secret: secret.mode != null) sopsSecrets;
-      message = "Every sops secret must declare an explicit mode.";
+      message = "SOPS secrets must use owner-only mode 0400.";
     }
 
     {
@@ -123,6 +123,8 @@ in
       message = "Grafana must disable anonymous access when exposed through the HAProxy backend allowlist.";
     }
 
+    # Grafana is the internet-facing monitoring dashboard. It must require
+    # authentication and must not permit self-registration.
     {
       assertion = !grafanaExposed || !grafanaSignup;
       message = "Grafana must disable self-registration when exposed through the HAProxy backend allowlist.";
@@ -184,7 +186,7 @@ in
       assertion =
         !(config.modules.features.recyclarr.enable or false)
         || config.servarr.enable;
-      message = "modules.features.recyclarr requires servarr.enable because it connects to local Radarr and Sonarr.";
+      message = "modules.features.recyclarr requires servarr.enable because it connects to local Radarr and Sonarr instances.";
     }
 
     # Gaming software opens LAN-facing ports and is intended only for desktop
@@ -209,7 +211,7 @@ in
       assertion =
         !(config.services.openssh.enable or false)
         || config.services.openssh.settings.PasswordAuthentication == false;
-      message = "SSH password authentication must remain disabled.";
+      message = "SSH password authentication must remain disabled centrally.";
     }
   ];
 }

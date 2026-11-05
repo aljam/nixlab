@@ -16,7 +16,7 @@ in
 
   config = lib.mkIf cfg.enable {
     sops.secrets = {
-      icecast-admin-password = {
+      icecast_admin_password = {
         sopsFile = ../../secrets/radio.yaml;
         owner = "root";
         group = "root";
@@ -24,7 +24,7 @@ in
         restartUnits = [ "icecast.service" ];
       };
 
-      icecast-source-password = {
+      icecast_source_password = {
         sopsFile = ../../secrets/radio.yaml;
         owner = "root";
         group = "root";
@@ -32,7 +32,7 @@ in
         restartUnits = [ "icecast.service" "liquidsoap-radio.service" ];
       };
 
-      icecast-relay-password = {
+      icecast_relay_password = {
         sopsFile = ../../secrets/radio.yaml;
         owner = "root";
         group = "root";
@@ -50,7 +50,7 @@ in
           host = "127.0.0.1",
           port = 8000,
           mount = "stream",
-          password = "${config.sops.secrets.icecast-source-password.path}",
+          password = "${config.sops.secrets.icecast_source_password.path}",
           radio
         )
       '';

@@ -14,6 +14,19 @@ let
     (lib.unique proxyBackendPorts)
     proxyBackendPorts;
 
+  # Sensitive or internal-only services that must not be exposed
+  # through the HAProxy backend allowlist.
+  forbiddenProxyPorts = [
+    5050 # pgAdmin
+    9090 # Prometheus
+    9115 # Prometheus Blackbox exporter
+    9093 # Alertmanager
+  ];
+
+  forbiddenExposedPorts = lib.intersectLists
+    forbiddenProxyPorts
+    proxyBackendPorts;
+
   # Remote PostgreSQL clients must explicitly negotiate TLS. Loopback rules
   # are exempt because their traffic does not traverse a network interface.
   plaintextRemotePostgresRules = lib.filter
@@ -30,9 +43,38 @@ let
   gamingEnabled =
     (config.programs.steam.enable or false)
     || (config.programs.gamescope.enable or false);
+
+  rootOwnedSecrets = lib.filter
+    (secret: secret.owner == "root")
+    sopsSecrets;
+
+  unauthorizedRootOwnedSecrets = lib.filter
+    (secret: !lib.elem secret.name config.roles.security.sopsAllowedRootSecrets)
+    rootOwnedSecrets;
+
+  unauthorizedSecretNames = map (secret: secret.name) unauthorizedRootOwnedSecrets;
 in
 {
   options.roles.server.enable = lib.mkEnableOption "server role policies";
+
+  options.roles.security.sopsAllowedRootSecrets = lib.mkOption {
+    type = lib.types.listOf lib.types.str;
+    default = [
+      "nas-credentials"
+      "smtp_relay_password"
+      "mail_password_aljam"
+      "livekit-jwt-env"
+      "icecast-admin-password"
+      "icecast-relay-password"
+      "icecast-source-password"
+    ];
+    description = ''
+      Names of SOPS secrets that are explicitly allowed to be owned by root.
+      This is intended for system-level credentials such as mount credentials,
+      mail relay configuration, and services that do not yet have a
+      dedicated unprivileged identity.
+    '';
+  };
 
   config.assertions = [
     # Preserve the service-scoped SOPS model. A missing `sopsFile` would
@@ -63,6 +105,17 @@ in
       message = "SOPS secrets must use owner-only mode 0400.";
     }
 
+    # Root ownership is sometimes necessary for system-level credentials,
+    # but it must be explicit and auditable.
+    {
+      assertion = unauthorizedRootOwnedSecrets == [ ];
+      message = ''
+        SOPS secrets owned by root must be listed in
+        roles.security.sopsAllowedRootSecrets. Unauthorized secrets:
+        ${lib.concatStringsSep ", " unauthorizedSecretNames}
+      '';
+    }
+
     # Grafana is the internet-facing monitoring dashboard. It must require
     # authentication and must not permit self-registration.
     {
@@ -87,11 +140,12 @@ in
       message = "PostgreSQL authentication must use hostssl for every non-loopback client rule.";
     }
 
-    # pgAdmin is a powerful administrative interface and must remain
-    # loopback-only unless a separate, explicitly reviewed exposure path exists.
+    # Prevent sensitive or internal-only services from being exposed
+    # through the HAProxy backend allowlist.
     {
-      assertion = !(lib.elem 5050 config.networking.proxyBackendPorts);
-      message = "pgAdmin must not be exposed through the HAProxy backend allowlist.";
+      assertion = forbiddenExposedPorts == [ ];
+      message = "Forbidden service ports must not be exposed through the HAProxy backend allowlist: "
+        + lib.concatStringsSep ", " (map (p: toString p) forbiddenExposedPorts);
     }
 
     # PostgreSQL is a sensitive backend service and must not be exposed
@@ -99,22 +153,6 @@ in
     {
       assertion = !(lib.elem postgresPort proxyBackendPorts);
       message = "PostgreSQL must not be exposed through the HAProxy backend allowlist.";
-    }
-
-    # Prometheus, Blackbox, and Alertmanager are internal-only.
-    {
-      assertion = !(lib.elem 9090 proxyBackendPorts);
-      message = "Prometheus must not be exposed through the HAProxy backend allowlist.";
-    }
-
-    {
-      assertion = !(lib.elem 9115 proxyBackendPorts);
-      message = "The Prometheus Blackbox exporter must not be exposed through the HAProxy backend allowlist.";
-    }
-
-    {
-      assertion = !(lib.elem 9093 proxyBackendPorts);
-      message = "Alertmanager must not be exposed through the HAProxy backend allowlist.";
     }
 
     # Services using the shared bind address must never listen on every

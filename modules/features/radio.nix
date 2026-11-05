@@ -8,8 +8,8 @@ in
     enable = lib.mkEnableOption "Internet radio streaming stack";
 
     musicDir = lib.mkOption {
-      type = lib.types.path;
-      default = /mnt/media/music;
+      type = lib.types.str;
+      default = "/mnt/media/music";
       description = "Directory containing the radio music library.";
     };
   };

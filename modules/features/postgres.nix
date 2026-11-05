@@ -41,9 +41,8 @@ in {
     services.postgresql = {
       enable = true;
 
-      listenAddresses = "0.0.0.0";
-
       settings = {
+        listen_addresses = "*";
         port = 5432;
         ssl = true;
         ssl_cert_file = "/var/lib/postgresql/tls/server.crt";

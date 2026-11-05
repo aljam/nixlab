@@ -102,6 +102,9 @@ in
   services.icecast = {
     enable = true;
     hostname = "radio.derezzed.info";
+    # The upstream module evaluates this while constructing its own config,
+    # even though our overridden ExecStart uses the SOPS-rendered config.
+    admin.password = "unused-by-custom-execstart";
   };
 
   systemd.services.icecast = {

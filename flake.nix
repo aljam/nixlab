@@ -91,7 +91,7 @@
           };
 
           modules =
-            commonModules hostname
+            commonModules { inherit hostname; }
             ++ [
               ./hosts/${hostname}/configuration.nix
               ./users/aljam/nixos.nix
@@ -103,7 +103,7 @@
         };
 
       commonModules =
-        hostname:
+        { hostname }:
         [
           ./modules/roles/common.nix
 

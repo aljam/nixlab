@@ -104,7 +104,7 @@ in
 
   # Alertmanager remains loopback-only. The ntfy URL, including its private
   # topic and access token if used, is supplied at runtime from SOPS.
-  sops.secrets.ntfy-url = {
+  sops.secrets.nfty-url = {
     sopsFile = ../../secrets/monitoring.yaml;
     owner = "alertmanager";
     group = "alertmanager";
@@ -162,7 +162,7 @@ in
     wantedBy = [ "multi-user.target" ];
 
     environment = {
-      NTFY_URL_FILE = config.sops.secrets.ntfy-url.path;
+      NTFY_URL_FILE = config.sops.secrets.nfty-url.path;
     };
 
     serviceConfig = {

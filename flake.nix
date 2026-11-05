@@ -109,6 +109,8 @@
           ./modules/roles/common.nix
 	  ./modules/features/deploy-user.nix
 
+          ./modules/features/deploy-user.nix
+
           sops-nix.nixosModules.sops
           nur.modules.nixos.default
 

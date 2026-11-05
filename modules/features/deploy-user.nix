@@ -1,24 +1,19 @@
+{ lib, config, ... }:
+
 {
-  lib,
-  config,
-  ...
-}:
-{
-  options.roles.security.deployUser.enable = lib.mkEnableOption "dedicated unprivileged deployment user";
+  options.roles.security.deployUser.enable = lib.mkEnableOption "dedicated deployment user";
 
   config = lib.mkIf config.roles.security.deployUser.enable {
+    users.groups.deploy = { };
+
     users.users.deploy = {
       isSystemUser = true;
       group = "deploy";
-      home = "/var/lib/deploy";
-      createHome = true;
       shell = "/run/current-system/sw/bin/nologin";
-      openssh.authorizedKeys.keys = [
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIANdQitHwS6CtfYfgBzFJBjAyCow9qiPHlkybc5GTBwn nixlab-deploy"
+      openssh.authorizedKeys.keyFiles = [
+        "/run/secrets/deploy_authorized_key"
       ];
     };
-
-    users.groups.deploy = { };
 
     security.sudo.extraRules = [
       {
@@ -28,17 +23,19 @@
             command = "/run/current-system/sw/bin/nixos-rebuild";
             options = [ "NOPASSWD" ];
           }
-          {
-            command = "/run/current-system/sw/bin/systemctl";
-            options = [ "NOPASSWD" ];
-          }
         ];
       }
     ];
 
-    services.openssh.settings = {
-      PasswordAuthentication = false;
-      KbdInteractiveAuthentication = false;
-    };
+    assertions = [
+      {
+        assertion = config.services.openssh.enable;
+        message = "The deploy user requires OpenSSH.";
+      }
+      {
+        assertion = config.services.openssh.settings.PasswordAuthentication == false;
+        message = "The deploy user must use key-only SSH authentication.";
+      }
+    ];
   };
 }

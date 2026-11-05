@@ -11,21 +11,21 @@ in
       sopsFile = ../../secrets/radio.yaml;
       owner = "root";
       group = "keys";
-      mode = "0440";
+      mode = "0400";
     };
 
     icecast-source-password = {
       sopsFile = ../../secrets/radio.yaml;
       owner = "root";
       group = "keys";
-      mode = "0440";
+      mode = "0400";
     };
 
     icecast-relay-password = {
       sopsFile = ../../secrets/radio.yaml;
       owner = "root";
       group = "keys";
-      mode = "0440";
+      mode = "0400";
     };
   };
 

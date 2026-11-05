@@ -110,6 +110,7 @@ in
       enable = true;
       hostname = icecastHostname;
       listen.address = "0.0.0.0";
+      admin.password = "unused-by-rendered-icecast-config";
     };
 
     systemd.services.icecast = {

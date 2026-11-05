@@ -1,12 +1,18 @@
 { lib, config, pkgs, ... }:
-
 let
   cfg = config.modules.features.radio;
   liquidsoapScript = config.sops.templates.liquidsoap-radio.path;
 in
 {
-  options.modules.features.radio.enable =
-    lib.mkEnableOption "Internet radio streaming stack";
+  options.modules.features.radio = {
+    enable = lib.mkEnableOption "Internet radio streaming stack";
+
+    musicDir = lib.mkOption {
+      type = lib.types.path;
+      default = /mnt/media/music;
+      description = "Directory containing the radio music library.";
+    };
+  };
 
   config = lib.mkIf cfg.enable {
     sops.secrets = {
@@ -33,6 +39,24 @@ in
         mode = "0400";
         restartUnits = [ "icecast.service" ];
       };
+    };
+
+    sops.templates.liquidsoap-radio = {
+      content = ''
+        radio = playlist("${cfg.musicDir}")
+
+        output.icecast(
+          %mp3(bitrate = 192),
+          host = "127.0.0.1",
+          port = 8000,
+          mount = "stream",
+          password = "${config.sops.secrets.icecast-source-password.path}",
+          radio
+        )
+      '';
+      owner = "root";
+      group = "root";
+      mode = "0400";
     };
 
     services.icecast = {

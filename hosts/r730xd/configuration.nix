@@ -14,6 +14,7 @@
     ../../modules/features/matrix-rtc.nix
     ../../modules/features/static-site.nix
     ../../modules/features/radio.nix
+    ../../modules/features/radio-visualizer.nix
   ];
 
   boot.kernelPackages = pkgs.linuxPackages_6_1;
@@ -26,4 +27,6 @@
     config.sops.secrets.pfsense-root-ca.path;
 
   modules.features.static-site.enable = true;
+  modules.features.radio.enable = true;
+  modules.features.radio-visualizer.enable = true;
 }

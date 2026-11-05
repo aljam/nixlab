@@ -11,6 +11,31 @@ let
 
   backupUnitRegex = builtins.concatStringsSep "|" backupUnits;
 
+  prometheusRules = ''
+    groups:
+      - name: backup-health
+        rules:
+          - alert: ResticBackupJobFailed
+            expr: systemd_unit_state{name=~"(${backupUnitRegex})\\.service",state="failed"} == 1
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              description: >-
+                Restic backup job {{ $labels.name }} has been failed for more
+                than 5 minutes on {{ $labels.instance }}.
+
+          - alert: ResticBackupStale
+            expr: time() - node_systemd_unit_last_success_timestamp_seconds{name=~"(${backupUnitRegex})\\.timer"} > 90000
+            for: 15m
+            labels:
+              severity: warning
+            annotations:
+              description: >-
+                Restic backup timer {{ $labels.name }} has not completed
+                successfully for more than 25 hours on {{ $labels.instance }}.
+  '';
+
   ntfyAlertRelay = pkgs.writers.writePython3 "ntfy-alert-relay" { } ''
     import json
     import os
@@ -129,36 +154,7 @@ in
     };
   };
 
-  services.prometheus.rules = [
-    {
-      name = "backup-health";
-      rules = [
-        {
-          alert = "ResticBackupJobFailed";
-          expr = ''systemd_unit_state{name=~"(${backupUnitRegex})\\.service",state="failed"} == 1'';
-          for = "5m";
-          labels = {
-            severity = "critical";
-          };
-          annotations = {
-            description = ''Restic backup job {{ $labels.name }} has been failed for more than 5 minutes on {{ $labels.instance }}.'';
-          };
-        }
-
-        {
-          alert = "ResticBackupStale";
-          expr = ''time() - node_systemd_unit_last_success_timestamp_seconds{name=~"(${backupUnitRegex})\\.timer"} > 90000'';
-          for = "15m";
-          labels = {
-            severity = "warning";
-          };
-          annotations = {
-            description = ''Restic backup timer {{ $labels.name }} has not completed successfully for more than 25 hours on {{ $labels.instance }}.'';
-          };
-        }
-      ];
-    }
-  ];
+  services.prometheus.rules = [ prometheusRules ];
 
   systemd.services.ntfy-alert-relay = {
     description = "Alertmanager to ntfy notification relay";

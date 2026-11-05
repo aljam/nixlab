@@ -18,7 +18,6 @@ let
   # through the HAProxy backend allowlist.
   forbiddenProxyPorts = [
     5050 # pgAdmin
-    5432 # PostgreSQL, using the effective configured port
     9090 # Prometheus
     9115 # Prometheus Blackbox exporter
     9093 # Alertmanager
@@ -26,7 +25,7 @@ let
 
   forbiddenExposedPorts = lib.intersectLists
     forbiddenProxyPorts
-    (proxyBackendPorts ++ [ postgresPort ]);
+    proxyBackendPorts;
 
   # Remote PostgreSQL clients must explicitly negotiate TLS. Loopback rules
   # are exempt because their traffic does not traverse a network interface.
@@ -147,6 +146,13 @@ in
       assertion = forbiddenExposedPorts == [ ];
       message = "Forbidden service ports must not be exposed through the HAProxy backend allowlist: "
         + lib.concatStringsSep ", " (map (p: toString p) forbiddenExposedPorts);
+    }
+
+    # PostgreSQL is a sensitive backend service and must not be exposed
+    # through the HAProxy backend allowlist.
+    {
+      assertion = !(lib.elem postgresPort proxyBackendPorts);
+      message = "PostgreSQL must not be exposed through the HAProxy backend allowlist.";
     }
 
     # Services using the shared bind address must never listen on every

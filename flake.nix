@@ -31,10 +31,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    {
-      roles.security.deployUser.enable = true;
-    }
-
     disko = {
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -125,6 +121,10 @@
             home-manager.extraSpecialArgs = {
               inherit inputs pkgs-stable hostname;
             };
+          }
+
+          {
+            roles.security.deployUser.enable = true;
           }
 
           {

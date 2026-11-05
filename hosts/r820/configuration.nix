@@ -24,7 +24,7 @@
       {
         database = "matrix-synapse";
         user = "matrix-synapse";
-        address = "192.168.1.10/32";
+        address = "192.168.1.2/32";
       }
     ];
   };

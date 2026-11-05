@@ -8,6 +8,8 @@ in
     lib.mkEnableOption "Vaultwarden password manager";
 
   config = lib.mkIf cfg.enable {
+    networking.proxyBackendPorts = [ 8222 ];
+
     sops.secrets."vaultwarden-admin-token" = {
       sopsFile = ../../secrets/vaultwarden.yaml;
       owner = "vaultwarden";
@@ -20,7 +22,7 @@ in
       enable = true;
 
       config = {
-        ROCKET_ADDRESS = "127.0.0.1";
+        ROCKET_ADDRESS = config.networking.fleet.r730xd.ip;
         ROCKET_PORT = "8222";
         SIGNUPS_ALLOWED = "false";
         DOMAIN = "https://vault.derezzed.info";

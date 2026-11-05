@@ -86,3 +86,10 @@ creation_rules:
       - age:
           - *aljam
           - *r730xd
+
+  # Local Restic backup repository password.
+  - path_regex: secrets/backups\.yaml$
+    key_groups:
+      - age:
+          - *aljam
+          - *r820

@@ -14,6 +14,7 @@
     ../../modules/features/matrix-rtc.nix
     ../../modules/features/static-site.nix
     ../../modules/features/radio.nix
+    ../../modules/features/restic-backup.nix
   ];
 
   boot.kernelPackages = pkgs.linuxPackages_6_1;
@@ -27,11 +28,15 @@
 
   modules.features.static-site.enable = true;
 
-  modules.features.restic-backup.jobs.matrix-media = {
-    repository = "/var/lib/restic-backup/repo";
-    paths = [ "/var/lib/matrix-synapse/media_store" ];
-    after = [ "matrix-synapse.service" ];
-    schedule = "*-*-* 04:00:00";
-    randomizedDelay = "15m";
+  modules.features.restic-backup = {
+    enable = true;
+
+    jobs.matrix-media = {
+      repository = "/var/lib/restic-backup-media/repo";
+      paths = [ "/var/lib/matrix-synapse/media_store" ];
+      after = [ "matrix-synapse.service" ];
+      schedule = "*-*-* 04:00:00";
+      randomizedDelay = "15m";
+    };
   };
 }

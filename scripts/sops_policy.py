@@ -18,6 +18,7 @@ POLICY = {
     "secrets/media.yaml": {"aljam", "r730xd"},
     "secrets/acme.yaml": {"aljam", "r820"},
     "secrets/radio.yaml": {"aljam", "r730xd"},
+    "secrets/peertube.yaml": {"aljam", "r730xd"},
 }
 
 

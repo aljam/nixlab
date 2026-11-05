@@ -1,1 +1,169 @@
-eyBsaWIsIGNvbmZpZywgLi4uIH06CgpsZXQKICBzb3BzU2VjcmV0cyA9IGxpYi5hdHRyVmFsdWVzIGNvbmZpZy5zb3BzLnNlY3JldHM7CgogIGdyYWZhbmFFeHBvc2VkID0gbGliLmVsZW0gMzAwMCBjb25maWcubmV0d29ya2luZy5wcm94eUJhY2tlbmRQb3J0czsKICBncmFmYW5hQW5vbnltb3VzID0gY29uZmlnLnNlcnZpY2VzLmdyYWZhbmEuc2V0dGluZ3MuYXV0aC5hbm9ueW1vdXMuZW5hYmxlZCBvciBmYWxzZTsKICBncmFmYW5hU2lnbnVwID0gY29uZmlnLnNlcnZpY2VzLmdyYWZhbmEuc2V0dGluZ3MudXNlcnMuYWxsb3dfc2lnbl91cCBvciBmYWxzZTsKCiAgcG9zdGdyZXNBdXRoID0gY29uZmlnLnNlcnZpY2VzLnBvc3RncmVzcWwuYXV0aGVudGljYXRpb24gb3IgIiI7CiAgcG9zdGdyZXNQb3J0ID0gY29uZmlnLnNlcnZpY2VzLnBvc3RncmVzcWwuc2V0dGluZ3MucG9ydCBvciA1NDMyOwogIHByb3h5QmFja2VuZFBvcnRzID0gY29uZmlnLm5ldHdvcmtpbmcucHJveHlCYWNrZW5kUG9ydHM7CiAgZHVwbGljYXRlUHJveHlQb3J0cyA9IGxpYi5saXN0cy5zdWJ0cmFjdExpc3RzCiAgICAobGliLnVuaXF1ZSBwcm94eUJhY2tlbmRQb3J0cykKICAgIHByb3h5QmFja2VuZFBvcnRzOwoKICAjIFNlbnNpdGl2ZSBvciBpbnRlcm5hbC1vbmx5IHNlcnZpY2VzIHRoYXQgbXVzdCBub3QgYmUgZXhwb3NlZAogICMgdGhyb3VnaCB0aGUgSEFQcm94eSBiYWNrZW5kIGFsbG93bGlzdC4KICBmb3JiaWRkZW5Qcm94eVBvcnRzID0gWwogICAgNTA1MCAjIHBnQWRtaW4KICAgIDU0MzIgIyBQb3N0Z3JlU1FMLCB1c2luZyB0aGUgZWZmZWN0aXZlIGNvbmZpZ3VyZWQgcG9ydAogICAgOTA5MCAjIFByb21ldGhldXMKICAgIDkxMTUgIyBQcm9tZXRoZXVzIEJsYWNrYm94IGV4cG9ydGVyCiAgICA5MDkzICMgQWxlcnRtYW5hZ2VyCiAgXTsKCiAgZm9yYmlkZGVuRXhwb3NlZFBvcnRzID0gbGliLmludGVyc2VjdGlvbgogICAgZm9yYmlkZGVuUHJveHlQb3J0cwogICAgKHByb3h5QmFja2VuZFBvcnRzICsrIFsgcG9zdGdyZXNQb3J0IF0pOwoKICAjIFJlbW90ZSBQb3N0Z3JlU1FMIGNsaWVudHMgbXVzdCBleHBsaWNpdGx5IG5lZ290aWF0ZSBUTFMuIExvb3BiYWNrIHJ1bGVzCiAgIyBhcmUgZXhlbXB0IGJlY2F1c2UgdGhlaXIgdHJhZmZpYyBkb2VzIG5vdCB0cmF2ZXJzZSBhIG5ldHdvcmsgaW50ZXJmYWNlLgogIHBsYWludGV4dFJlbW90ZVBvc3RncmVzUnVsZXMgPSBsaWIuZmlsdGVyCiAgICAobGluZToKICAgICAgbGV0CiAgICAgICAgdHJpbW1lZCA9IGxpYi5zdHJpbmdzLnRyaW0gbGluZTsKICAgICAgaW4KICAgICAgICBsaWIuc3RyaW5ncy5oYXNQcmVmaXggImhvc3QgIiB0cmltbWVkCiAgICAgICAgJiYgIShsaWIuc3RyaW5ncy5oYXNJbmZpeCAiMTI3LjAuMC4xLzMyIiB0cmltbWVkKQogICAgICAgICYmICEobGliLnN0cmluZ3MuaGFzSW5maXggIjo6MS8xMjgiIHRyaW1tZWQpCiAgICApCiAgICAobGliLnN0cmluZ3Muc3BsaXRTdHJpbmcgIlxcbiIgcG9zdGdyZXNBdXRoKTsKCiAgZ2FtaW5nRW5hYmxlZCA9CiAgICAoY29uZmlnLnByb2dyYW1zLnN0ZWFtLmVuYWJsZSBvciBmYWxzZSkKICAgIHx8IChjb25maWcucHJvZ3JhbXMuZ2FtZXNjb3BlLmVuYWJsZSBvciBmYWxzZSk7CmluCnt9CnsKICBvcHRpb25zLnJvbGVzLnNlcnZlci5lbmFibGUgPSBsaWIubWtFbmFibGVPcHRpb24gInNlcnZlciByb2xlIHBvbGljaWVzIjsKCiAgY29uZmlnLmFzc2VydGlvbnMgPSBbCiAgICAjIFByZXNlcnZlIHRoZSBzZXJ2aWNlLXNjb3BlZCBTT1BTIG1vZGVsLiBBIG1pc3NpbmcgYHNvcHNGaWxlYCB3b3VsZAogICAgIyBvdGhlcndpc2UgZGVwZW5kIG9uIGEgZ2xvYmFsIGRlZmF1bHQsIHdoaWNoIHRoaXMgcmVwb3NpdG9yeSBpbnRlbnRpb25hbGx5CiAgICAjIGRvZXMgbm90IGRlZmluZS4KICAgIHsKICAgICAgYXNzZXJ0aW9uID0gbGliLmFsbCAoc2VjcmV0OiBzZWNyZXQuc29wc0ZpbGUgIT0gbnVsbCkgc29wc1NlY3JldHM7CiAgICAgIG1lc3NhZ2UgPSAiRXZlcnkgc29wcyBzZWNyZXQgbXVzdCBkZWNsYXJlIGFuIGV4cGxpY2l0IHNvcHNGaWxlLiI7CiAgICB9CgogICAgIyBNYWtlIHRoZSBlZmZlY3RpdmUgaWRlbnRpdHkgb2YgZXZlcnkgZGVjcnlwdGVkIHNlY3JldCBleHBsaWNpdC4KICAgIHsKICAgICAgYXNzZXJ0aW9uID0gbGliLmFsbCAoc2VjcmV0OiBzZWNyZXQub3duZXIgIT0gbnVsbCkgc29wc1NlY3JldHM7CiAgICAgIG1lc3NhZ2UgPSAiRXZlcnkgc29wcyBzZWNyZXQgbXVzdCBkZWNsYXJlIGFuIGV4cGxpY2l0IG93bmVyLiI7CiAgICB9CgogICAgIyBNYWtlIHBlcm1pc3Npb25zIGV4cGxpY2l0IGFuZCByZXN0cmljdCBldmVyeSBzZWNyZXQgdG8gaXRzIG93bmluZwogICAgIyBzZXJ2aWNlIGlkZW50aXR5LgogICAgewogICAgICBhc3NlcnRpb24gPSBsaWIuYWxsIChzZWNyZXQ6IHNlY3JldC5tb2RlICE9IG51bGwpIHNvcHNTZWNyZXRzOwogICAgICBtZXNzYWdlID0gIkV2ZXJ5IHNvcHMgc2VjcmV0IG11c3QgZGVjbGFyZSBhbiBleHBsaWNpdCBtb2RlLiI7CiAgICB9CgogICAgewogICAgICBhc3NlcnRpb24gPSBsaWIuYWxsCiAgICAgICAgKHNlY3JldDogc2VjcmV0Lm1vZGUgPT0gIjA0MDAiKQogICAgICAgIHNvcHNTZWNyZXRzOwogICAgICBtZXNzYWdlID0gIlNPUFMgc2VjcmV0cyBtdXN0IHVzZSBvd25lci1vbmx5IG1vZGUgMDQwMC4iOwogICAgfQoKICAgICMgR3JhZmFuYSBpcyB0aGUgaW50ZXJuZXQtZmFjaW5nIG1vbml0b3JpbmcgZGFzaGJvYXJkLiBJdCBtdXN0IHJlcXVpcmUKICAgICMgYXV0aGVudGljYXRpb24gYW5kIG11c3Qgbm90IHBlcm1pdCBzZWxmLXJlZ2lzdHJhdGlvbi4KICAgIHsKICAgICAgYXNzZXJ0aW9uID0gIWdyYWZhbmFFeHBvc2VkIHx8ICFncmFmYW5hQW5vbnltb3VzOwogICAgICBtZXNzYWdlID0gIkdyYWZhbmEgbXVzdCBkaXNhYmxlIGFub255bW91cyBhY2Nlc3Mgd2hlbiBleHBvc2VkIHRocm91Z2ggdGhlIEhBUHJveHkgYmFja2VuZCBhbGxvd2xpc3QuIjsKICAgIH0KCiAgICB7CiAgICAgIGFzc2VydGlvbiA9ICFncmFmYW5hRXhwb3NlZCB8fCAhZ3JhZmFuYVNpZ251cDsKICAgICAgbWVzc2FnZSA9ICJHcmFmYW5hIG11c3QgZGlzYWJsZSBzZWxmLXJlZ2lzdHJhdGlvbiB3aGVuIGV4cG9zZWQgdGhyb3VnaCB0aGUgSEFQcm94eSBiYWNrZW5kIGFsbG93bGlzdC4iOwogICAgfQoKICAgICMgUHJldmVudCByZWdyZXNzaW9uIHRvIGJyb2FkIFBvc3RncmVTUUwgYXV0aGVudGljYXRpb24gcnVsZXMuCiAgICB7CiAgICAgIGFzc2VydGlvbiA9ICEobGliLmhhc0luZml4ICJob3N0IGFsbCBhbGwiIHBvc3RncmVzQXV0aCk7CiAgICAgIG1lc3NhZ2UgPSAiUG9zdGdyZVNRTCBhdXRoZW50aWNhdGlvbiBtdXN0IG5vdCBjb250YWluIGJyb2FkIGhvc3QvYWxsL2FsbCBydWxlcy4iOwogICAgfQoKICAgICMgUmVtb3RlIFBvc3RncmVTUUwgYXV0aGVudGljYXRpb24gbXVzdCBleHBsaWNpdGx5IHJlcXVpcmUgVExTLgogICAgewogICAgICBhc3NlcnRpb24gPSBwbGFpbnRleHRSZW1vdGVQb3N0Z3Jlc1J1bGVzID09IFsgXTsKICAgICAgbWVzc2FnZSA9ICJQb3N0Z3JlU1FMIGF1dGhlbnRpY2F0aW9uIG11c3QgdXNlIGhvc3Rzc2wgZm9yIGV2ZXJ5IG5vbi1sb29wYmFjayBjbGllbnQgcnVsZS4iOwogICAgfQoKICAgICMgUHJldmVudCBzZW5zaXRpdmUgb3IgaW50ZXJuYWwtb25seSBzZXJ2aWNlcyBmcm9tIGJlaW5nIGV4cG9zZWQKICAgICMgdGhyb3VnaCB0aGUgSEFQcm94eSBiYWNrZW5kIGFsbG93bGlzdC4KICAgIHsKICAgICAgYXNzZXJ0aW9uID0gZm9yYmlkZGVuRXhwb3NlZFBvcnRzID09IFsgXTsKICAgICAgbWVzc2FnZSA9ICdGcm9iaWRkZW4gc2VydmljZSBwb3J0cyBtdXN0IG5vdCBiZSBleHBvc2VkIHRocm91Z2ggdGhlIEhBUHJveHkgYmFja2VuZCBhbGxvd2xpc3Q6ICcke2xpYi5jb25jYXRTdHJpbmdzU2VwICIgIiAobWFwIChwOiB0b1N0cmluZyBwKSBmb3JiaWRkZW5FeHBvc2VkUG9ydHMpfSc7CiAgICB9CgogICAgIyBTZXJ2aWNlcyB1c2luZyB0aGUgc2hhcmVkIGJpbmQgYWRkcmVzcyBtdXN0IG5ldmVyIGxpc3RlbiBvbiBldmVyeQogICAgIyBpbnRlcmZhY2U7IHVzZSBsb29wYmFjayBvciBhbiBleHBsaWNpdCBmbGVldCBzZXJ2aWNlIGFkZHJlc3MuCiAgICB7CiAgICAgIGFzc2VydGlvbiA9CiAgICAgICAgY29uZmlnLm5ldHdvcmtpbmcuc2VydmljZXNCaW5kQWRkcmVzcyAhPSAiMC4wLjAuMCIKICAgICAgICAmJiBjb25maWcubmV0d29ya2luZy5zZXJ2aWNlc0JpbmRBZGRyZXNzICE9ICI6OiI7CiAgICAgIG1lc3NhZ2UgPSAic2VydmljZXNCaW5kQWRkcmVzcyBtdXN0IG5vdCBiaW5kIHNlcnZpY2VzIHRvIGV2ZXJ5IGludGVyZmFjZS4iOwogICAgfQoKICAgICMgRHVwbGljYXRlIGJhY2tlbmQgcG9ydHMgbWFrZSB0aGUgZXhwb3N1cmUgYWxsb3dsaXN0IG1pc2xlYWRpbmcgYW5kIGFyZQogICAgIyB1c3VhbGx5IGEgY29uZmlndXJhdGlvbiBtaXN0YWtlLgogICAgewogICAgICBhc3NlcnRpb24gPSBkdXBsaWNhdGVQcm94eVBvcnRzID09IFsgXTsKICAgICAgbWVzc2FnZSA9ICJIQVByb3h5IGJhY2tlbmQgcG9ydHMgbXVzdCBub3QgY29udGFpbiBkdXBsaWNhdGVzLiI7CiAgICB9CgogICAgIyBBdXRvYnJyIHNob3VsZCB1c2UgdGhlIGhvc3QncyBzZXJ2aWNlIGFkZHJlc3MgcmF0aGVyIHRoYW4gZXZlcnkgaW50ZXJmYWNlLgogICAgewogICAgICBhc3NlcnRpb24gPQogICAgICAgICEoY29uZmlnLnNlcnZpY2VzLmF1dG9icnIuZW5hYmxlIG9yIGZhbHNlKQogICAgICAgIHx8IGNvbmZpZy5zZXJ2aWNlcy5hdXRvYnJyLnNldHRpbmdzLmhvc3QgIT0gIjAuMC4wLjAiOwogICAgICBtZXNzYWdlID0gIkF1dG9icnIgbXVzdCBiaW5kIHRvIHRoZSBob3N0IHNlcnZpY2UgYWRkcmVzcywgbm90IGFsbCBpbnRlcmZhY2VzLiI7CiAgICB9CgogICAgIyBSZWN5Y2xhcnIgY29ubmVjdHMgdG8gbG9jYWwgUmFkYXJyIGFuZCBTb25hcnIgaW5zdGFuY2VzLgogICAgewogICAgICBhc3NlcnRpb24gPQogICAgICAgICEoY29uZmlnLm1vZHVsZXMuZmVhdHVyZXMucmVjeWNsYXJyLmVuYWJsZSBvciBmYWxzZSkKICAgICAgICB8fCBjb25maWcuc2VydmFyci5lbmFibGU7CiAgICAgIG1lc3NhZ2UgPSAibW9kdWxlcy5mZWF0dXJlcy5yZWN5Y2xhcnIgcmVxdWlyZXMgc2VydmFyci5lbmFibGUgYmVjYXVzZSBpdCBjb25uZWN0cyB0byBsb2NhbCBSYWRhcnIgYW5kIFNvbmFyci4iOwogICAgfQoKICAgICMgR2FtaW5nIHNvZnR3YXJlIG9wZW5zIExBTi1mYWNpbmcgcG9ydHMgYW5kIGlzIGludGVuZGVkIG9ubHkgZm9yIGRlc2t0b3AKICAgICMgaG9zdHMuIFByZXZlbnQgYWNjaWRlbnRhbCBpbmNsdXNpb24gaW4gc2VydmVyIHJvbGVzLgogICAgewogICAgICBhc3NlcnRpb24gPQogICAgICAgICEoY29uZmlnLnJvbGVzLnNlcnZlci5lbmFibGUgb3IgZmFsc2UpCiAgICAgICAgfHwgIWdhbWluZ0VuYWJsZWQ7CiAgICAgIG1lc3NhZ2UgPSAiU3RlYW0sIEdhbWVTY29wZSwgYW5kIGdhbWluZyBmaXJld2FsbCBydWxlcyBtdXN0IG5vdCBiZSBlbmFibGVkIG9uIHNlcnZlciBob3N0cy4iOwogICAgfQoKICAgICMgSWYgc3VkbyBpcyBlbmFibGVkLCBhZG1pbmlzdHJhdGl2ZSBjb21tYW5kcyBtdXN0IHJlcXVpcmUgYSBwYXNzd29yZC4KICAgIHsKICAgICAgYXNzZXJ0aW9uID0KICAgICAgICAhKGNvbmZpZy5zZWN1cml0eS5zdWRvLmVuYWJsZSBvciBmYWxzZSkKICAgICAgICB8fCBjb25maWcuc2VjdXJpdHkuc3Vkby53aGVlbE5lZWRzUGFzc3dvcmQ7CiAgICAgIG1lc3NhZ2UgPSAic3VkbyBtdXN0IHJlcXVpcmUgYSBwYXNzd29yZCB3aGVuIGVuYWJsZWQuIjsKICAgIH0KCiAgICAjIFNTSCBtdXN0IHJlbWFpbiBrZXktb25seTsgcGFzc3dvcmQgYXV0aGVudGljYXRpb24gaXMgZGlzYWJsZWQgY2VudHJhbGx5LgogICAgewogICAgICBhc3NlcnRpb24gPQogICAgICAgICEoY29uZmlnLnNlcnZpY2VzLm9wZW5zc2guZW5hYmxlIG9yIGZhbHNlKQogICAgICAgIHx8IGNvbmZpZy5zZXJ2aWNlcy5vcGVuc3NoLnNldHRpbmdzLlBhc3N3b3JkQXV0aGVudGljYXRpb24gPT0gZmFsc2U7CiAgICAgIG1lc3NhZ2UgPSAiU1NIIHBhc3N3b3JkIGF1dGhlbnRpY2F0aW9uIG11c3QgcmVtYWluIGRpc2FibGVkLiI7CiAgICB9CiAgXTsKfQo=
+{ lib, config, ... }:
+
+let
+  sopsSecrets = lib.attrValues config.sops.secrets;
+
+  grafanaExposed = lib.elem 3000 config.networking.proxyBackendPorts;
+  grafanaAnonymous = config.services.grafana.settings.auth.anonymous.enabled or false;
+  grafanaSignup = config.services.grafana.settings.users.allow_sign_up or false;
+
+  postgresAuth = config.services.postgresql.authentication or "";
+  postgresPort = config.services.postgresql.settings.port or 5432;
+  proxyBackendPorts = config.networking.proxyBackendPorts;
+  duplicateProxyPorts = lib.lists.subtractLists
+    (lib.unique proxyBackendPorts)
+    proxyBackendPorts;
+
+  # Sensitive or internal-only services that must not be exposed
+  # through the HAProxy backend allowlist.
+  forbiddenProxyPorts = [
+    5050 # pgAdmin
+    5432 # PostgreSQL, using the effective configured port
+    9090 # Prometheus
+    9115 # Prometheus Blackbox exporter
+    9093 # Alertmanager
+  ];
+
+  forbiddenExposedPorts = lib.intersectLists
+    forbiddenProxyPorts
+    (proxyBackendPorts ++ [ postgresPort ]);
+
+  # Remote PostgreSQL clients must explicitly negotiate TLS. Loopback rules
+  # are exempt because their traffic does not traverse a network interface.
+  plaintextRemotePostgresRules = lib.filter
+    (line:
+      let
+        trimmed = lib.strings.trim line;
+      in
+      lib.strings.hasPrefix "host " trimmed
+      && !(lib.strings.hasInfix "127.0.0.1/32" trimmed)
+      && !(lib.strings.hasInfix "::1/128" trimmed)
+    )
+    (lib.strings.splitString "\n" postgresAuth);
+
+  gamingEnabled =
+    (config.programs.steam.enable or false)
+    || (config.programs.gamescope.enable or false);
+in
+{
+  options.roles.server.enable = lib.mkEnableOption "server role policies";
+
+  config.assertions = [
+    # Preserve the service-scoped SOPS model. A missing `sopsFile` would
+    # otherwise depend on a global default, which this repository intentionally
+    # does not define.
+    {
+      assertion = lib.all (secret: secret.sopsFile != null) sopsSecrets;
+      message = "Every sops secret must declare an explicit sopsFile.";
+    }
+
+    # Make the effective identity of every decrypted secret explicit.
+    {
+      assertion = lib.all (secret: secret.owner != null) sopsSecrets;
+      message = "Every sops secret must declare an explicit owner.";
+    }
+
+    # Make permissions explicit and restrict every secret to its owning
+    # service identity.
+    {
+      assertion = lib.all (secret: secret.mode != null) sopsSecrets;
+      message = "Every sops secret must declare an explicit mode.";
+    }
+
+    {
+      assertion = lib.all
+        (secret: secret.mode == "0400")
+        sopsSecrets;
+      message = "SOPS secrets must use owner-only mode 0400.";
+    }
+
+    # Grafana is the internet-facing monitoring dashboard. It must require
+    # authentication and must not permit self-registration.
+    {
+      assertion = !grafanaExposed || !grafanaAnonymous;
+      message = "Grafana must disable anonymous access when exposed through the HAProxy backend allowlist.";
+    }
+
+    {
+      assertion = !grafanaExposed || !grafanaSignup;
+      message = "Grafana must disable self-registration when exposed through the HAProxy backend allowlist.";
+    }
+
+    # Prevent regression to broad PostgreSQL authentication rules.
+    {
+      assertion = !(lib.hasInfix "host all all" postgresAuth);
+      message = "PostgreSQL authentication must not contain broad host/all/all rules.";
+    }
+
+    # Remote PostgreSQL authentication must explicitly require TLS.
+    {
+      assertion = plaintextRemotePostgresRules == [ ];
+      message = "PostgreSQL authentication must use hostssl for every non-loopback client rule.";
+    }
+
+    # Prevent sensitive or internal-only services from being exposed
+    # through the HAProxy backend allowlist.
+    {
+      assertion = forbiddenExposedPorts == [ ];
+      message = 'Forbidden service ports must not be exposed through the HAProxy backend allowlist: '
+        + lib.concatStringsSep ", " (map (p: toString p) forbiddenExposedPorts);
+    }
+
+    # Services using the shared bind address must never listen on every
+    # interface; use loopback or an explicit fleet service address.
+    {
+      assertion =
+        config.networking.servicesBindAddress != "0.0.0.0"
+        && config.networking.servicesBindAddress != "::";
+      message = "servicesBindAddress must not bind services to every interface.";
+    }
+
+    # Duplicate backend ports make the exposure allowlist misleading and are
+    # usually a configuration mistake.
+    {
+      assertion = duplicateProxyPorts == [ ];
+      message = "HAProxy backend ports must not contain duplicates.";
+    }
+
+    # Autobrr should use the host's service address rather than every interface.
+    {
+      assertion =
+        !(config.services.autobrr.enable or false)
+        || config.services.autobrr.settings.host != "0.0.0.0";
+      message = "Autobrr must bind to the host service address, not all interfaces.";
+    }
+
+    # Recyclarr connects to local Radarr and Sonarr instances.
+    {
+      assertion =
+        !(config.modules.features.recyclarr.enable or false)
+        || config.servarr.enable;
+      message = "modules.features.recyclarr requires servarr.enable because it connects to local Radarr and Sonarr.";
+    }
+
+    # Gaming software opens LAN-facing ports and is intended only for desktop
+    # hosts. Prevent accidental inclusion in server roles.
+    {
+      assertion =
+        !(config.roles.server.enable or false)
+        || !gamingEnabled;
+      message = "Steam, GameScope, and gaming firewall rules must not be enabled on server hosts.";
+    }
+
+    # If sudo is enabled, administrative commands must require a password.
+    {
+      assertion =
+        !(config.security.sudo.enable or false)
+        || config.security.sudo.wheelNeedsPassword;
+      message = "sudo must require a password when enabled.";
+    }
+
+    # SSH must remain key-only; password authentication is disabled centrally.
+    {
+      assertion =
+        !(config.services.openssh.enable or false)
+        || config.services.openssh.settings.PasswordAuthentication == false;
+      message = "SSH password authentication must remain disabled.";
+    }
+  ];
+}

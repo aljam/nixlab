@@ -15,6 +15,7 @@
     ../../modules/features/static-site.nix
     ../../modules/features/radio.nix
     ../../modules/features/radio-visualizer.nix
+    ../../modules/features/peertube.nix
   ];
 
   boot.kernelPackages = pkgs.linuxPackages_6_1;
@@ -30,4 +31,5 @@
   modules.features.radio.enable = true;
   modules.features.radio-visualizer.enable = true;
   modules.features.vaultwarden.enable = true;
+  modules.features.peertube.enable = true;
 }

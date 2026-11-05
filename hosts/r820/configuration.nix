@@ -1,6 +1,9 @@
-{ config, pkgs, lib, ... }:
-
 {
+  config,
+  pkgs,
+  lib,
+  ...
+}: {
   imports = [
     ./hardware-configuration.nix
     ../../modules/hardware/dell-poweredge.nix
@@ -14,11 +17,19 @@
 
   roles.server.enable = true;
 
-  services.postgresql = {
+  modules.features.postgres = {
     enable = true;
+
+    allowedClients = [
+      {
+        database = "matrix-synapse";
+        user = "matrix-synapse";
+        address = "192.168.1.10/32";
+      }
+    ];
   };
 
   # Remote builder configuration
-  nix.settings.trusted-users = [ "root" "aljam" ];
-  nix.settings.allowed-users = [ "@users" ];
+  nix.settings.trusted-users = ["root" "aljam"];
+  nix.settings.allowed-users = ["@users"];
 }

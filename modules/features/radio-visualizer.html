@@ -31,8 +31,8 @@
   <script src="https://cdn.jsdelivr.net/npm/butterchurn-presets@2.4.7/lib/butterchurnPresets.min.js"></script>
 
   <script>
-    const butterchurn = window.butterchurn;
-    const presets = window.butterchurnPresets;
+    const butterchurn = window.butterchurn.default;
+    const presets = window.butterchurnPresets.default ?? window.butterchurnPresets;
 
     const STREAM_URL = "/stream";
     const audio = document.getElementById("radio");

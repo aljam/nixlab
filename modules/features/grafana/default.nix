@@ -1,7 +1,19 @@
 { config, lib, pkgs, ... }:
 
 let
-  securityDashboard = pkgs.writeText "security-posture.json" (builtins.readFile ./assets/security-posture.json);
+    securityDashboard = pkgs.writeText "security-posture.json" (builtins.readFile ./assets/security-posture.json);
+    prometheusDatasource = pkgs.writeText "prometheus-datasource.yaml" ''
+    apiVersion: 1
+
+    datasources:
+      - name: Prometheus
+        uid: prometheus
+        type: prometheus
+        access: proxy
+        url: http://127.0.0.1:9090
+        isDefault: true
+        editable: false
+  '';
 in
 {
   sops.secrets."grafana-admin-password" = {
@@ -37,21 +49,6 @@ in
     };
 
     provision = {
-      enable = true;
-      datasources.settings = {
-        apiVersion = 1;
-        datasources = [
-          {
-            name = "Prometheus";
-            uid = "prometheus";
-            type = "prometheus";
-            access = "proxy";
-            url = "http://127.0.0.1:9090";
-            isDefault = true;
-            editable = false;
-          }
-        ];
-      };
 
       dashboards.settings = {
         apiVersion = 1;

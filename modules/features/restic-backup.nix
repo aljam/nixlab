@@ -71,7 +71,7 @@ let
     pkgs.writeShellApplication {
       name = "restic-backup-${name}";
       runtimeInputs = with pkgs; [ restic ];
-      text = '''
+      text = ''
         set -euo pipefail
 
         ${job.preBackupScript}
@@ -88,7 +88,7 @@ let
           --keep-weekly ${toString job.retention.keepWeekly} \
           --keep-monthly ${toString job.retention.keepMonthly} \
           --prune
-      ''';
+      '';
     };
 in
 {

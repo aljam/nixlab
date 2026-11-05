@@ -13,8 +13,10 @@ in
       enable = true;
 
       localDomain = "peertube.derezzed.info";
-      listenAddress = config.networking.fleet.r730xd.ip;
-      listenPort = 9000;
+
+      listenHttp = 9000;
+      listenWeb = 443;
+      enableWebHttps = true;
 
       database = {
         host = "/run/postgresql";
@@ -27,7 +29,6 @@ in
         instance.short_description = "Self-hosted video";
         storage.videos = "/var/lib/peertube/storage/videos";
         storage.streaming_playlists = "/var/lib/peertube/storage/streaming-playlists";
-        webserver.https = true;
         signup.enabled = false;
       };
     };

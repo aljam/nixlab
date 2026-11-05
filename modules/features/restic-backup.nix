@@ -10,7 +10,7 @@ let
 
   postgresDumpScript = pkgs.writeShellApplication {
     name = "postgresql-restic-dump";
-    runtimeInputs = with pkgs; [ postgresql config.services.restic.package ];
+    runtimeInputs = with pkgs; [ postgresql restic ];
     text = ''
       set -euo pipefail
 

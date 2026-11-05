@@ -93,3 +93,10 @@ creation_rules:
       - age:
           - *aljam
           - *r820
+
+  # PeerTube instance secrets.
+  - path_regex: secrets/peertube\.yaml$
+    key_groups:
+      - age:
+          - *aljam
+          - *r730xd

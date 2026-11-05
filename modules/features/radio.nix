@@ -2,7 +2,6 @@
 let
   cfg = config.modules.features.radio;
   liquidsoapScript = config.sops.templates.liquidsoap-radio.path;
-  icecastConfig = config.sops.templates.icecast-xml.path;
   icecastHostname = "radio.derezzed.info";
 in
 {
@@ -88,7 +87,11 @@ in
     };
 
     systemd.services.icecast = {
-      serviceConfig.ExecStart = lib.mkForce "${pkgs.icecast}/bin/icecast -c ${icecastConfig}";
+      serviceConfig = {
+        LoadCredential = "icecast-xml:/run/secrets/rendered/icecast-xml";
+        ExecStart = lib.mkForce
+          "${pkgs.icecast}/bin/icecast -c ''${CREDENTIALS_DIRECTORY}/icecast-xml";
+      };
     };
 
     systemd.services.liquidsoap-radio = {

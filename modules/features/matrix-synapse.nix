@@ -36,6 +36,8 @@ in
       server_name = "matrix.derezzed.info";
       public_baseurl = "https://matrix.derezzed.info";
 
+      media_store_path = "/var/lib/matrix-synapse/media_store";
+
       serve_client_wellknown = true;
 
       extra_well_known_client_content = {

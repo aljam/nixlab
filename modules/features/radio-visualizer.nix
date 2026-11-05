@@ -1,21 +1,29 @@
 { lib, config, pkgs, ... }:
 let
   cfg = config.modules.features.radio-visualizer;
-  radioDomain = "radio.derezzed.info";
   icecastMount = "/stream";
   visualizerHtml = builtins.readFile ./radio-visualizer.html;
   visualizerRoot = pkgs.writeTextDir "index.html" visualizerHtml;
+  listenAddress = config.networking.servicesBindAddress or "0.0.0.0";
 in
 {
   options.modules.features.radio-visualizer.enable =
     lib.mkEnableOption "Butterchurn visualizer for the Icecast radio";
 
   config = lib.mkIf cfg.enable {
+    # The pfSense HAProxy gateway terminates public TLS and forwards to this
+    # LAN-only backend. Do not enable direct HTTP/HTTPS ingress here.
+    networking.proxyBackendPorts = [ 8090 ];
+
     services.nginx = {
       enable = true;
-      virtualHosts.${radioDomain} = {
-        enableACME = true;
-        forceSSL = true;
+      virtualHosts."radio-backend" = {
+        listen = [
+          {
+            addr = listenAddress;
+            port = 8090;
+          }
+        ];
 
         locations."= /" = {
           root = visualizerRoot;

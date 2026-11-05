@@ -3,7 +3,7 @@
 {
     imports = [ ./restic-backup.nix ];
     
-    modules.features.restic-backup = lib.mkIf config.services.postgresql.enable {
+    modules.features.restic-backup = {
     enable = true;
     
     jobs.postgresql = {

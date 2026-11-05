@@ -92,10 +92,6 @@ let
     };
 in
 {
-  systemd.tmpfiles.rules = [
-    "d /var/lib/restic-backup 0711 restic-backup restic-backup - -"
-    "d /var/lib/restic-backup/postgresql 0730 postgres restic-backup - -"
-  ];
 
   options.modules.features.restic-backup = {
     enable = lib.mkEnableOption "local Restic backups";
@@ -124,6 +120,11 @@ in
       mode = "0400";
     };
 
+    systemd.tmpfiles.rules = [
+      "d /var/lib/restic-backup 0711 restic-backup restic-backup - -"
+      "d /var/lib/restic-backup/postgresql 0730 postgres restic-backup - -"
+    ];
+    
     systemd.services = lib.mapAttrs' (name: job:
       lib.nameValuePair "restic-backup-${name}" {
         description = "Restic backup: ${name}";

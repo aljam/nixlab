@@ -14,7 +14,7 @@
     
     preBackupScript = ''
     postgresDumpDir=/var/lib/restic-backup/postgresql
-    install -d -m 0700 -o restic-backup -g restic-backup "$postgresDumpDir"
+    install -d -m 0730 -o postgres -g restic-backup "$postgresDumpDir"
     
     for database in webscraper admin matrix-synapse; do
     dump="$postgresDumpDir/''${database}.dump"

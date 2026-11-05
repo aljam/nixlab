@@ -53,7 +53,7 @@ in
           host = "127.0.0.1",
           port = 8000,
           mount = "stream",
-          password = "${config.sops.secrets.icecast_source_password.path}",
+          password = "${config.sops.placeholder.icecast_source_password}",
           radio
         )
       '';

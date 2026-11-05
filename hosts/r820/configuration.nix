@@ -14,7 +14,9 @@
 
   roles.server.enable = true;
 
-  programs.fish.enable = true;
+  services.postgresql = {
+    enable = true;
+  };
 
   # Remote builder configuration
   nix.settings.trusted-users = [ "root" "aljam" ];

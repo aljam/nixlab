@@ -26,13 +26,10 @@ in
 
     sops.templates.liquidsoap-radio = {
       content = ''
-        radio = fallback([
-          playlist("${cfg.musicDir}"),
-          blank()
-        ])
+        radio = mksafe(playlist("${cfg.musicDir}"))
 
         output.icecast(
-          %mp3(bitrate = 192),
+          %mp3(bitrate = 320),
           host = "127.0.0.1",
           port = 8000,
           mount = "stream",

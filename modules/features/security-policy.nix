@@ -14,6 +14,19 @@ let
     (lib.unique proxyBackendPorts)
     proxyBackendPorts;
 
+  # Sensitive or internal-only services that must not be exposed
+  # through the HAProxy backend allowlist.
+  forbiddenProxyPorts = [
+    5050 # pgAdmin
+    9090 # Prometheus
+    9115 # Prometheus Blackbox exporter
+    9093 # Alertmanager
+  ];
+
+  forbiddenExposedPorts = lib.intersectLists
+    forbiddenProxyPorts
+    proxyBackendPorts;
+
   # Remote PostgreSQL clients must explicitly negotiate TLS. Loopback rules
   # are exempt because their traffic does not traverse a network interface.
   plaintextRemotePostgresRules = lib.filter
@@ -127,11 +140,12 @@ in
       message = "PostgreSQL authentication must use hostssl for every non-loopback client rule.";
     }
 
-    # pgAdmin is a powerful administrative interface and must remain
-    # loopback-only unless a separate, explicitly reviewed exposure path exists.
+    # Prevent sensitive or internal-only services from being exposed
+    # through the HAProxy backend allowlist.
     {
-      assertion = !(lib.elem 5050 config.networking.proxyBackendPorts);
-      message = "pgAdmin must not be exposed through the HAProxy backend allowlist.";
+      assertion = forbiddenExposedPorts == [ ];
+      message = "Forbidden service ports must not be exposed through the HAProxy backend allowlist: "
+        + lib.concatStringsSep ", " (map (p: toString p) forbiddenExposedPorts);
     }
 
     # PostgreSQL is a sensitive backend service and must not be exposed
@@ -139,22 +153,6 @@ in
     {
       assertion = !(lib.elem postgresPort proxyBackendPorts);
       message = "PostgreSQL must not be exposed through the HAProxy backend allowlist.";
-    }
-
-    # Prometheus, Blackbox, and Alertmanager are internal-only.
-    {
-      assertion = !(lib.elem 9090 proxyBackendPorts);
-      message = "Prometheus must not be exposed through the HAProxy backend allowlist.";
-    }
-
-    {
-      assertion = !(lib.elem 9115 proxyBackendPorts);
-      message = "The Prometheus Blackbox exporter must not be exposed through the HAProxy backend allowlist.";
-    }
-
-    {
-      assertion = !(lib.elem 9093 proxyBackendPorts);
-      message = "Alertmanager must not be exposed through the HAProxy backend allowlist.";
     }
 
     # Services using the shared bind address must never listen on every

@@ -9,5 +9,6 @@
     owner = "matrix-synapse";
     group = "matrix-synapse";
     mode = "0400";
+    restartUnits = [ "matrix-synapse.service" ];
   };
 }

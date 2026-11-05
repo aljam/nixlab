@@ -42,7 +42,7 @@ in {
       enable = true;
 
       settings = {
-        listen_addresses = "*";
+        listen_addresses = lib.mkForce "*";
         port = 5432;
         ssl = true;
         ssl_cert_file = "/var/lib/postgresql/tls/server.crt";

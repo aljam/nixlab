@@ -27,9 +27,12 @@
 
   <audio id="radio" crossorigin="anonymous" preload="none"></audio>
 
-  <script type="module">
-    import butterchurn from "https://cdn.jsdelivr.net/npm/butterchurn@2.7.4/+esm";
-    import presets from "https://cdn.jsdelivr.net/npm/butterchurn-presets@2.4.7/+esm";
+  <script src="https://cdn.jsdelivr.net/npm/butterchurn@2.7.4/dist/butterchurn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/butterchurn-presets@2.4.7/dist/butterchurnPresets.min.js"></script>
+
+  <script>
+    const butterchurn = window.butterchurn;
+    const presets = window.butterchurnPresets;
 
     const STREAM_URL = "/stream";
     const audio = document.getElementById("radio");

@@ -90,7 +90,7 @@ in
       serviceConfig = {
         LoadCredential = "icecast-xml:/run/secrets/rendered/icecast-xml";
         ExecStart = lib.mkForce
-          "${pkgs.icecast}/bin/icecast -c ''${CREDENTIALS_DIRECTORY}/icecast-xml";
+          "${pkgs.icecast}/bin/icecast -c \${CREDENTIALS_DIRECTORY}/icecast-xml";
       };
     };
 

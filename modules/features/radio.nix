@@ -43,10 +43,10 @@ in
 
     sops.templates.liquidsoap-radio = {
       content = ''
-        radio = fallback(
+        radio = fallback([
           playlist("${cfg.musicDir}"),
           blank()
-        )
+        ])
 
         output.icecast(
           %mp3(bitrate = 192),

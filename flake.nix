@@ -13,6 +13,7 @@
     nixos-hardware = {
       url = "github:NixOS/nixos-hardware/master";
       inputs.nixpkgs.follows = "nixpkgs";
+
     };
 
     artcraft = {
@@ -106,6 +107,7 @@
         { hostname }:
         [
           ./modules/roles/common.nix
+	  ./modules/features/deploy-user.nix
 
           sops-nix.nixosModules.sops
           nur.modules.nixos.default
@@ -119,6 +121,10 @@
             home-manager.extraSpecialArgs = {
               inherit inputs pkgs-stable hostname;
             };
+          }
+
+          {
+            roles.security.deployUser.enable = true;
           }
 
           {
@@ -248,7 +254,7 @@
               echo "==> Deploying ''${host}"
               nixos-rebuild switch \\
                 --flake ".#''${host}" \\
-                --target-host "root@''${host}" \\
+                --target-host "deploy@''${host}" \\
                 --use-remote-sudo
             done
           ''}";

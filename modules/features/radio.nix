@@ -96,7 +96,7 @@ in
 
           <listen-socket>
             <port>8000</port>
-            <bind-address>::</bind-address>
+            <bind-address>0.0.0.0</bind-address>
           </listen-socket>
 
           <security>

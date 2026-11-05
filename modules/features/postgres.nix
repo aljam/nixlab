@@ -1,102 +1,35 @@
-# PostgreSQL and pgAdmin.
-#
-# Exposure model:
-# - PostgreSQL listens only on loopback and this host's fleet service address.
-# - pgAdmin listens only on loopback and is intentionally not added to
-#   `networking.proxyBackendPorts`. Expose it through an authenticated,
-#   admin-only route only if explicitly needed.
-# - TCP database authentication is limited to explicit database/user pairs.
-# - The firewall permits only the Matrix Synapse host to reach PostgreSQL.
-# - Remote PostgreSQL connections require TLS using the pfSense-issued server
-#   certificate installed at stable paths below.
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ lib, config, pkgs, ... }:
 
 {
   imports = [ ./restic-backup.nix ];
 
   modules.features.restic-backup = {
     enable = true;
-    repository = "/var/lib/restic-backup/repo";
+
+    jobs.postgresql = {
+      repository = "/var/lib/restic-backup/repo";
+      paths = [ "/var/lib/restic-backup/postgresql" ];
+      requires = [ "postgresql.service" ];
+      after = [ "postgresql.service" ];
+
+      preBackupScript = '''
+        postgresDumpDir=/var/lib/restic-backup/postgresql
+        install -d -m 0700 -o restic-backup -g restic-backup "$postgresDumpDir"
+
+        for database in webscraper admin matrix-synapse; do
+          dump="$postgresDumpDir/''${database}.dump"
+          temporary="''${dump}.tmp"
+
+          runuser -u postgres -- pg_dump --dbname="$database" --format=custom --file="$temporary"
+          chown restic-backup:restic-backup "$temporary"
+          chmod 0600 "$temporary"
+          mv "$temporary" "$dump"
+        done
+      ''';
+    };
   };
 
   # Exempt from a restart/reload consumer: pgAdmin consumes this password only
   # while provisioning its initial administrator account. Rotating it does not
   # require restarting the running pgAdmin service.
-  sops.secrets.pgadmin_password = {
-    sopsFile = ../../secrets/database.yaml;
-    owner = "pgadmin";
-    group = "pgadmin";
-    mode = "0400";
-  };
-
-  services.postgresql = {
-    enable = true;
-    enableTCPIP = true;
-
-    settings = {
-      listen_addresses = lib.mkForce (
-        lib.concatStringsSep "," [
-          "127.0.0.1"
-          config.networking.servicesBindAddress
-        ]
-      );
-
-      password_encryption = "scram-sha-256";
-
-      ssl = true;
-      ssl_cert_file = "/var/lib/postgresql/ssl/server.crt";
-      ssl_key_file = "/var/lib/postgresql/ssl/server.key";
-    };
-
-    authentication = lib.mkOverride 10 ''
-      local all all peer
-
-      # Keep TCP rules narrow: each rule names both the database and role.
-      host webscraper webscraper 127.0.0.1/32 scram-sha-256
-      host admin admin 127.0.0.1/32 scram-sha-256
-      host matrix-synapse matrix-synapse 127.0.0.1/32 scram-sha-256
-      hostssl matrix-synapse matrix-synapse ${config.networking.fleet.r730xd.ip}/32 scram-sha-256
-    '';
-
-    ensureDatabases = [
-      "webscraper"
-      "admin"
-      "matrix-synapse"
-    ];
-
-    ensureUsers = [
-      {
-        name = "webscraper";
-        ensureDBOwnership = true;
-      }
-      {
-        name = "admin";
-        ensureDBOwnership = true;
-      }
-      {
-        name = "matrix-synapse";
-        ensureDBOwnership = true;
-      }
-    ];
-  };
-
-  # Matrix Synapse runs on r730xd and connects to this PostgreSQL instance.
-  # Permit only that host; pg_hba still enforces the database/user pair,
-  # SCRAM authentication, and TLS for the remote connection.
-  networking.firewall.extraInputRules = ''
-    ip saddr ${config.networking.fleet.r730xd.ip} tcp dport 5432 accept comment "Matrix Synapse PostgreSQL"
-  '';
-
-  services.pgadmin = {
-    enable = true;
-    initialEmail = "admin@derezzed.info";
-    initialPasswordFile = config.sops.secrets.pgadmin_password.path;
-    port = 5050;
-    settings.DEFAULT_SERVER = "127.0.0.1";
-  };
 }

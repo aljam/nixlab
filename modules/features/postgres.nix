@@ -1,6 +1,8 @@
 { lib, config, pkgs, ... }:
 
 {
+    environment.systemPackages = with pkgs; [ restic ];
+    
     imports = [ ./restic-backup.nix ];
     
     modules.features.restic-backup = {

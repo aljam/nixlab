@@ -23,6 +23,11 @@ in
             addr = listenAddress;
             port = 8090;
           }
+          {
+            # Allow the local HAProxy backend to reach the visualizer.
+            addr = "127.0.0.1";
+            port = 8090;
+          }
         ];
 
         locations."= /" = {

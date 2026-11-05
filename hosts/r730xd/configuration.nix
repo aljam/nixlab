@@ -26,4 +26,12 @@
     config.sops.secrets.pfsense-root-ca.path;
 
   modules.features.static-site.enable = true;
+
+  modules.features.restic-backup.jobs.matrix-media = {
+    repository = "/var/lib/restic-backup/repo";
+    paths = [ "/var/lib/matrix-synapse/media_store" ];
+    after = [ "matrix-synapse.service" ];
+    schedule = "*-*-* 04:00:00";
+    randomizedDelay = "15m";
+  };
 }

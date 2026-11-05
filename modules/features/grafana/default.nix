@@ -5,14 +5,14 @@ let
 in
 {
   sops.secrets."grafana-admin-password" = {
-    sopsFile = ../../secrets/monitoring.yaml;
+    sopsFile = ../../../secrets/monitoring.yaml;
     owner = "grafana";
     group = "grafana";
     mode = "0400";
   };
 
   sops.secrets."grafana-secret-key" = {
-    sopsFile = ../../secrets/monitoring.yaml;
+    sopsFile = ../../../secrets/monitoring.yaml;
     owner = "grafana";
     group = "grafana";
     mode = "0400";

@@ -76,20 +76,9 @@ in
       group = "icecast";
       mode = "0400";
       content = ''
+        <?xml version="1.0"?>
         <icecast>
           <hostname>${icecastHostname}</hostname>
-          <location>Local</location>
-          <admin>icemaster@localhost</admin>
-
-          <limits>
-            <clients>100</clients>
-            <sources>2</sources>
-            <queue-size>102400</queue-size>
-            <client-timeout>30</client-timeout>
-            <header-timeout>15</header-timeout>
-            <source-timeout>10</source-timeout>
-            <burst-size>65536</burst-size>
-          </limits>
 
           <authentication>
             <source-password>${config.sops.placeholder.icecast_source_password}</source-password>
@@ -98,26 +87,17 @@ in
             <admin-password>${config.sops.placeholder.icecast_admin_password}</admin-password>
           </authentication>
 
-          <listen-socket>
-            <port>8000</port>
-          </listen-socket>
-
-          <fileserve>1</fileserve>
-
           <paths>
-            <basedir>${pkgs.icecast}/share/icecast</basedir>
             <logdir>/var/log/icecast</logdir>
-            <webroot>${pkgs.icecast}/share/icecast/web</webroot>
             <adminroot>${pkgs.icecast}/share/icecast/admin</adminroot>
+            <webroot>${pkgs.icecast}/share/icecast/web</webroot>
             <alias source="/" dest="/status.xsl"/>
           </paths>
 
-          <logging>
-            <accesslog>access.log</accesslog>
-            <errorlog>error.log</errorlog>
-            <loglevel>3</loglevel>
-            <logsize>10000</logsize>
-          </logging>
+          <listen-socket>
+            <port>8000</port>
+            <bind-address>::</bind-address>
+          </listen-socket>
 
           <security>
             <chroot>0</chroot>

@@ -14,7 +14,6 @@
     ../../modules/features/matrix-rtc.nix
     ../../modules/features/static-site.nix
     ../../modules/features/radio.nix
-    ../../modules/features/restic-backup.nix
   ];
 
   boot.kernelPackages = pkgs.linuxPackages_6_1;
@@ -27,24 +26,4 @@
     config.sops.secrets.pfsense-root-ca.path;
 
   modules.features.static-site.enable = true;
-
-  modules.features.restic-backup = {
-    enable = true;
-
-    jobs.matrix-media = {
-      repository = "/var/lib/restic-backup-media/repo";
-      paths = [ "/var/lib/matrix-synapse/media_store" ];
-      after = [ "matrix-synapse.service" ];
-      schedule = "*-*-* 04:00:00";
-      randomizedDelay = "15m";
-    };
-
-    jobs.vaultwarden = {
-      repository = "/var/lib/restic-backup-vaultwarden/repo";
-      paths = [ "/var/lib/vaultwarden" ];
-      after = [ "vaultwarden.service" ];
-      schedule = "*-*-* 04:30:00";
-      randomizedDelay = "15m";
-    };
-  };
 }

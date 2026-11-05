@@ -12,7 +12,7 @@
       requires = [ "postgresql.service" ];
       after = [ "postgresql.service" ];
 
-      preBackupScript = '''
+      preBackupScript = ''
         postgresDumpDir=/var/lib/restic-backup/postgresql
         install -d -m 0700 -o restic-backup -g restic-backup "$postgresDumpDir"
 
@@ -25,7 +25,7 @@
           chmod 0600 "$temporary"
           mv "$temporary" "$dump"
         done
-      ''';
+      '';
     };
   };
 

@@ -51,6 +51,9 @@ in
       "smtp_relay_password"
       "mail_password_aljam"
       "livekit-jwt-env"
+      "icecast-admin-password"
+      "icecast-relay-password"
+      "icecast-source-password"
     ];
     description = ''
       Names of SOPS secrets that are explicitly allowed to be owned by root.

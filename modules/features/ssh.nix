@@ -17,12 +17,10 @@
       PermitRootLogin = "no";
       KbdInteractiveAuthentication = false;
       AllowGroups = [ "wheel" ];
+      X11Forwarding = false;
+      MaxAuthTries = 3;
+      LoginGraceTime = 20;
     };
-
-    extraConfig = ''
-      Match Group wheel
-        AuthenticationMethods publickey
-    '';
   };
 
   services.fail2ban = {

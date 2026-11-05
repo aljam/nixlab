@@ -79,3 +79,10 @@ creation_rules:
       - age:
           - *aljam
           - *r820
+
+  # Icecast / Liquidsoap radio credentials.
+  - path_regex: secrets/radio\.yaml$
+    key_groups:
+      - age:
+          - *aljam
+          - *r730xd

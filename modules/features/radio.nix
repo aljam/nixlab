@@ -3,6 +3,7 @@ let
   cfg = config.modules.features.radio;
   liquidsoapScript = config.sops.templates.liquidsoap-radio.path;
   icecastConfig = config.sops.templates.icecast-xml.path;
+  icecastHostname = "radio.derezzed.info";
 in
 {
   options.modules.features.radio = {
@@ -76,7 +77,7 @@ in
       mode = "0400";
       content = ''
         <icecast>
-          <hostname>${cfg.hostname}</hostname>
+          <hostname>${icecastHostname}</hostname>
 
           <listen-socket>
             <port>8000</port>
@@ -107,7 +108,7 @@ in
 
     services.icecast = {
       enable = true;
-      hostname = cfg.hostname;
+      hostname = icecastHostname;
       listen.address = "0.0.0.0";
     };
 

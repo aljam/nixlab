@@ -2,8 +2,25 @@
 let
   cfg = config.modules.features.radio;
   liquidsoapScript = config.sops.templates.liquidsoap-radio.path;
-  icecastConfig = config.sops.templates.icecast-xml.path;
-  icecastHostname = "radio.derezzed.info";
+  icecastRenderedConfig = "/run/icecast/icecast.xml";
+  icecastPasswordFile = config.sops.secrets.icecast_source_password.path;
+  icecastRenderScript = pkgs.writeShellScript "icecast-render-config" ''
+    set -euo pipefail
+
+    config="${config.services.icecast.package}/etc/icecast.xml"
+    if [ ! -f "$config" ]; then
+      echo "Icecast generated configuration not found: $config" >&2
+      exit 1
+    fi
+
+    install -D -m 0600 -o icecast -g icecast \
+      "$config" "${icecastRenderedConfig}"
+
+    source_password="$(cat ${icecastPasswordFile})"
+    sed -i \
+      "s|<source-password>[^<]*</source-password>|<source-password>$source_password</source-password>|" \
+      "${icecastRenderedConfig}"
+  '';
 in
 {
   options.modules.features.radio = {
@@ -71,64 +88,9 @@ in
       mode = "0400";
     };
 
-    sops.templates.icecast-xml = {
-      owner = "icecast";
-      group = "icecast";
-      mode = "0400";
-      content = ''
-        <icecast>
-          <hostname>${icecastHostname}</hostname>
-          <location>Local</location>
-          <admin>icemaster@localhost</admin>
-
-          <limits>
-            <clients>100</clients>
-            <sources>2</sources>
-            <queue-size>102400</queue-size>
-            <client-timeout>30</client-timeout>
-            <header-timeout>15</header-timeout>
-            <source-timeout>10</source-timeout>
-            <burst-size>65536</burst-size>
-          </limits>
-
-          <authentication>
-            <source-password>${config.sops.placeholder.icecast_source_password}</source-password>
-            <relay-password>${config.sops.placeholder.icecast_relay_password}</relay-password>
-            <admin-user>admin</admin-user>
-            <admin-password>${config.sops.placeholder.icecast_admin_password}</admin-password>
-          </authentication>
-
-          <listen-socket>
-            <port>8000</port>
-          </listen-socket>
-
-          <fileserve>1</fileserve>
-
-          <paths>
-            <basedir>${pkgs.icecast}/share/icecast</basedir>
-            <logdir>/var/log/icecast</logdir>
-            <webroot>${pkgs.icecast}/share/icecast/web</webroot>
-            <adminroot>${pkgs.icecast}/share/icecast/admin</adminroot>
-            <alias source="/" dest="/status.xsl"/>
-          </paths>
-
-          <logging>
-            <accesslog>access.log</accesslog>
-            <errorlog>error.log</errorlog>
-            <loglevel>3</loglevel>
-            <logsize>10000</logsize>
-          </logging>
-
-          <security>
-            <chroot>0</chroot>
-          </security>
-        </icecast>
-      '';
-    };
-
     services.icecast = {
       enable = true;
-      hostname = icecastHostname;
+      hostname = "radio.derezzed.info";
       listen.address = "0.0.0.0";
       admin.password = "unused-by-rendered-icecast-config";
     };
@@ -138,9 +100,12 @@ in
         User = lib.mkForce "icecast";
         Group = lib.mkForce "icecast";
         DynamicUser = lib.mkForce false;
-        ExecStart = lib.mkForce "${pkgs.icecast}/bin/icecast -c ${icecastConfig}";
+        RuntimeDirectory = "icecast";
+        RuntimeDirectoryMode = "0700";
         StateDirectory = "icecast";
         LogsDirectory = "icecast";
+        ExecStartPre = lib.mkForce "${icecastRenderScript}";
+        ExecStart = lib.mkForce "${pkgs.icecast}/bin/icecast -c ${icecastRenderedConfig}";
       };
     };
 

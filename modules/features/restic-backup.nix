@@ -4,54 +4,101 @@ let
   cfg = config.modules.features.restic-backup;
   backupUser = "restic-backup";
   backupGroup = "restic-backup";
-  repository = cfg.repository;
   passwordFile = config.sops.secrets.restic-backup-password.path;
-  postgresDumpDir = "/var/lib/restic-backup/postgresql";
 
-  postgresDumpScript = pkgs.writeShellApplication {
-    name = "postgresql-restic-dump";
-    runtimeInputs = with pkgs; [ postgresql restic ];
-    text = ''
-      set -euo pipefail
+  jobModule = {
+    options = {
+      repository = lib.mkOption {
+        type = lib.types.str;
+        description = "Restic repository used by this backup job.";
+      };
 
-      install -d -m 0700 -o ${backupUser} -g ${backupGroup} ${postgresDumpDir}
+      paths = lib.mkOption {
+        type = with lib.types; nonEmptyListOf str;
+        description = "Filesystem paths included in this backup job.";
+      };
 
-      for database in webscraper admin matrix-synapse; do
-        dump="${postgresDumpDir}/''${database}.dump"
-        temporary="''${dump}.tmp"
+      preBackupScript = lib.mkOption {
+        type = lib.types.lines;
+        default = "";
+        description = "Commands run before `restic backup`. Use this to create consistent application dumps.";
+      };
 
-        runuser -u postgres -- pg_dump --dbname="$database" --format=custom --file="$temporary"
-        chown ${backupUser}:${backupGroup} "$temporary"
-        chmod 0600 "$temporary"
-        mv "$temporary" "$dump"
-      done
+      schedule = lib.mkOption {
+        type = lib.types.str;
+        default = "*-*-* 03:30:00";
+        description = "systemd timer calendar specification.";
+      };
 
-      restic backup \
-        --repo "${repository}" \
-        --password-file "${passwordFile}" \
-        "${postgresDumpDir}"
+      randomizedDelay = lib.mkOption {
+        type = lib.types.str;
+        default = "15m";
+        description = "Random delay added to the scheduled backup start.";
+      };
 
-      restic forget \
-        --repo "${repository}" \
-        --password-file "${passwordFile}" \
-        --keep-daily 7 \
-        --keep-weekly 4 \
-        --keep-monthly 6 \
-        --prune
-    '';
+      requires = lib.mkOption {
+        type = with lib.types; listOf str;
+        default = [ ];
+        description = "Systemd units required by this backup job.";
+      };
+
+      after = lib.mkOption {
+        type = with lib.types; listOf str;
+        default = [ ];
+        description = "Systemd units this backup job starts after.";
+      };
+
+      retention = {
+        keepDaily = lib.mkOption {
+          type = lib.types.ints.positive;
+          default = 7;
+        };
+
+        keepWeekly = lib.mkOption {
+          type = lib.types.ints.positive;
+          default = 4;
+        };
+
+        keepMonthly = lib.mkOption {
+          type = lib.types.ints.positive;
+          default = 6;
+        };
+      };
+    };
   };
+
+  backupScript = name: job:
+    pkgs.writeShellApplication {
+      name = "restic-backup-${name}";
+      runtimeInputs = with pkgs; [ restic ];
+      text = ''
+        set -euo pipefail
+
+        ${job.preBackupScript}
+
+        restic backup \
+          --repo ${lib.escapeShellArg job.repository} \
+          --password-file ${lib.escapeShellArg passwordFile} \
+          ${lib.concatMapStringsSep " \\\n          " (path: lib.escapeShellArg path) job.paths}
+
+        restic forget \
+          --repo ${lib.escapeShellArg job.repository} \
+          --password-file ${lib.escapeShellArg passwordFile} \
+          --keep-daily ${toString job.retention.keepDaily} \
+          --keep-weekly ${toString job.retention.keepWeekly} \
+          --keep-monthly ${toString job.retention.keepMonthly} \
+          --prune
+      '';
+    };
 in
 {
   options.modules.features.restic-backup = {
     enable = lib.mkEnableOption "local Restic backups";
 
-    repository = lib.mkOption {
-      type = lib.types.str;
-      description = ''
-        Local Restic repository location. This must be a dedicated backup
-        dataset or directory; it must not be a subdirectory of a dataset that
-        is itself included in the backup.
-      '';
+    jobs = lib.mkOption {
+      type = with lib.types; attrsOf (submodule jobModule);
+      default = { };
+      description = "Named local Restic backup jobs.";
     };
   };
 
@@ -72,29 +119,31 @@ in
       mode = "0400";
     };
 
-    systemd.services.restic-postgresql-backup = {
-      description = "Nightly PostgreSQL Restic backup";
-      requires = [ "postgresql.service" ];
-      after = [ "postgresql.service" "sops-nix.service" ];
-      wantedBy = [ "multi-user.target" ];
+    systemd.services = lib.mapAttrs' (name: job:
+      lib.nameValuePair "restic-backup-${name}" {
+        description = "Restic backup: ${name}";
+        requires = job.requires;
+        after = [ "sops-nix.service" ] ++ job.after;
+        wantedBy = [ "multi-user.target" ];
 
-      serviceConfig = {
-        Type = "oneshot";
-        User = "root";
-        ExecStart = "${postgresDumpScript}/bin/postgresql-restic-dump";
-        PrivateTmp = true;
-      };
-    };
+        serviceConfig = {
+          Type = "oneshot";
+          User = "root";
+          ExecStart = lib.getExe (backupScript name job);
+          PrivateTmp = true;
+        };
+      }) cfg.jobs;
 
-    systemd.timers.restic-postgresql-backup = {
-      description = "Run nightly PostgreSQL Restic backup";
-      wantedBy = [ "timers.target" ];
+    systemd.timers = lib.mapAttrs' (name: job:
+      lib.nameValuePair "restic-backup-${name}" {
+        description = "Run Restic backup: ${name}";
+        wantedBy = [ "timers.target" ];
 
-      timerConfig = {
-        OnCalendar = "*-*-* 03:30:00";
-        Persistent = true;
-        RandomizedDelaySec = "15m";
-      };
-    };
+        timerConfig = {
+          OnCalendar = job.schedule;
+          Persistent = true;
+          RandomizedDelaySec = job.randomizedDelay;
+        };
+      }) cfg.jobs;
   };
 }

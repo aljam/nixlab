@@ -129,7 +129,7 @@ in
     };
   };
 
-  services.prometheus.ruleGroups = [
+  services.prometheus.rules = [
     {
       name = "backup-health";
       rules = [

@@ -10,8 +10,8 @@
       isSystemUser = true;
       group = "deploy";
       shell = "/run/current-system/sw/bin/nologin";
-      openssh.authorizedKeys.keyFiles = [
-        "/run/secrets/deploy_authorized_key"
+      openssh.authorizedKeys.keys = [
+        (builtins.readFile ../../secrets/deploy_authorized_key.pub)
       ];
     };
 

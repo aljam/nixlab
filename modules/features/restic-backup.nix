@@ -70,7 +70,7 @@ let
   backupScript = name: job:
     pkgs.writeShellApplication {
       name = "restic-backup-${name}";
-      runtimeInputs = with pkgs; [ restic ];
+      runtimeInputs = with pkgs; [ restic util-linux ];
       text = ''
         set -euo pipefail
 

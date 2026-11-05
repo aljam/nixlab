@@ -17,6 +17,13 @@
 }:
 
 {
+  imports = [ ./restic-backup.nix ];
+
+  modules.features.restic-backup = {
+    enable = true;
+    repository = "/var/lib/restic-backup/repo";
+  };
+
   # Exempt from a restart/reload consumer: pgAdmin consumes this password only
   # while provisioning its initial administrator account. Rotating it does not
   # require restarting the running pgAdmin service.

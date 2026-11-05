@@ -2,6 +2,8 @@
 let
   cfg = config.modules.features.radio;
   liquidsoapScript = config.sops.templates.liquidsoap-radio.path;
+  icecastConfig = config.sops.templates.icecast-xml.path;
+  icecastHostname = "radio.derezzed.info";
 in
 {
   options.modules.features.radio = {
@@ -15,27 +17,34 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    users.users.icecast = {
+      isSystemUser = true;
+      group = "icecast";
+    };
+
+    users.groups.icecast = { };
+
     sops.secrets = {
       icecast_admin_password = {
         sopsFile = ../../secrets/radio.yaml;
-        owner = "root";
-        group = "root";
+        owner = "icecast";
+        group = "icecast";
         mode = "0400";
         restartUnits = [ "icecast.service" ];
       };
 
       icecast_source_password = {
         sopsFile = ../../secrets/radio.yaml;
-        owner = "root";
-        group = "root";
+        owner = "icecast";
+        group = "icecast";
         mode = "0400";
         restartUnits = [ "icecast.service" "liquidsoap-radio.service" ];
       };
 
       icecast_relay_password = {
         sopsFile = ../../secrets/radio.yaml;
-        owner = "root";
-        group = "root";
+        owner = "icecast";
+        group = "icecast";
         mode = "0400";
         restartUnits = [ "icecast.service" ];
       };
@@ -62,11 +71,58 @@ in
       mode = "0400";
     };
 
+    sops.templates.icecast-xml = {
+      owner = "icecast";
+      group = "icecast";
+      mode = "0400";
+      content = ''
+        <icecast>
+          <hostname>${icecastHostname}</hostname>
+
+          <listen-socket>
+            <port>8000</port>
+          </listen-socket>
+
+          <authentication>
+            <source-password>${config.sops.placeholder.icecast_source_password}</source-password>
+            <relay-password>${config.sops.placeholder.icecast_relay_password}</relay-password>
+            <admin-user>admin</admin-user>
+            <admin-password>${config.sops.placeholder.icecast_admin_password}</admin-password>
+          </authentication>
+
+          <fileserve>1</fileserve>
+
+          <paths>
+            <logdir>/var/log/icecast</logdir>
+            <webroot>${pkgs.icecast}/share/icecast/web</webroot>
+            <adminroot>${pkgs.icecast}/share/icecast/admin</adminroot>
+            <pidfile>/run/icecast/icecast.pid</pidfile>
+          </paths>
+
+          <security>
+            <chroot>0</chroot>
+          </security>
+        </icecast>
+      '';
+    };
+
     services.icecast = {
       enable = true;
-      hostname = "radio.derezzed.info";
-      admin.password = "unused-by-custom-execstart";
+      hostname = icecastHostname;
       listen.address = "0.0.0.0";
+      admin.password = "unused-by-rendered-icecast-config";
+    };
+
+    systemd.services.icecast = {
+      serviceConfig = {
+        User = lib.mkForce "icecast";
+        Group = lib.mkForce "icecast";
+        DynamicUser = lib.mkForce false;
+        ExecStart = lib.mkForce "${pkgs.icecast}/bin/icecast -c ${icecastConfig}";
+        RuntimeDirectory = "icecast";
+        StateDirectory = "icecast";
+        LogsDirectory = "icecast";
+      };
     };
 
     systemd.services.liquidsoap-radio = {

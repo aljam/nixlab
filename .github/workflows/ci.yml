@@ -34,7 +34,7 @@ jobs:
           useDaemon: false
 
       - name: Flake check
-        run: nix flake check --print-build-logs
+        run: nix flake check --no-build --print-build-logs
 
   select-hosts:
     needs: check

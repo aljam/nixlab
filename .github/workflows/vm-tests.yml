@@ -1,0 +1,41 @@
+name: VM integration tests
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 4 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vm-tests
+  cancel-in-progress: false
+
+jobs:
+  monitoring-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: cachix/install-nix-action@v31
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: cachix/cachix-action@v15
+        with:
+          name: aljam
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          extraPullNames: nix-community,nix-gaming,hyprland
+          useDaemon: false
+
+      - name: Run monitoring health VM test
+        run: |
+          nix build \
+            --no-link \
+            --print-out-paths \
+            --print-build-logs \
+            .#checks.x86_64-linux.monitoring-health

@@ -10,6 +10,8 @@
     hashedPasswordFile = config.sops.secrets.aljam_password.path;
   };
 
+  # Exempt from a restart/reload consumer: the hashed password is consumed by
+  # user-account setup rather than a long-running service.
   sops.secrets.aljam_password = {
     sopsFile = ../../secrets/common.yaml;
     neededForUsers = true;

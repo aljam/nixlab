@@ -17,6 +17,9 @@
 }:
 
 {
+  # Exempt from a restart/reload consumer: pgAdmin consumes this password only
+  # while provisioning its initial administrator account. Rotating it does not
+  # require restarting the running pgAdmin service.
   sops.secrets.pgadmin_password = {
     sopsFile = ../../secrets/database.yaml;
     owner = "pgadmin";

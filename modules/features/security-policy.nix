@@ -145,7 +145,7 @@ in
     # through the HAProxy backend allowlist.
     {
       assertion = forbiddenExposedPorts == [ ];
-      message = 'Forbidden service ports must not be exposed through the HAProxy backend allowlist: '
+      message = "Forbidden service ports must not be exposed through the HAProxy backend allowlist: "
         + lib.concatStringsSep ", " (map (p: toString p) forbiddenExposedPorts);
     }
 

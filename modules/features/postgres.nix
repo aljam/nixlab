@@ -6,6 +6,10 @@
 }: let
   cfg = config.modules.features.postgres;
 in {
+  imports = [
+    ./restic-backup.nix
+  ];
+
   options.modules.features.postgres = {
     enable = lib.mkEnableOption "PostgreSQL server with encrypted LAN access";
 
@@ -82,10 +86,6 @@ in {
 
     environment.systemPackages = with pkgs; [
       restic
-    ];
-
-    imports = [
-      ./restic-backup.nix
     ];
 
     modules.features.restic-backup = {

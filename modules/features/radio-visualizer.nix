@@ -36,8 +36,8 @@ in
 
         locations.${icecastMount} = {
           proxyPass = "http://127.0.0.1:8000${icecastMount}";
-          proxySetHeader.Host = "$host";
           extraConfig = ''
+            proxy_set_header Host $host;
             proxy_buffering off;
             proxy_cache off;
             proxy_read_timeout 3600s;

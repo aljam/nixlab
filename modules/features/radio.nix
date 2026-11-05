@@ -7,9 +7,9 @@ let
   icecastRenderScript = pkgs.writeShellScript "icecast-render-config" ''
     set -euo pipefail
 
-    config="${config.services.icecast.package}/etc/icecast.xml"
+    config="${pkgs.icecast}/etc/icecast.xml"
     if [ ! -f "$config" ]; then
-      echo "Icecast generated configuration not found: $config" >&2
+      echo "Icecast package configuration not found: $config" >&2
       exit 1
     fi
 

@@ -13,6 +13,7 @@
     nixos-hardware = {
       url = "github:NixOS/nixos-hardware/master";
       inputs.nixpkgs.follows = "nixpkgs";
+
     };
 
     artcraft = {
@@ -106,6 +107,7 @@
         { hostname }:
         [
           ./modules/roles/common.nix
+	  ./modules/features/deploy-user.nix
 
           ./modules/features/deploy-user.nix
 

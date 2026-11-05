@@ -44,8 +44,8 @@ let
     import urllib.request
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-    with open(os.environ["NTFY_URL_FILE"], "r", encoding="utf-8") as handle:
-        NTFY_URL = handle.read().strip()
+    with open(os.environ["NFTY_URL_FILE"], "r", encoding="utf-8") as handle:
+        NFTY_URL = handle.read().strip()
 
 
     class Handler(BaseHTTPRequestHandler):
@@ -67,7 +67,7 @@ let
 
                     body = annotations.get("description", "")
                     request = urllib.request.Request(
-                        NTFY_URL,
+                        NFTY_URL,
                         data=body.encode("utf-8"),
                         headers={
                             "X-Title": title,
@@ -104,7 +104,7 @@ in
 
   # Alertmanager remains loopback-only. The ntfy URL, including its private
   # topic and access token if used, is supplied at runtime from SOPS.
-  sops.secrets.ntfy-url = {
+  sops.secrets.nfty-url = {
     sopsFile = ../../secrets/monitoring.yaml;
     owner = "alertmanager";
     group = "alertmanager";
@@ -162,7 +162,7 @@ in
     wantedBy = [ "multi-user.target" ];
 
     environment = {
-      NTFY_URL_FILE = config.sops.secrets.ntfy-url.path;
+      NFTY_URL_FILE = config.sops.secrets.nfty-url.path;
     };
 
     serviceConfig = {

@@ -32,13 +32,11 @@ For each OSV finding:
 2. Determine whether that package is present in a deployed host closure:
 
    ```bash
-   nix why-depends .#nixosConfigurations.HOSTNAME.config.system.build.toplevel \
+   nix why-depends .#nixosConfigurations.HOSTNAME.config.system.build.toplevel \\
      nixpkgs#PACKAGE_NAME
    ```
 
    Replace `HOSTNAME` and `PACKAGE_NAME` with the affected host and package.
-   If the command reports no dependency path, record the finding as not
-   deployed rather than treating it as an immediate host risk.
 
 3. If the package is deployed, identify the exposed service or attack surface.
 4. Choose one outcome:
@@ -75,7 +73,7 @@ Audit rules record:
 - `sudo` execution and changes to sudo policy.
 - Changes to users, groups, passwords, and shadow files.
 - Changes to the SSH daemon configuration.
-- Changes to audit configuration.
+- Changes to audit logging.
 
 Review recent security-relevant activity with:
 
@@ -83,7 +81,6 @@ Review recent security-relevant activity with:
 sudo journalctl --since "24 hours ago" -u sshd -u sudo
 sudo ausearch -k sudo-execution --start recent
 sudo ausearch -k identity-change --start recent
-sudo ausearch -k sshd-config-change --start recent
 sudo aureport --auth
 ```
 
@@ -108,7 +105,7 @@ Alertmanager listens only on loopback and is intentionally excluded from
 `127.0.0.1:9093`.
 
 Critical and warning alerts are relayed to the Ntfy topic configured by the
-SOPS-managed `ntfy-url` secret. A dedicated loopback relay service receives
+SOPS-managed `nfty-url` secret. A dedicated loopback relay service receives
 Alertmanager webhooks on `127.0.0.1:9094`, formats the notification, and
 forwards it to Ntfy.
 
@@ -116,7 +113,7 @@ Alerts are grouped by alert name and instance; unresolved alerts repeat every
 four hours, and recovery notifications are sent.
 
 The Ntfy URL is never committed to the repository. To change the destination,
-update `ntfy-url` in `secrets/monitoring.yaml` with SOPS and redeploy the
+update `nfty-url` in `secrets/monitoring.yaml` with SOPS and redeploy the
 monitoring host.
 
 ## CI

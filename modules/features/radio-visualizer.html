@@ -32,7 +32,7 @@
 
   <script>
     const butterchurn = window.butterchurn.default;
-    const presets = window.butterchurnPresets.default ?? window.butterchurnPresets;
+    const presets = window.butterchurnPresets.getPresets();
 
     const STREAM_URL = "/stream";
     const audio = document.getElementById("radio");

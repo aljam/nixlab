@@ -38,6 +38,8 @@ let
   unauthorizedRootOwnedSecrets = lib.filter
     (secret: !lib.elem secret.name config.roles.security.sopsAllowedRootSecrets)
     rootOwnedSecrets;
+
+  unauthorizedSecretNames = map (secret: secret.name) unauthorizedRootOwnedSecrets;
 in
 {
   options.roles.server.enable = lib.mkEnableOption "server role policies";
@@ -49,8 +51,6 @@ in
       "smtp_relay_password"
       "mail_password_aljam"
       "livekit-jwt-env"
-      "icecast-password"
-      "liquidsoap-password"
     ];
     description = ''
       Names of SOPS secrets that are explicitly allowed to be owned by root.
@@ -95,7 +95,8 @@ in
       assertion = unauthorizedRootOwnedSecrets == [ ];
       message = ''
         SOPS secrets owned by root must be listed in
-        roles.security.sopsAllowedRootSecrets.
+        roles.security.sopsAllowedRootSecrets. Unauthorized secrets:
+        ${lib.concatStringsSep ", " unauthorizedSecretNames}
       '';
     }
 

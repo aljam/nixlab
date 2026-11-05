@@ -18,6 +18,9 @@ in
   config = lib.mkIf cfg.enable {
     sops.secrets.icecast_source_password = {
       sopsFile = ../../secrets/radio.yaml;
+      owner = "root";
+      group = "root";
+      mode = "0400";
       restartUnits = [ "icecast.service" "liquidsoap-radio.service" ];
     };
 

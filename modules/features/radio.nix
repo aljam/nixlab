@@ -63,6 +63,7 @@ in
       enable = true;
       hostname = "radio.derezzed.info";
       admin.password = "unused-by-custom-execstart";
+      listen.address = "0.0.0.0";
     };
 
     systemd.services.liquidsoap-radio = {

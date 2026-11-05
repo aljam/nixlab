@@ -9,6 +9,14 @@ in
   config = lib.mkIf cfg.enable {
     networking.proxyBackendPorts = [ 9000 ];
 
+    sops.secrets."peertube-secrets" = {
+      sopsFile = ../../secrets/peertube.yaml;
+      owner = "peertube";
+      group = "peertube";
+      mode = "0400";
+      restartUnits = [ "peertube.service" ];
+    };
+
     services.peertube = {
       enable = true;
 
@@ -17,6 +25,15 @@ in
       listenHttp = 9000;
       listenWeb = 443;
       enableWebHttps = true;
+
+      secrets.secretsFile =
+        config.sops.secrets."peertube-secrets".path;
+
+      redis = {
+        enableUnixSocket = false;
+        host = "127.0.0.1";
+        port = 6379;
+      };
 
       database = {
         host = "/run/postgresql";
@@ -33,6 +50,11 @@ in
       };
     };
 
+    services.redis.servers.peertube = {
+      enable = true;
+      port = 6379;
+    };
+
     services.postgresql = {
       ensureDatabases = [ "peertube" ];
       ensureUsers = [
@@ -44,8 +66,14 @@ in
     };
 
     systemd.services.peertube = {
-      after = [ "postgresql.service" ];
-      wants = [ "postgresql.service" ];
+      after = [
+        "postgresql.service"
+        "redis-peertube.service"
+      ];
+      wants = [
+        "postgresql.service"
+        "redis-peertube.service"
+      ];
     };
 
     environment.systemPackages = with pkgs; [

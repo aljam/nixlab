@@ -1,127 +1,81 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Derezzed Radio</title>
-  <style>
-    html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
-    canvas { display: block; width: 100%; height: 100%; }
-    #controls {
-      position: fixed; left: 1rem; bottom: 1rem; z-index: 2;
-      display: flex; gap: .5rem; align-items: center;
-      font: 14px system-ui, sans-serif; color: #fff;
-      background: rgba(0,0,0,.55); padding: .6rem .75rem; border-radius: .5rem;
-    }
-    button { font: inherit; }
-  </style>
-</head>
-<body>
-  <canvas id="visualizer"></canvas>
+<div class="visualizer-wrap">
+  <canvas id="visualizer-canvas"></canvas>
+</div>
 
-  <div id="controls">
-    <button id="play">Play</button>
-    <button id="next">Next preset</button>
-    <span id="status">Stopped</span>
-  </div>
-
-  <audio id="radio" crossorigin="anonymous" preload="none"></audio>
-
-  <script src="https://cdn.jsdelivr.net/npm/butterchurn@2.6.7/lib/butterchurn.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/butterchurn-presets@2.4.7/lib/butterchurnPresets.min.js"></script>
-
-  <script>
-    const butterchurn = window.butterchurn.default;
-    const presets = window.butterchurnPresets.getPresets();
-
-    const STREAM_URL = "/stream";
-    const audio = document.getElementById("radio");
-    const canvas = document.getElementById("visualizer");
-    const status = document.getElementById("status");
-    const playButton = document.getElementById("play");
-    const nextButton = document.getElementById("next");
-
-    audio.src = STREAM_URL;
+<script>
+  (function () {
+    const canvas = document.getElementById("visualizer-canvas");
+    const audio = document.getElementById("radio-audio");
 
     let audioContext;
-    let analyser;
     let sourceNode;
+    let analyser;
     let visualizer;
-    let presetKeys = Object.keys(presets);
-    let presetIndex = Math.floor(Math.random() * presetKeys.length);
+    let presetIndex = 0;
 
-    function resize() {
-      canvas.width = window.innerWidth * devicePixelRatio;
-      canvas.height = window.innerHeight * devicePixelRatio;
-      visualizer?.setRendererSize(canvas.width, canvas.height);
-    }
-
-    function loadPreset(index, duration = 12) {
-      const key = presetKeys[index % presetKeys.length];
-      visualizer.loadPreset(presets[key], duration);
-    }
+    const presets = [];
 
     async function start() {
-      if (!audioContext) {
-        audioContext = new AudioContext();
-        analyser = audioContext.createAnalyser();
-        sourceNode = audioContext.createMediaElementSource(audio);
-
-        sourceNode.connect(analyser);
-        sourceNode.connect(audioContext.destination);
-
-        visualizer = butterchurn.createVisualizer(audioContext, canvas, {
-          width: canvas.width,
-          height: canvas.height,
-          pixelRatio: devicePixelRatio,
-        });
-
-        visualizer.connectAudio(analyser);
-
-        resize();
-        loadPreset(presetIndex);
-
-        let lastPresetChange = performance.now();
-        function render() {
-          requestAnimationFrame(render);
-
-          if (performance.now() - lastPresetChange > 15000) {
-            presetIndex = (presetIndex + 1) % presetKeys.length;
-            loadPreset(presetIndex);
-            lastPresetChange = performance.now();
-          }
-
-          visualizer.render();
-        }
-        render();
+      if (!window.butterchurn) {
+        console.warn("Butterchurn not loaded");
+        return;
       }
 
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
       await audioContext.resume();
-      await audio.play();
-      status.textContent = "Playing";
-      playButton.textContent = "Pause";
+
+      sourceNode = audioContext.createMediaElementSource(audio);
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 2048;
+
+      // Route audio through the analyser so Butterchurn receives live data.
+      sourceNode.connect(analyser);
+      analyser.connect(audioContext.destination);
+
+      visualizer = butterchurn.createVisualizer(audioContext, canvas, {
+        width: canvas.width,
+        height: canvas.height,
+        pixelRatio: window.devicePixelRatio || 1,
+      });
+
+      visualizer.connectAudio(analyser);
+
+      const presetKeys = butterchurn.getPresets();
+      const presetNames = Object.keys(presetKeys);
+
+      presetNames.forEach((name) => {
+        presets.push(presetKeys[name]);
+      });
+
+      visualizer.loadPreset(presets[presetIndex], 0.0);
+      visualizer.setRendererSize(canvas.width, canvas.height);
+
+      requestAnimationFrame(renderFrame);
     }
 
-    function stop() {
-      audio.pause();
-      status.textContent = "Paused";
-      playButton.textContent = "Play";
+    function renderFrame() {
+      visualizer.render();
+      requestAnimationFrame(renderFrame);
     }
 
-    playButton.addEventListener("click", () => {
-      audio.paused ? start() : stop();
-    });
+    function resize() {
+      const pixelRatio = window.devicePixelRatio || 1;
 
-    nextButton.addEventListener("click", () => {
-      presetIndex = (presetIndex + 1) % presetKeys.length;
-      loadPreset(presetIndex, 0);
-    });
+      canvas.width = window.innerWidth * pixelRatio;
+      canvas.height = window.innerHeight * pixelRatio;
 
-    audio.addEventListener("waiting", () => (status.textContent = "Buffering"));
-    audio.addEventListener("playing", () => (status.textContent = "Playing"));
-    audio.addEventListener("error", () => (status.textContent = "Stream error"));
+      if (visualizer) {
+        visualizer.setRendererSize(canvas.width, canvas.height);
+      }
+    }
 
     window.addEventListener("resize", resize);
-  </script>
-</body>
-</html>
+    resize();
+
+    audio.addEventListener("play", () => {
+      if (!visualizer) {
+        start();
+      }
+    });
+  })();
+</script>

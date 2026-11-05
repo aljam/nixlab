@@ -29,4 +29,5 @@
   modules.features.static-site.enable = true;
   modules.features.radio.enable = true;
   modules.features.radio-visualizer.enable = true;
+  modules.features.vaultwarden.enable = true;
 }

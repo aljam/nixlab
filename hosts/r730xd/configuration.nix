@@ -38,5 +38,13 @@
       schedule = "*-*-* 04:00:00";
       randomizedDelay = "15m";
     };
+
+    jobs.vaultwarden = {
+      repository = "/var/lib/restic-backup-vaultwarden/repo";
+      paths = [ "/var/lib/vaultwarden" ];
+      after = [ "vaultwarden.service" ];
+      schedule = "*-*-* 04:30:00";
+      randomizedDelay = "15m";
+    };
   };
 }

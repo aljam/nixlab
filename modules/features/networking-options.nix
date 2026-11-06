@@ -80,6 +80,12 @@ in
       description = "Named DNS domains available to service configuration.";
     };
 
+    monitoringServer = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = "r730xd";
+      description = "Fleet host running the Prometheus server.";
+    };
+
     proxyBackendPorts = lib.mkOption {
       type = lib.types.listOf lib.types.port;
       default = [ ];

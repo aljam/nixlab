@@ -160,6 +160,12 @@ let
               r820.ip = monitoringIps.unused;
             };
 
+            # The isolated VM has no DNS or Internet access, so public HTTPS
+            # Blackbox probes cannot succeed. Keep the test focused on local
+            # Prometheus, exporter, and firewall behavior.
+            modules.features.prometheus-server.enablePublicEndpointProbes =
+              lib.mkForce false;
+
             networking.firewall.extraInputRules = ''
               ip saddr ${monitoringIps.exporter} tcp dport 9100 accept
             '';
@@ -237,6 +243,16 @@ let
                 "| grep -q '\"health\":\"up\"'",
                 timeout=120,
             )
+
+        with subtest("public Blackbox probes are disabled in isolated tests"):
+            prometheus_config = monitor.succeed(
+                "cat /etc/prometheus/prometheus.yml"
+            )
+
+            if "blackbox-public" in prometheus_config:
+                raise Exception(
+                    "Public Blackbox probes should be disabled in the isolated monitoring test"
+                )
 
         with subtest("monitoring services remain unreachable from the exporter"):
             exporter.fail(

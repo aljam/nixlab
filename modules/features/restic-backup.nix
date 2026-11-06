@@ -24,15 +24,10 @@ let
         description = "Commands run before `restic backup`. Use this to create consistent application dumps.";
       };
 
-      prune = lib.mkOption {
-        type = lib.types.bool;
-        default = true;
-        description = ''
-          Whether to prune removed snapshots after applying retention.
-          Pruning can be expensive; disabling it lets `restic forget` mark
-          snapshots for later removal without rewriting repository data on
-          every backup.
-        '';
+      runtimePackages = lib.mkOption {
+        type = with lib.types; listOf package;
+        default = [ ];
+        description = "Additional packages required by this job pre-backup script. Keep this limited to the tools that job actually needs.";
       };
 
       schedule = lib.mkOption {
@@ -83,12 +78,10 @@ let
       resticCommonArgs =
         "--repo ${lib.escapeShellArg job.repository} "
         + "--password-file ${lib.escapeShellArg passwordFile}";
-
-      pruneArgs = lib.optionalString job.prune "--prune";
     in
     pkgs.writeShellApplication {
       name = "restic-backup-${name}";
-      runtimeInputs = with pkgs; [ restic util-linux postgresql ];
+      runtimeInputs = [ pkgs.restic pkgs.util-linux ] ++ job.runtimePackages;
       text = ''
         set -euo pipefail
 
@@ -103,7 +96,7 @@ let
           --keep-daily ${toString job.retention.keepDaily} \
           --keep-weekly ${toString job.retention.keepWeekly} \
           --keep-monthly ${toString job.retention.keepMonthly} \
-          ${pruneArgs}
+          --prune
       '';
     };
 in
@@ -146,6 +139,7 @@ in
         description = "Restic backup: ${name}";
         requires = job.requires;
         after = [ "sops-nix.service" ] ++ job.after;
+        wantedBy = [ "multi-user.target" ];
 
         serviceConfig = {
           Type = "oneshot";

@@ -30,6 +30,15 @@ let
         description = ''
           Additional packages required by this job’s pre-backup script.
           Keep this limited to the tools that job actually needs.
+          
+      prune = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = ''
+          Whether to prune removed snapshots after applying retention.
+          Pruning can be expensive; disabling it lets `restic forget` mark
+          snapshots for later removal without rewriting repository data on
+          every backup.
         '';
       };
 
@@ -81,6 +90,8 @@ let
       resticCommonArgs =
         "--repo ${lib.escapeShellArg job.repository} "
         + "--password-file ${lib.escapeShellArg passwordFile}";
+
+      pruneArgs = lib.optionalString job.prune "--prune";
     in
     pkgs.writeShellApplication {
       name = "restic-backup-${name}";
@@ -99,7 +110,7 @@ let
           --keep-daily ${toString job.retention.keepDaily} \
           --keep-weekly ${toString job.retention.keepWeekly} \
           --keep-monthly ${toString job.retention.keepMonthly} \
-          --prune
+          ${pruneArgs}
       '';
     };
 in
@@ -142,7 +153,6 @@ in
         description = "Restic backup: ${name}";
         requires = job.requires;
         after = [ "sops-nix.service" ] ++ job.after;
-        wantedBy = [ "multi-user.target" ];
 
         serviceConfig = {
           Type = "oneshot";

@@ -3,7 +3,8 @@
 let
   sopsSecrets = lib.attrValues config.sops.secrets;
 
-  grafanaExposed = lib.elem 3000 config.networking.proxyBackendPorts;
+  grafanaPort = config.services.grafana.settings.server.http_port or 3000;
+  grafanaExposed = lib.elem grafanaPort config.networking.proxyBackendPorts;
   grafanaAnonymous = config.services.grafana.settings.auth.anonymous.enabled or false;
   grafanaSignup = config.services.grafana.settings.users.allow_sign_up or false;
 
@@ -16,12 +17,14 @@ let
 
   # Sensitive or internal-only services that must not be exposed
   # through the HAProxy backend allowlist.
-  forbiddenProxyPorts = [
-    5050 # pgAdmin
-    9090 # Prometheus
-    9115 # Prometheus Blackbox exporter
-    9093 # Alertmanager
-  ];
+  internalServicePorts = {
+    pgAdmin = 5050;
+    prometheus = 9090;
+    blackboxExporter = 9115;
+    alertmanager = 9093;
+  };
+
+  forbiddenProxyPorts = lib.attrValues internalServicePorts;
 
   forbiddenExposedPorts = lib.intersectLists
     forbiddenProxyPorts
@@ -59,15 +62,7 @@ in
 
   options.roles.security.sopsAllowedRootSecrets = lib.mkOption {
     type = lib.types.listOf lib.types.str;
-    default = [
-      "nas-credentials"
-      "smtp_relay_password"
-      "mail_password_aljam"
-      "livekit-jwt-env"
-      "icecast_admin_password"
-      "icecast_relay_password"
-      "icecast_source_password"
-    ];
+    default = [ ];
     description = ''
       Names of SOPS secrets that are explicitly allowed to be owned by root.
       This is intended for system-level credentials such as mount credentials,
@@ -93,11 +88,6 @@ in
 
     # Make permissions explicit and restrict every secret to its owning
     # service identity.
-    {
-      assertion = lib.all (secret: secret.mode != null) sopsSecrets;
-      message = "SOPS secrets must use owner-only mode 0400.";
-    }
-
     {
       assertion = lib.all
         (secret: secret.mode == "0400")

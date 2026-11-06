@@ -3,9 +3,11 @@
   config,
   pkgs,
   ...
-}: let
+}:
+let
   cfg = config.modules.features.postgres;
-in {
+in
+{
   imports = [
     ./restic-backup.nix
   ];
@@ -15,49 +17,53 @@ in {
 
     ensureDatabases = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [];
+      default = [ ];
       description = "Databases to ensure exist.";
     };
 
     ensureUsers = lib.mkOption {
-      type = lib.types.listOf (lib.types.submodule {
-        options = {
-          name = lib.mkOption {
-            type = lib.types.str;
-            description = "PostgreSQL role name.";
-          };
+      type = lib.types.listOf (
+        lib.types.submodule {
+          options = {
+            name = lib.mkOption {
+              type = lib.types.str;
+              description = "PostgreSQL role name.";
+            };
 
-          ensureDBOwnership = lib.mkOption {
-            type = lib.types.bool;
-            default = false;
-            description = "Whether the role owns its identically named database.";
+            ensureDBOwnership = lib.mkOption {
+              type = lib.types.bool;
+              default = false;
+              description = "Whether the role owns its identically named database.";
+            };
           };
-        };
-      });
-      default = [];
+        }
+      );
+      default = [ ];
       description = "PostgreSQL roles to ensure exist.";
     };
 
     allowedClients = lib.mkOption {
-      type = lib.types.listOf (lib.types.submodule {
-        options = {
-          database = lib.mkOption {
-            type = lib.types.str;
-            example = "matrix-synapse";
-          };
+      type = lib.types.listOf (
+        lib.types.submodule {
+          options = {
+            database = lib.mkOption {
+              type = lib.types.str;
+              example = "matrix-synapse";
+            };
 
-          user = lib.mkOption {
-            type = lib.types.str;
-            example = "matrix-synapse";
-          };
+            user = lib.mkOption {
+              type = lib.types.str;
+              example = "matrix-synapse";
+            };
 
-          address = lib.mkOption {
-            type = lib.types.str;
-            example = "192.168.1.10/32";
+            address = lib.mkOption {
+              type = lib.types.str;
+              example = "192.168.1.10/32";
+            };
           };
-        };
-      });
-      default = [];
+        }
+      );
+      default = [ ];
       description = "LAN clients allowed to connect over TLS.";
     };
   };
@@ -68,12 +74,7 @@ in {
 
       ensureDatabases = cfg.ensureDatabases;
 
-      ensureUsers = map (
-        user: {
-          inherit (user) name;
-          ensureDBOwnership = user.ensureDBOwnership;
-        }
-      ) cfg.ensureUsers;
+      ensureUsers = map (user: { inherit (user) name ensureDBOwnership; }) cfg.ensureUsers;
 
       settings = {
         listen_addresses = lib.mkForce "*";
@@ -84,15 +85,14 @@ in {
       };
 
       authentication = lib.concatMapStringsSep "\n" (
-        client:
-        "hostssl ${client.database} ${client.user} ${client.address} scram-sha-256"
+        client: "hostssl ${client.database} ${client.user} ${client.address} scram-sha-256"
       ) cfg.allowedClients;
     };
 
     systemd.services.postgresql-tls-cert = {
       description = "Generate self-signed PostgreSQL TLS certificate";
-      before = ["postgresql.service"];
-      requiredBy = ["postgresql.service"];
+      before = [ "postgresql.service" ];
+      requiredBy = [ "postgresql.service" ];
       serviceConfig = {
         Type = "oneshot";
         UMask = "0077";
@@ -126,9 +126,9 @@ in {
 
       jobs.postgresql = {
         repository = "/var/lib/restic-backup/repo";
-        paths = ["/var/lib/restic-backup/postgresql"];
-        requires = ["postgresql.service"];
-        after = ["postgresql.service"];
+        paths = [ "/var/lib/restic-backup/postgresql" ];
+        requires = [ "postgresql.service" ];
+        after = [ "postgresql.service" ];
 
         # Only the PostgreSQL backup job needs pg_dump and runuser support.
         runtimePackages = with pkgs; [
@@ -147,7 +147,8 @@ in {
           chown postgres:restic-backup "$postgresDumpDir"
           chmod 0730 "$postgresDumpDir"
 
-          for database in webscraper admin matrix-synapse peertube; do
+          # Dump exactly the databases this host declares; the list cannot drift.
+          for database in ${lib.escapeShellArgs cfg.ensureDatabases}; do
             dump="$postgresDumpDir/''${database}.dump"
             temporary="''${dump}.tmp"
 

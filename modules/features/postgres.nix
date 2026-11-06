@@ -74,7 +74,7 @@ in {
             -out "$certDir/server.crt"
           chown postgres:postgres "$certDir/server.key" "$certDir/server.crt"
           chmod 0600 "$certDir/server.key"
-          chmod 0644 "$certDir/server.crt"
+          chmod 0640 "$certDir/server.crt"
         fi
       '';
     };
@@ -108,7 +108,7 @@ in {
           chown postgres:restic-backup "$postgresDumpDir"
           chmod 0730 "$postgresDumpDir"
 
-          for database in webscraper admin matrix-synapse; do
+          for database in webscraper admin matrix-synapse peertube; do
             dump="$postgresDumpDir/''${database}.dump"
             temporary="''${dump}.tmp"
 

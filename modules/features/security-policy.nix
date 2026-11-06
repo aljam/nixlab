@@ -62,15 +62,7 @@ in
 
   options.roles.security.sopsAllowedRootSecrets = lib.mkOption {
     type = lib.types.listOf lib.types.str;
-    default = [
-      "nas-credentials"
-      "smtp_relay_password"
-      "mail_password_aljam"
-      "livekit-jwt-env"
-      "icecast_admin_password"
-      "icecast_relay_password"
-      "icecast_source_password"
-    ];
+    default = [ ];
     description = ''
       Names of SOPS secrets that are explicitly allowed to be owned by root.
       This is intended for system-level credentials such as mount credentials,

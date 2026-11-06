@@ -10,7 +10,12 @@
 let
   backendPorts = config.networking.proxyBackendPorts;
   proxyIP = config.networking.fleet.proxy.ip;
-  prometheusIP = config.networking.fleet.r730xd.ip;
+  monitoringServer = config.networking.monitoringServer;
+  prometheusIP =
+    if monitoringServer == null then
+      null
+    else
+      config.networking.fleet.${monitoringServer}.ip;
   nodeExporter = config.services.prometheus.exporters.node;
 
   # The HAProxy gateway is the only client allowed to reach service backends.
@@ -20,9 +25,11 @@ let
 
   # Only the Prometheus server may scrape node_exporter, and only on hosts that
   # actually run it.
-  prometheusRule = lib.optionalString nodeExporter.enable ''
-    ip saddr ${prometheusIP} tcp dport ${toString nodeExporter.port} accept comment "Prometheus node exporter scrape"
-  '';
+  prometheusRule = lib.optionalString
+    (nodeExporter.enable && prometheusIP != null)
+    ''
+      ip saddr ${prometheusIP} tcp dport ${toString nodeExporter.port} accept comment "Prometheus node exporter scrape"
+    '';
 in
 {
   networking.firewall.extraInputRules = lib.concatStrings [

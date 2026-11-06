@@ -1,11 +1,15 @@
-{ lib, config, pkgs, ... }:
+{
+  lib,
+  config,
+  pkgs,
+  ...
+}:
 
 let
   cfg = config.modules.features.vaultwarden;
 in
 {
-  options.modules.features.vaultwarden.enable =
-    lib.mkEnableOption "Vaultwarden password manager";
+  options.modules.features.vaultwarden.enable = lib.mkEnableOption "Vaultwarden password manager";
 
   config = lib.mkIf cfg.enable {
     networking.proxyBackendPorts = [ 8222 ];
@@ -22,10 +26,10 @@ in
       enable = true;
 
       config = {
-        ROCKET_ADDRESS = config.networking.fleet.r730xd.ip;
+        ROCKET_ADDRESS = config.networking.servicesBindAddress;
         ROCKET_PORT = "8222";
         SIGNUPS_ALLOWED = "false";
-        DOMAIN = "https://vault.derezzed.info";
+        DOMAIN = "https://vault.${config.networking.myDomain}";
         ADMIN_TOKEN_FILE = config.sops.secrets."vaultwarden-admin-token".path;
         ADMIN_RATELIMIT_SECONDS = "60";
         ADMIN_RATELIMIT_MAX_BURST = "3";

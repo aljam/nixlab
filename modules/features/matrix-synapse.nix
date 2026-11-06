@@ -1,5 +1,6 @@
 { config, lib, ... }:
 let
+  matrixDomain = "matrix.${config.networking.myDomain}";
   rtcDomain = "rtc.${config.networking.myDomain}";
 in
 {
@@ -33,8 +34,8 @@ in
     ];
 
     settings = {
-      server_name = "matrix.derezzed.info";
-      public_baseurl = "https://matrix.derezzed.info";
+      server_name = matrixDomain;
+      public_baseurl = "https://${matrixDomain}";
 
       media_store_path = "/var/lib/matrix-synapse/media_store";
 
@@ -71,7 +72,10 @@ in
           x_forwarded = true;
           resources = [
             {
-              names = [ "client" "federation" ];
+              names = [
+                "client"
+                "federation"
+              ];
               compress = false;
             }
           ];

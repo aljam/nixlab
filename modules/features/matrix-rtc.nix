@@ -16,7 +16,7 @@
 let
   rtcDomain = "rtc.${config.networking.myDomain}";
 
-  hostIp = config.networking.fleet.r730xd.ip;
+  hostIp = config.networking.servicesBindAddress;
 
   livekitConfig = pkgs.writeText "livekit.yaml" ''
     port: 7880

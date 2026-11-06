@@ -246,7 +246,7 @@ let
 
         with subtest("public Blackbox probes are disabled in isolated tests"):
             prometheus_config = monitor.succeed(
-                "cat /etc/prometheus/prometheus.yml"
+                f"curl -fsS --max-time 10 {prometheus_url}/api/v1/status/config"
             )
 
             if "blackbox-public" in prometheus_config:

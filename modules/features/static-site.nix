@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   siteRoot = pkgs.runCommand "derezzed-info-site" { } ''
     mkdir -p $out

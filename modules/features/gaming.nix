@@ -1,4 +1,10 @@
-{ config, lib, pkgs, inputs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  inputs,
+  ...
+}:
 
 {
   hardware.steam-hardware.enable = true;
@@ -24,12 +30,12 @@
 
   programs.gamemode.settings.general.renice = 10;
   boot.kernel.sysctl = {
-    "vm.max_map_count" = 2147483642;   # required by many Proton titles / DX12
+    "vm.max_map_count" = 2147483642; # required by many Proton titles / DX12
     "vm.swappiness" = 10;
-    "net.core.rmem_max" = 2500000;     # helps Steam downloads
+    "net.core.rmem_max" = 2500000; # helps Steam downloads
   };
-  services.scx.enable = true;          # sched_ext, pairs well with your CachyOS kernel
-  hardware.xpadneo.enable = true;      # Xbox controllers over BT
+  services.scx.enable = true; # sched_ext, pairs well with your CachyOS kernel
+  hardware.xpadneo.enable = true; # Xbox controllers over BT
   programs.gamescope.capSysNice = true;
 
 }

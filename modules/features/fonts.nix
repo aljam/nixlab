@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   # Font configuration for the system
@@ -25,9 +30,19 @@
     fontconfig = {
       enable = true;
       defaultFonts = {
-        serif = [ "Noto Serif" "Liberation Serif" ];
-        sansSerif = [ "Noto Sans" "Ubuntu" "Liberation Sans" ];
-        monospace = [ "JetBrainsMono Nerd Font" "FiraCode Nerd Font" ];
+        serif = [
+          "Noto Serif"
+          "Liberation Serif"
+        ];
+        sansSerif = [
+          "Noto Sans"
+          "Ubuntu"
+          "Liberation Sans"
+        ];
+        monospace = [
+          "JetBrainsMono Nerd Font"
+          "FiraCode Nerd Font"
+        ];
         emoji = [ "Noto Color Emoji" ];
       };
     };

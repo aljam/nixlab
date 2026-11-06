@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   environment.systemPackages = with pkgs; [
@@ -20,12 +25,14 @@
       ExecStartPre = "${pkgs.coreutils}/bin/sleep 5";
 
       ExecStart = pkgs.writeShellScript "dell-fans-loop" ''
-        PATH=${lib.makeBinPath [
-          pkgs.ipmitool
-          pkgs.lm_sensors
-          pkgs.gawk
-          pkgs.coreutils
-        ]}
+        PATH=${
+          lib.makeBinPath [
+            pkgs.ipmitool
+            pkgs.lm_sensors
+            pkgs.gawk
+            pkgs.coreutils
+          ]
+        }
 
         # Enable manual fan control.
         ${pkgs.ipmitool}/bin/ipmitool raw 0x30 0x30 0x01 0x00 \

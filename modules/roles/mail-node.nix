@@ -1,4 +1,10 @@
-{ config, pkgs, domains, lib, ... }:
+{
+  config,
+  pkgs,
+  domains,
+  lib,
+  ...
+}:
 
 {
   sops.secrets."smtp_relay_password" = {
@@ -15,15 +21,15 @@
 
   mailserver = {
     enable = true;
-    
-    fqdn = "mail.${domains.primary}"; 
-    
+
+    fqdn = "mail.${domains.primary}";
+
     domains = lib.attrValues domains;
 
     loginAccounts = {
       "aljam@${domains.primary}" = {
         hashedPasswordFile = config.sops.secrets."mail_password_aljam".path;
-        
+
         # Dynamically map 'admin@<domain>' for every domain in your fleet,
         # plus any custom static aliases you want to include!
         aliases = (map (d: "admin@${d}") (lib.attrValues domains)) ++ [
@@ -36,12 +42,12 @@
 
     # SENDGRID RELAY (Bypass Bell's Port 25 Block)
     indexSmarthost = true;
-    
+
     relay = [
       {
         host = "smtp.sendgrid.net";
-        port = 587; 
-        username = "apikey"; 
+        port = 587;
+        username = "apikey";
         passwordFile = config.sops.secrets."smtp_relay_password".path;
       }
     ];

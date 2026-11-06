@@ -38,12 +38,15 @@ let
     ++ lib.optionals (lib.elem 9093 proxyPorts) [
       "${hostname}: Alertmanager port 9093 must not be exposed through HAProxy"
     ]
-    ++ lib.optionals (
-      cfg.networking.servicesBindAddress or "" == "0.0.0.0"
-      || cfg.networking.servicesBindAddress or "" == "::"
-    ) [
-      "${hostname}: networking.servicesBindAddress must not bind to every interface"
-    ]
+    ++
+      lib.optionals
+        (
+          cfg.networking.servicesBindAddress or "" == "0.0.0.0"
+          || cfg.networking.servicesBindAddress or "" == "::"
+        )
+        [
+          "${hostname}: networking.servicesBindAddress must not bind to every interface"
+        ]
     ++ lib.optionals (lib.hasInfix "host all all" postgresAuth) [
       "${hostname}: PostgreSQL authentication must not contain broad host/all/all rules"
     ]
@@ -59,19 +62,17 @@ let
         "${hostname}: SOPS secret ${secret.name or "?"} must declare mode"
       ]
     ) sopsSecrets
-    ++ lib.optionals (
-      (cfg.services.autobrr.enable or false)
-      && (cfg.services.autobrr.settings.host or "") == "0.0.0.0"
-    ) [
-      "${hostname}: Autobrr must not bind to 0.0.0.0"
-    ]
+    ++
+      lib.optionals
+        ((cfg.services.autobrr.enable or false) && (cfg.services.autobrr.settings.host or "") == "0.0.0.0")
+        [
+          "${hostname}: Autobrr must not bind to 0.0.0.0"
+        ]
   ) hosts;
 
   failures = lib.concatLists hostFailures;
 
-  failureReport = pkgs.writeText "service-exposure-failures" (
-    lib.concatStringsSep "\n" failures
-  );
+  failureReport = pkgs.writeText "service-exposure-failures" (lib.concatStringsSep "\n" failures);
 in
 pkgs.runCommand "service-exposure-checks"
   {

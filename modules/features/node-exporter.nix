@@ -1,5 +1,10 @@
 # DRY: Use shared proxy IP from flake.nix
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   services.prometheus.exporters.node = {

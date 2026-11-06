@@ -64,7 +64,10 @@ in
 
   systemd.services.nixlab-drift-metrics = {
     description = "Collect NixOS runtime drift metrics";
-    after = [ "network.target" "nftables.service" ];
+    after = [
+      "network.target"
+      "nftables.service"
+    ];
     wants = [ "nftables.service" ];
 
     serviceConfig = {
@@ -82,7 +85,11 @@ in
       ProtectKernelTunables = true;
       ProtectKernelModules = true;
       ProtectControlGroups = true;
-      RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_NETLINK" ];
+      RestrictAddressFamilies = [
+        "AF_INET"
+        "AF_INET6"
+        "AF_NETLINK"
+      ];
       LockPersonality = true;
     };
   };

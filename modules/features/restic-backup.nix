@@ -1,4 +1,9 @@
-{ lib, config, pkgs, ... }:
+{
+  lib,
+  config,
+  pkgs,
+  ...
+}:
 
 let
   cfg = config.modules.features.restic-backup;
@@ -73,7 +78,8 @@ let
     };
   };
 
-  backupScript = name: job:
+  backupScript =
+    name: job:
     let
       resticCommonArgs =
         "--repo ${lib.escapeShellArg job.repository} "
@@ -81,7 +87,11 @@ let
     in
     pkgs.writeShellApplication {
       name = "restic-backup-${name}";
-      runtimeInputs = [ pkgs.restic pkgs.util-linux ] ++ job.runtimePackages;
+      runtimeInputs = [
+        pkgs.restic
+        pkgs.util-linux
+      ]
+      ++ job.runtimePackages;
       text = ''
         set -euo pipefail
 
@@ -134,7 +144,8 @@ in
       "d /var/lib/restic-backup/postgresql 0730 postgres restic-backup - -"
     ];
 
-    systemd.services = lib.mapAttrs' (name: job:
+    systemd.services = lib.mapAttrs' (
+      name: job:
       lib.nameValuePair "restic-backup-${name}" {
         description = "Restic backup: ${name}";
         requires = job.requires;
@@ -154,9 +165,11 @@ in
           RestrictSUIDSGID = true;
           LockPersonality = true;
         };
-      }) cfg.jobs;
+      }
+    ) cfg.jobs;
 
-    systemd.timers = lib.mapAttrs' (name: job:
+    systemd.timers = lib.mapAttrs' (
+      name: job:
       lib.nameValuePair "restic-backup-${name}" {
         description = "Run Restic backup: ${name}";
         wantedBy = [ "timers.target" ];
@@ -166,6 +179,7 @@ in
           Persistent = true;
           RandomizedDelaySec = job.randomizedDelay;
         };
-      }) cfg.jobs;
+      }
+    ) cfg.jobs;
   };
 }

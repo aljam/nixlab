@@ -29,19 +29,20 @@ let
     != null;
 
   # A line whose first token is already a verdict — the failure mode above.
-  bareVerdict =
-    line: builtins.match "[[:space:]]*(${verdicts})([[:space:]].*)?" line != null;
+  bareVerdict = line: builtins.match "[[:space:]]*(${verdicts})([[:space:]].*)?" line != null;
 
   isBlank = line: builtins.match "[[:space:]]*" line != null;
   isComment = line: builtins.match "[[:space:]]*#.*" line != null;
 
   rulesOf =
-    cfg: lib.filter (l: !(isBlank l) && !(isComment l)) (lib.splitString "\n" cfg.networking.firewall.extraInputRules);
+    cfg:
+    lib.filter (l: !(isBlank l) && !(isComment l)) (
+      lib.splitString "\n" cfg.networking.firewall.extraInputRules
+    );
 
   # Does any rule mention this port as a standalone number?
   portCovered =
-    rules: port:
-    lib.any (l: builtins.match ".*[^0-9]${toString port}([^0-9].*|)" l != null) rules;
+    rules: port: lib.any (l: builtins.match ".*[^0-9]${toString port}([^0-9].*|)" l != null) rules;
 
   checkHost =
     name: node:
@@ -62,9 +63,9 @@ let
       lib.filter (l: !(bareVerdict l) && !(wellFormed l)) rules
     )
     # 3. Backend ports are reachable through the gateway only, never LAN-wide.
-    ++ map (p: fail "backend port ${toString p} is in allowedTCPPorts, so it is open to the whole LAN") (
-      lib.intersectLists backendPorts openTCP
-    )
+    ++ map (
+      p: fail "backend port ${toString p} is in allowedTCPPorts, so it is open to the whole LAN"
+    ) (lib.intersectLists backendPorts openTCP)
     # 4. …and each one has to be reachable through the gateway at all.
     ++ map (p: fail "backend port ${toString p} has no input rule, so HAProxy cannot reach it") (
       lib.filter (p: !(portCovered rules p)) backendPorts

@@ -2,14 +2,12 @@
 let
   domain = config.networking.domains.primary;
 
-  mkLink =
-    name: subdomain: description: icon:
-    {
-      ${name} = {
-        href = "https://${subdomain}.${domain}";
-        inherit description icon;
-      };
+  mkLink = name: subdomain: description: icon: {
+    ${name} = {
+      href = "https://${subdomain}.${domain}";
+      inherit description icon;
     };
+  };
 in
 {
   networking.proxyBackendPorts = [ 8082 ];

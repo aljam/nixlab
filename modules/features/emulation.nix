@@ -19,5 +19,5 @@
   ];
 
   # Grants Dolphin raw access to GC controller adapters
-  services.udev.packages = [ pkgs.dolphin-emu ]; 
+  services.udev.packages = [ pkgs.dolphin-emu ];
 }

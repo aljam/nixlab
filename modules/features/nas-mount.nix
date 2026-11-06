@@ -1,6 +1,11 @@
 # modules/features/nas-mount.nix
 # NAS mount configuration with SOPS-managed CIFS credentials.
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   fileSystems = {
     "/mnt/share" = {

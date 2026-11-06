@@ -5,7 +5,8 @@
 #
 # Secret conventions:
 # - Every `sops.secrets.<name>` declaration must set an explicit `owner`.
-# - Secret files must use `mode = "0400"` unless a service requires otherwise.
+# - Secret files must use `mode = "0400"`; the security policy enforces this
+#   uniformly for all SOPS secrets.
 # - Set `restartUnits` only for services that can safely reload credentials.
 {
   ...

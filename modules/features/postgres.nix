@@ -13,6 +13,31 @@ in {
   options.modules.features.postgres = {
     enable = lib.mkEnableOption "PostgreSQL server with encrypted LAN access";
 
+    ensureDatabases = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      description = "Databases to ensure exist.";
+    };
+
+    ensureUsers = lib.mkOption {
+      type = lib.types.listOf (lib.types.submodule {
+        options = {
+          name = lib.mkOption {
+            type = lib.types.str;
+            description = "PostgreSQL role name.";
+          };
+
+          ensureDBOwnership = lib.mkOption {
+            type = lib.types.bool;
+            default = false;
+            description = "Whether the role owns its identically named database.";
+          };
+        };
+      });
+      default = [];
+      description = "PostgreSQL roles to ensure exist.";
+    };
+
     allowedClients = lib.mkOption {
       type = lib.types.listOf (lib.types.submodule {
         options = {
@@ -40,6 +65,15 @@ in {
   config = lib.mkIf cfg.enable {
     services.postgresql = {
       enable = true;
+
+      ensureDatabases = cfg.ensureDatabases;
+
+      ensureUsers = map (
+        user: {
+          inherit (user) name;
+          ensureDBOwnership = user.ensureDBOwnership;
+        }
+      ) cfg.ensureUsers;
 
       settings = {
         listen_addresses = lib.mkForce "*";

@@ -131,6 +131,9 @@ in {
         after = ["postgresql.service"];
 
         preBackupScript = ''
+          set -eu
+          umask 077
+
           backupRoot=/var/lib/restic-backup
           postgresDumpDir="$backupRoot/postgresql"
 
@@ -146,10 +149,17 @@ in {
             dump="$postgresDumpDir/''${database}.dump"
             temporary="''${dump}.tmp"
 
+            cleanup() {
+              rm -f -- "$temporary"
+            }
+            trap cleanup ERR
+
             runuser -u postgres -- pg_dump --dbname="$database" --format=custom --file="$temporary"
             chown restic-backup:restic-backup "$temporary"
             chmod 0600 "$temporary"
-            mv "$temporary" "$dump"
+            mv -- "$temporary" "$dump"
+
+            trap - ERR
           done
         '';
       };

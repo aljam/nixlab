@@ -11,45 +11,22 @@ let
     "r820"
   ];
 
-  blackboxProbeJob =
+  # Every Blackbox probe sends the original target to the loopback exporter
+  # and preserves it as the Prometheus instance label.
+  blackboxRelabelConfigs = [
     {
-      job_name,
-      target,
-      instance,
-      host,
-      module ? "http_2xx",
-    }:
+      source_labels = [ "__address__" ];
+      target_label = "__param_target";
+    }
     {
-      inherit job_name;
-      metrics_path = "/probe";
-      params = {
-        module = [ module ];
-      };
-
-      static_configs = [
-        {
-          targets = [ target ];
-          labels = {
-            inherit instance host;
-          };
-        }
-      ];
-
-      relabel_configs = [
-        {
-          source_labels = [ "__address__" ];
-          target_label = "__param_target";
-        }
-        {
-          source_labels = [ "__param_target" ];
-          target_label = "instance";
-        }
-        {
-          target_label = "__address__";
-          replacement = "127.0.0.1:9115";
-        }
-      ];
-    };
+      source_labels = [ "__param_target" ];
+      target_label = "instance";
+    }
+    {
+      target_label = "__address__";
+      replacement = "127.0.0.1:9115";
+    }
+  ];
 
   publicEndpoints = [
     { name = "homepage"; url = "https://home.derezzed.info"; }
@@ -85,42 +62,68 @@ let
         };
       }) publicEndpoints;
 
-      relabel_configs = [
-        {
-          source_labels = [ "__address__" ];
-          target_label = "__param_target";
-        }
-        {
-          source_labels = [ "__param_target" ];
-          target_label = "instance";
-        }
-        {
-          target_label = "__address__";
-          replacement = "127.0.0.1:9115";
-        }
-      ];
+      relabel_configs = blackboxRelabelConfigs;
     }
 
     (blackboxProbeJob {
       job_name = "blackbox-matrix-client";
-      target = "${matrixUrl}/_matrix/client/versions";
-      instance = "matrix-client";
-      host = "r730xd";
-    })
+      metrics_path = "/probe";
+      params = {
+        module = [ "http_2xx" ];
+      };
+
+      static_configs = [
+        {
+          targets = [ "${matrixUrl}/_matrix/client/versions" ];
+          labels = {
+            instance = "matrix-client";
+            host = "r730xd";
+          };
+        }
+      ];
+
+      relabel_configs = blackboxRelabelConfigs;
+    }
 
     (blackboxProbeJob {
       job_name = "blackbox-matrix-federation";
-      target = "${matrixUrl}/_matrix/key/v2/server";
-      instance = "matrix-federation";
-      host = "r730xd";
-    })
+      metrics_path = "/probe";
+      params = {
+        module = [ "http_2xx" ];
+      };
+
+      static_configs = [
+        {
+          targets = [ "${matrixUrl}/_matrix/key/v2/server" ];
+          labels = {
+            instance = "matrix-federation";
+            host = "r730xd";
+          };
+        }
+      ];
+
+      relabel_configs = blackboxRelabelConfigs;
+    }
 
     (blackboxProbeJob {
       job_name = "blackbox-matrix-rtc";
-      target = rtcUrl;
-      instance = "matrix-rtc";
-      host = "r730xd";
-    })
+      metrics_path = "/probe";
+      params = {
+        module = [ "http_2xx" ];
+      };
+
+      static_configs = [
+        {
+          targets = [ rtcUrl ];
+          labels = {
+            instance = "matrix-rtc";
+            host = "r730xd";
+          };
+        }
+      ];
+
+      relabel_configs = blackboxRelabelConfigs;
+    }
   ];
 in
 {
@@ -250,20 +253,7 @@ in
             }
           ];
 
-          relabel_configs = [
-            {
-              source_labels = [ "__address__" ];
-              target_label = "__param_target";
-            }
-            {
-              source_labels = [ "__param_target" ];
-              target_label = "instance";
-            }
-            {
-              target_label = "__address__";
-              replacement = "127.0.0.1:9115";
-            }
-          ];
+          relabel_configs = blackboxRelabelConfigs;
         }
       ]
       ++ lib.optionals cfg.enablePublicEndpointProbes publicBlackboxScrapeJobs
@@ -285,20 +275,7 @@ in
             }
           ];
 
-          relabel_configs = [
-            {
-              source_labels = [ "__address__" ];
-              target_label = "__param_target";
-            }
-            {
-              source_labels = [ "__param_target" ];
-              target_label = "instance";
-            }
-            {
-              target_label = "__address__";
-              replacement = "127.0.0.1:9115";
-            }
-          ];
+          relabel_configs = blackboxRelabelConfigs;
         }
       ];
 

@@ -39,10 +39,19 @@
     networking.hostName = hostname;
     networking.domain = config.networking.myDomain;
 
+    roles.security.sopsAllowedRootSecrets = [
+      "nas-credentials"
+      "smtp_relay_password"
+      "mail_password_aljam"
+      "livekit-jwt-env"
+      "icecast_admin_password"
+      "icecast_relay_password"
+      "icecast_source_password"
+    ];
+
     nixpkgs.config.allowUnfree = true;
 
     time.timeZone = lib.mkDefault "America/Toronto";
-
     i18n.defaultLocale = lib.mkDefault "en_CA.UTF-8";
     i18n.extraLocaleSettings = {
       LC_ADDRESS = "en_CA.UTF-8";

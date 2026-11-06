@@ -11,9 +11,7 @@ let
   postgresAuth = config.services.postgresql.authentication or "";
   postgresPort = config.services.postgresql.settings.port or 5432;
   proxyBackendPorts = config.networking.proxyBackendPorts;
-  duplicateProxyPorts = lib.lists.subtractLists
-    (lib.unique proxyBackendPorts)
-    proxyBackendPorts;
+  duplicateProxyPorts = lib.lists.subtractLists (lib.unique proxyBackendPorts) proxyBackendPorts;
 
   # Sensitive or internal-only services that must not be exposed
   # through the HAProxy backend allowlist.
@@ -26,34 +24,28 @@ let
 
   forbiddenProxyPorts = lib.attrValues internalServicePorts;
 
-  forbiddenExposedPorts = lib.intersectLists
-    forbiddenProxyPorts
-    proxyBackendPorts;
+  forbiddenExposedPorts = lib.intersectLists forbiddenProxyPorts proxyBackendPorts;
 
   # Remote PostgreSQL clients must explicitly negotiate TLS. Loopback rules
   # are exempt because their traffic does not traverse a network interface.
-  plaintextRemotePostgresRules = lib.filter
-    (line:
-      let
-        trimmed = lib.strings.trim line;
-      in
-      lib.strings.hasPrefix "host " trimmed
-      && !(lib.strings.hasInfix "127.0.0.1/32" trimmed)
-      && !(lib.strings.hasInfix "::1/128" trimmed)
-    )
-    (lib.strings.splitString "\n" postgresAuth);
+  plaintextRemotePostgresRules = lib.filter (
+    line:
+    let
+      trimmed = lib.strings.trim line;
+    in
+    lib.strings.hasPrefix "host " trimmed
+    && !(lib.strings.hasInfix "127.0.0.1/32" trimmed)
+    && !(lib.strings.hasInfix "::1/128" trimmed)
+  ) (lib.strings.splitString "\n" postgresAuth);
 
   gamingEnabled =
-    (config.programs.steam.enable or false)
-    || (config.programs.gamescope.enable or false);
+    (config.programs.steam.enable or false) || (config.programs.gamescope.enable or false);
 
-  rootOwnedSecrets = lib.filter
-    (secret: secret.owner == "root")
-    sopsSecrets;
+  rootOwnedSecrets = lib.filter (secret: secret.owner == "root") sopsSecrets;
 
-  unauthorizedRootOwnedSecrets = lib.filter
-    (secret: !lib.elem secret.name config.roles.security.sopsAllowedRootSecrets)
-    rootOwnedSecrets;
+  unauthorizedRootOwnedSecrets = lib.filter (
+    secret: !lib.elem secret.name config.roles.security.sopsAllowedRootSecrets
+  ) rootOwnedSecrets;
 
   unauthorizedSecretNames = map (secret: secret.name) unauthorizedRootOwnedSecrets;
 in
@@ -89,9 +81,7 @@ in
     # Make permissions explicit and restrict every secret to its owning
     # service identity.
     {
-      assertion = lib.all
-        (secret: secret.mode == "0400")
-        sopsSecrets;
+      assertion = lib.all (secret: secret.mode == "0400") sopsSecrets;
       message = "SOPS secrets must use owner-only mode 0400.";
     }
 
@@ -135,7 +125,8 @@ in
     # through the HAProxy backend allowlist.
     {
       assertion = forbiddenExposedPorts == [ ];
-      message = "Forbidden service ports must not be exposed through the HAProxy backend allowlist: "
+      message =
+        "Forbidden service ports must not be exposed through the HAProxy backend allowlist: "
         + lib.concatStringsSep ", " (map (p: toString p) forbiddenExposedPorts);
     }
 
@@ -150,8 +141,7 @@ in
     # interface; use loopback or an explicit fleet service address.
     {
       assertion =
-        config.networking.servicesBindAddress != "0.0.0.0"
-        && config.networking.servicesBindAddress != "::";
+        config.networking.servicesBindAddress != "0.0.0.0" && config.networking.servicesBindAddress != "::";
       message = "servicesBindAddress must not bind services to every interface.";
     }
 
@@ -165,33 +155,26 @@ in
     # Autobrr should use the host's service address rather than every interface.
     {
       assertion =
-        !(config.services.autobrr.enable or false)
-        || config.services.autobrr.settings.host != "0.0.0.0";
+        !(config.services.autobrr.enable or false) || config.services.autobrr.settings.host != "0.0.0.0";
       message = "Autobrr must bind to the host service address, not all interfaces.";
     }
 
     # Recyclarr connects to local Radarr and Sonarr instances.
     {
-      assertion =
-        !(config.modules.features.recyclarr.enable or false)
-        || config.servarr.enable;
+      assertion = !(config.modules.features.recyclarr.enable or false) || config.servarr.enable;
       message = "modules.features.recyclarr requires servarr.enable because it connects to local Radarr and Sonarr instances.";
     }
 
     # Gaming software opens LAN-facing ports and is intended only for desktop
     # hosts. Prevent accidental inclusion in server roles.
     {
-      assertion =
-        !(config.roles.server.enable or false)
-        || !gamingEnabled;
+      assertion = !(config.roles.server.enable or false) || !gamingEnabled;
       message = "Steam, GameScope, and gaming firewall rules must not be enabled on server hosts.";
     }
 
     # If sudo is enabled, administrative commands must require a password.
     {
-      assertion =
-        !(config.security.sudo.enable or false)
-        || config.security.sudo.wheelNeedsPassword;
+      assertion = !(config.security.sudo.enable or false) || config.security.sudo.wheelNeedsPassword;
       message = "sudo must require a password when enabled.";
     }
 

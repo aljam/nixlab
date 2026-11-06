@@ -11,43 +11,48 @@ let
     "wwn-0x5000c5008f0517e3" # d8
   ];
 
-  makeDisk = index: wwn: lib.nameValuePair "d${toString index}" {
-    type = "disk";
-    device = "/dev/disk/by-id/${wwn}";
-    content = {
-      type = "gpt";
-      partitions = 
-        if (index == 1 || index == 2) then {
-          ESP = {
-            size = "500M";
-            type = "EF00";
-            content = {
-              type = "filesystem";
-              format = "vfat";
-              mountpoint = if index == 1 then "/boot" else "/boot2";
+  makeDisk =
+    index: wwn:
+    lib.nameValuePair "d${toString index}" {
+      type = "disk";
+      device = "/dev/disk/by-id/${wwn}";
+      content = {
+        type = "gpt";
+        partitions =
+          if (index == 1 || index == 2) then
+            {
+              ESP = {
+                size = "500M";
+                type = "EF00";
+                content = {
+                  type = "filesystem";
+                  format = "vfat";
+                  mountpoint = if index == 1 then "/boot" else "/boot2";
+                };
+              };
+              zfs = {
+                size = "100%";
+                content = {
+                  type = "zfs";
+                  pool = "r730pool";
+                };
+              };
+            }
+          else
+            {
+              zfs = {
+                size = "100%";
+                content = {
+                  type = "zfs";
+                  pool = "r730pool";
+                };
+              };
             };
-          };
-          zfs = {
-            size = "100%";
-            content = {
-              type = "zfs";
-              pool = "r730pool";
-            };
-          };
-        } 
-        else {
-          zfs = {
-            size = "100%";
-            content = {
-              type = "zfs";
-              pool = "r730pool";
-            };
-          };
-        };
+      };
     };
-  };
 
-in {
+in
+{
   boot.zfs.devNodes = "/dev/disk/by-id";
 
   disko.devices = {
@@ -60,10 +65,34 @@ in {
           topology = {
             type = "topology";
             vdev = [
-              { mode = "mirror"; members = [ "d1" "d2" ]; }
-              { mode = "mirror"; members = [ "d3" "d4" ]; }
-              { mode = "mirror"; members = [ "d5" "d6" ]; }
-              { mode = "mirror"; members = [ "d7" "d8" ]; }
+              {
+                mode = "mirror";
+                members = [
+                  "d1"
+                  "d2"
+                ];
+              }
+              {
+                mode = "mirror";
+                members = [
+                  "d3"
+                  "d4"
+                ];
+              }
+              {
+                mode = "mirror";
+                members = [
+                  "d5"
+                  "d6"
+                ];
+              }
+              {
+                mode = "mirror";
+                members = [
+                  "d7"
+                  "d8"
+                ];
+              }
             ];
           };
         };

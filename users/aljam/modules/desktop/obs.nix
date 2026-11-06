@@ -24,7 +24,7 @@ in
     ];
   };
 
-  home.packages = [ 
-    pkgs.streamcontroller 
+  home.packages = [
+    pkgs.streamcontroller
   ];
 }

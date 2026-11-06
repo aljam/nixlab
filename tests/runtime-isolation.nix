@@ -41,16 +41,14 @@ let
     prefixLength = 24;
   };
 
-  httpServer =
-    pkgs: port:
-    {
-      wantedBy = [ "multi-user.target" ];
-      after = [ "network.target" ];
-      serviceConfig = {
-        ExecStart = "${pkgs.python3}/bin/python3 -m http.server ${toString port} --bind 0.0.0.0";
-        DynamicUser = true;
-      };
+  httpServer = pkgs: port: {
+    wantedBy = [ "multi-user.target" ];
+    after = [ "network.target" ];
+    serviceConfig = {
+      ExecStart = "${pkgs.python3}/bin/python3 -m http.server ${toString port} --bind 0.0.0.0";
+      DynamicUser = true;
     };
+  };
 
   tests = {
     admin-isolation = pkgs.testers.nixosTest {
@@ -163,8 +161,7 @@ let
             # The isolated VM has no DNS or Internet access, so public HTTPS
             # Blackbox probes cannot succeed. Keep the test focused on local
             # Prometheus, exporter, and firewall behavior.
-            modules.features.prometheus-server.enablePublicEndpointProbes =
-              lib.mkForce false;
+            modules.features.prometheus-server.enablePublicEndpointProbes = lib.mkForce false;
 
             networking.firewall.extraInputRules = ''
               ip saddr ${monitoringIps.exporter} tcp dport 9100 accept

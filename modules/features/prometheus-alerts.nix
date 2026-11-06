@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   relayPort = 9095;
@@ -123,7 +128,10 @@ in
     configuration = {
       route = {
         receiver = "ntfy-default";
-        group_by = [ "alertname" "host" ];
+        group_by = [
+          "alertname"
+          "host"
+        ];
         group_wait = "30s";
         group_interval = "5m";
         repeat_interval = "4h";
@@ -184,7 +192,10 @@ in
       ProtectKernelTunables = true;
       ProtectKernelModules = true;
       ProtectControlGroups = true;
-      RestrictAddressFamilies = [ "AF_INET" "AF_INET6" ];
+      RestrictAddressFamilies = [
+        "AF_INET"
+        "AF_INET6"
+      ];
       LockPersonality = true;
     };
   };

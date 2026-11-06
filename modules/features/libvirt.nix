@@ -6,7 +6,7 @@
   virtualisation.libvirtd.qemu.swtpm.enable = true;
   virtualisation.libvirtd.qemu.package = pkgs.qemu_kvm;
 
-  # GUI frontend for libvirtd 
+  # GUI frontend for libvirtd
   programs.virt-manager.enable = true;
 
   # Let NixOS natively handle the default network without blocking activation scripts

@@ -27,11 +27,14 @@
       "com.fightcade.Fightcade"
     ];
   };
-  
+
   # Declarative Flatpak overrides for Fightcade
   services.flatpak.overrides = {
     "com.fightcade.Fightcade" = {
-      context.sockets = [ "x11" "wayland" ];
+      context.sockets = [
+        "x11"
+        "wayland"
+      ];
       environment = {
         USE_DXVK = "true";
         ELECTRON_OZONE_PLATFORM_HINT = "auto";

@@ -1,25 +1,31 @@
-{ config, pkgs, pkgs-stable, ... }:
+{
+  config,
+  pkgs,
+  pkgs-stable,
+  ...
+}:
 
 {
-  imports = [ ./modules/desktop/apps.nix
-              ./modules/desktop/kitty.nix
-              ./modules/desktop/obs.nix
-            ];
- 
+  imports = [
+    ./modules/desktop/apps.nix
+    ./modules/desktop/kitty.nix
+    ./modules/desktop/obs.nix
+  ];
+
   home.packages = with pkgs; [
     # --- KDE Plasma / Global Themes ---
-    catppuccin-kde    
-    arc-kde-theme     
+    catppuccin-kde
+    arc-kde-theme
     sweet-nova
-    
+
     # --- Icon Themes ---
-    papirus-icon-theme   
-    tela-icon-theme      
-    
+    papirus-icon-theme
+    tela-icon-theme
+
     # --- Cursor Themes ---
-    bibata-cursors      
-    capitaine-cursors  
-    
+    bibata-cursors
+    capitaine-cursors
+
     # (Optional) Kvantum engine if you want deep widget theming
     # kdePackages.qtstyleplugin-kvantum
 
@@ -37,6 +43,6 @@
     soundcraft
     wordcraft
   ];
-  
- xdg.enable = true;
+
+  xdg.enable = true;
 }

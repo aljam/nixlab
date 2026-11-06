@@ -67,13 +67,9 @@ let
     };
   };
 
-  staticServices = lib.filterAttrs (
-    _: service: service.userType == "static"
-  ) serviceDefs;
+  staticServices = lib.filterAttrs (_: service: service.userType == "static") serviceDefs;
 
-  dynamicServices = lib.filterAttrs (
-    _: service: service.userType == "dynamic"
-  ) serviceDefs;
+  dynamicServices = lib.filterAttrs (_: service: service.userType == "dynamic") serviceDefs;
 in
 {
   imports = [
@@ -83,9 +79,7 @@ in
   options.servarr.enable = lib.mkEnableOption "media automation stack";
 
   config = lib.mkIf cfg.enable {
-    networking.proxyBackendPorts = lib.mapAttrsToList (
-      _: service: service.port
-    ) serviceDefs;
+    networking.proxyBackendPorts = lib.mapAttrsToList (_: service: service.port) serviceDefs;
 
     services = {
       radarr.enable = true;
@@ -134,15 +128,14 @@ in
     users.groups.media.members = lib.attrNames staticServices;
 
     systemd.services = lib.genAttrs (lib.attrNames serviceDefs) (name: {
-      serviceConfig =
-        {
-          # /mnt/media is setgid `media`; a group-writable umask is what makes
-          # the shared-ownership scheme work for newly written files.
-          UMask = lib.mkForce "0002";
-        }
-        // lib.optionalAttrs (lib.hasAttr name dynamicServices) {
-          SupplementaryGroups = [ "media" ];
-        };
+      serviceConfig = {
+        # /mnt/media is setgid `media`; a group-writable umask is what makes
+        # the shared-ownership scheme work for newly written files.
+        UMask = lib.mkForce "0002";
+      }
+      // lib.optionalAttrs (lib.hasAttr name dynamicServices) {
+        SupplementaryGroups = [ "media" ];
+      };
     });
   };
 }

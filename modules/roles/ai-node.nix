@@ -8,7 +8,13 @@
 #
 # Do not remove this file - it's intentionally kept for future use.
 
-{ config, lib, pkgs, ... }: {
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+{
   # AI NODE - Currently disabled, reserved for future use
   # Uncomment and configure when AI/ML workload support is needed
 

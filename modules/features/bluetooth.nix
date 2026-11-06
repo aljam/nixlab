@@ -7,5 +7,5 @@
   };
 
   # Optional: if you want a graphical Bluetooth management tray applet on KDE/Plasma/Gnome
-  services.blueman.enable = true; 
+  services.blueman.enable = true;
 }

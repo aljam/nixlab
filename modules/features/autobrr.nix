@@ -1,4 +1,11 @@
-{ config, pkgs, domains, fleet, subnets, ... }:
+{
+  config,
+  pkgs,
+  domains,
+  fleet,
+  subnets,
+  ...
+}:
 {
   networking.proxyBackendPorts = [ 7474 ];
 

@@ -17,16 +17,14 @@ let
 
   # Anything that answers on a backend port. Deliberately not a real service
   # module: the subject under test is the firewall, not Grafana.
-  backendApp =
-    pkgs:
-    {
-      wantedBy = [ "multi-user.target" ];
-      after = [ "network.target" ];
-      serviceConfig = {
-        ExecStart = "${pkgs.python3}/bin/python3 -m http.server ${toString backendPort} --bind 0.0.0.0";
-        DynamicUser = true;
-      };
+  backendApp = pkgs: {
+    wantedBy = [ "multi-user.target" ];
+    after = [ "network.target" ];
+    serviceConfig = {
+      ExecStart = "${pkgs.python3}/bin/python3 -m http.server ${toString backendPort} --bind 0.0.0.0";
+      DynamicUser = true;
     };
+  };
 
   # A plain LAN client with no special privileges.
   client = {

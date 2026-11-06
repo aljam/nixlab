@@ -29,45 +29,50 @@ let
   ];
 
   # This function automatically writes the boilerplate for every single drive
-  makeDisk = index: wwn: lib.nameValuePair "d${toString index}" {
-    type = "disk";
-    device = "/dev/disk/by-id/${wwn}";
-    content = {
-      type = "gpt";
-      partitions = 
-        # Only add the UEFI boot partition to the first two disks
-        if (index == 1 || index == 2) then {
-          ESP = {
-            size = "500M";
-            type = "EF00";
-            content = {
-              type = "filesystem";
-              format = "vfat";
-              mountpoint = if index == 1 then "/boot" else "/boot2";
+  makeDisk =
+    index: wwn:
+    lib.nameValuePair "d${toString index}" {
+      type = "disk";
+      device = "/dev/disk/by-id/${wwn}";
+      content = {
+        type = "gpt";
+        partitions =
+          # Only add the UEFI boot partition to the first two disks
+          if (index == 1 || index == 2) then
+            {
+              ESP = {
+                size = "500M";
+                type = "EF00";
+                content = {
+                  type = "filesystem";
+                  format = "vfat";
+                  mountpoint = if index == 1 then "/boot" else "/boot2";
+                };
+              };
+              zfs = {
+                size = "100%";
+                content = {
+                  type = "zfs";
+                  pool = "mediapool";
+                };
+              };
+            }
+          # All other 22 disks are dedicated 100% to ZFS
+          else
+            {
+              zfs = {
+                size = "100%";
+                content = {
+                  type = "zfs";
+                  pool = "mediapool";
+                };
+              };
             };
-          };
-          zfs = {
-            size = "100%";
-            content = {
-              type = "zfs";
-              pool = "mediapool";
-            };
-          };
-        } 
-        # All other 22 disks are dedicated 100% to ZFS
-        else {
-          zfs = {
-            size = "100%";
-            content = {
-              type = "zfs";
-              pool = "mediapool";
-            };
-          };
-        };
+      };
     };
-  };
 
-in {
+in
+{
   boot.zfs.devNodes = "/dev/disk/by-id";
 
   disko.devices = {
@@ -83,15 +88,42 @@ in {
             vdev = [
               {
                 mode = "raidz2";
-                members = [ "d1" "d2" "d3" "d4" "d5" "d6" "d7" "d8" ];
+                members = [
+                  "d1"
+                  "d2"
+                  "d3"
+                  "d4"
+                  "d5"
+                  "d6"
+                  "d7"
+                  "d8"
+                ];
               }
               {
                 mode = "raidz2";
-                members = [ "d9" "d10" "d11" "d12" "d13" "d14" "d15" "d16" ];
+                members = [
+                  "d9"
+                  "d10"
+                  "d11"
+                  "d12"
+                  "d13"
+                  "d14"
+                  "d15"
+                  "d16"
+                ];
               }
               {
                 mode = "raidz2";
-                members = [ "d17" "d18" "d19" "d20" "d21" "d22" "d23" "d24" ];
+                members = [
+                  "d17"
+                  "d18"
+                  "d19"
+                  "d20"
+                  "d21"
+                  "d22"
+                  "d23"
+                  "d24"
+                ];
               }
             ];
           };

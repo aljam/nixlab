@@ -5,7 +5,7 @@
   services.sanoid = {
     enable = true;
     interval = "*:0/15"; # Run snapshot checks every 15 minutes
-    
+
     # Define your retention templates
     templates.storage = {
       hourly = 24;

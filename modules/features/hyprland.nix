@@ -1,18 +1,25 @@
-{ config, pkgs, lib, inputs, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  inputs,
+  ...
+}:
 
 {
   # Enable Hyprland window manager via NixOS module
   programs.hyprland = {
     enable = true;
     package = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland;
-    portalPackage = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
+    portalPackage =
+      inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.xdg-desktop-portal-hyprland;
     xwayland.enable = true;
   };
 
   # Universal Wayland environment variables (safe for AMD, Intel, and Nvidia)
   environment.sessionVariables = lib.mkMerge [
     {
-      NIXOS_OZONE_WL = "1";     # Forces Electron apps to use Wayland natively
+      NIXOS_OZONE_WL = "1"; # Forces Electron apps to use Wayland natively
       MOZ_ENABLE_WAYLAND = "1"; # Forces Firefox to use native Wayland
     }
     # Conditionally apply Nvidia backend variables ONLY if Nvidia is enabled on that host

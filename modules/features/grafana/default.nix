@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   # Grafana secrets share the same SOPS source and service identity.
@@ -9,8 +14,9 @@ let
     mode = "0400";
   };
 
-  securityDashboard = pkgs.writeText "security-posture.json"
-    (builtins.readFile ./assets/security-posture.json);
+  securityDashboard = pkgs.writeText "security-posture.json" (
+    builtins.readFile ./assets/security-posture.json
+  );
 
   prometheusDatasource = pkgs.writeText "prometheus-datasource.yaml" ''
     apiVersion: 1

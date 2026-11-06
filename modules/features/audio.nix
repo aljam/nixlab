@@ -8,6 +8,6 @@
     alsa.enable = true;
     alsa.support32Bit = true; # Required for 32-bit audio in Fightcade/Wine
     pulse.enable = true;
-    jack.enable = true;       # Required for ultra-low latency rhythm gaming
+    jack.enable = true; # Required for ultra-low latency rhythm gaming
   };
 }

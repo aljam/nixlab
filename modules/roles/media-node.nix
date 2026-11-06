@@ -7,7 +7,7 @@
     ../features/recyclarr.nix
     ../features/vaultwarden.nix
     ../features/grafana
-    ../features/youtube.nix
+    #../features/youtube.nix
     ../features/servarr.nix
   ];
 

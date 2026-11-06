@@ -199,9 +199,7 @@
       formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt;
 
       packages.${system} = {
-        firewall-isolation =
-          nixpkgs.legacyPackages.${system}.testers.runNixOSTest
-            ./tests/firewall.nix;
+        firewall-isolation = nixpkgs.legacyPackages.${system}.testers.runNixOSTest ./tests/firewall.nix;
 
         runtime-security = import ./tests/runtime-isolation.nix {
           pkgs = nixpkgs.legacyPackages.${system};
@@ -216,9 +214,11 @@
       apps.${system} = {
         deploy = {
           type = "app";
-          meta.description = "Deploy NixOS configurations to one or more hosts.";
+          meta.description = "Deploy a pushed revision of this flake to one or more hosts.";
           program = "${nixpkgs.legacyPackages.${system}.writeShellScript "deploy-all" ''
             set -euo pipefail
+
+            known_hosts=(${lib.concatStringsSep " " deployHosts})
 
             if [[ -n "$(git status --porcelain)" ]]; then
               echo "Refusing to deploy: Git working tree is dirty." >&2
@@ -226,34 +226,35 @@
               exit 1
             fi
 
+            rev="$(git rev-parse HEAD)"
+
+            # Hosts pull the flake from the remote, so HEAD must be pushed.
+            git fetch --quiet origin
+            if ! git merge-base --is-ancestor "$rev" origin/main; then
+              echo "Refusing to deploy: $rev is not on origin/main." >&2
+              echo "Push (or merge) first, then retry." >&2
+              exit 1
+            fi
+
             echo "==> Running flake checks"
             nix --extra-experimental-features 'nix-command flakes' flake check --show-trace
 
             hosts=("$@")
-
             if (( ''${#hosts[@]} == 0 )); then
-              hosts=(${lib.concatStringsSep " " deployHosts})
+              hosts=("''${known_hosts[@]}")
             fi
 
             for host in "''${hosts[@]}"; do
-              valid=false
-              for known in ${lib.concatStringsSep " " deployHosts}; do
-                if [[ "''${host}" == "''${known}" ]]; then
-                  valid=true
-                  break
-                fi
-              done
-
-              if [[ "''${valid}" != true ]]; then
+              if [[ ! " ''${known_hosts[*]} " == *" ''${host} "* ]]; then
                 echo "Unknown deploy host: ''${host}" >&2
-                echo "Available hosts: ${lib.concatStringsSep " " deployHosts}" >&2
+                echo "Available hosts: ''${known_hosts[*]}" >&2
                 exit 1
               fi
             done
 
             for host in "''${hosts[@]}"; do
-              echo "==> Deploying ''${host}"
-              nixos-rebuild switch --flake ".#''${host}" --target-host "deploy@''${host}" --use-remote-sudo
+              echo "==> Deploying ''${host} @ ''${rev}"
+              ssh "deploy@''${host}" sudo deploy-rebuild switch "''${rev}"
             done
           ''}";
         };

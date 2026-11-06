@@ -28,6 +28,138 @@ let
     { name = "matrix"; url = "https://matrix.derezzed.info"; }
     { name = "matrix-rtc"; url = "https://rtc.derezzed.info"; }
   ];
+
+  publicBlackboxScrapeJobs = [
+    {
+      job_name = "blackbox-public";
+      metrics_path = "/probe";
+      params = {
+        module = [ "http_2xx" ];
+      };
+
+      static_configs = map (endpoint: {
+        targets = [ endpoint.url ];
+        labels = {
+          instance = endpoint.name;
+          endpoint = endpoint.name;
+        };
+      }) publicEndpoints;
+
+      relabel_configs = [
+        {
+          source_labels = [ "__address__" ];
+          target_label = "__param_target";
+        }
+        {
+          source_labels = [ "__param_target" ];
+          target_label = "instance";
+        }
+        {
+          target_label = "__address__";
+          replacement = "127.0.0.1:9115";
+        }
+      ];
+    }
+
+    {
+      job_name = "blackbox-matrix-client";
+      metrics_path = "/probe";
+      params = {
+        module = [ "http_2xx" ];
+      };
+
+      static_configs = [
+        {
+          targets = [ "${matrixUrl}/_matrix/client/versions" ];
+          labels = {
+            instance = "matrix-client";
+            host = "r730xd";
+          };
+        }
+      ];
+
+      relabel_configs = [
+        {
+          source_labels = [ "__address__" ];
+          target_label = "__param_target";
+        }
+        {
+          source_labels = [ "__param_target" ];
+          target_label = "instance";
+        }
+        {
+          target_label = "__address__";
+          replacement = "127.0.0.1:9115";
+        }
+      ];
+    }
+
+    {
+      job_name = "blackbox-matrix-federation";
+      metrics_path = "/probe";
+      params = {
+        module = [ "http_2xx" ];
+      };
+
+      static_configs = [
+        {
+          targets = [ "${matrixUrl}/_matrix/key/v2/server" ];
+          labels = {
+            instance = "matrix-federation";
+            host = "r730xd";
+          };
+        }
+      ];
+
+      relabel_configs = [
+        {
+          source_labels = [ "__address__" ];
+          target_label = "__param_target";
+        }
+        {
+          source_labels = [ "__param_target" ];
+          target_label = "instance";
+        }
+        {
+          target_label = "__address__";
+          replacement = "127.0.0.1:9115";
+        }
+      ];
+    }
+
+    {
+      job_name = "blackbox-matrix-rtc";
+      metrics_path = "/probe";
+      params = {
+        module = [ "http_2xx" ];
+      };
+
+      static_configs = [
+        {
+          targets = [ rtcUrl ];
+          labels = {
+            instance = "matrix-rtc";
+            host = "r730xd";
+          };
+        }
+      ];
+
+      relabel_configs = [
+        {
+          source_labels = [ "__address__" ];
+          target_label = "__param_target";
+        }
+        {
+          source_labels = [ "__param_target" ];
+          target_label = "instance";
+        }
+        {
+          target_label = "__address__";
+          replacement = "127.0.0.1:9115";
+        }
+      ];
+    }
+  ];
 in
 {
   options.modules.features.prometheus-server = {
@@ -37,6 +169,15 @@ in
       description = ''
         Path to a CA bundle used to verify PostgreSQL TLS certificates.
         When null, the TLS PostgreSQL Blackbox probe is omitted.
+      '';
+    };
+
+    enablePublicEndpointProbes = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        Whether to configure Blackbox probes for public HTTPS endpoints.
+        Disable in isolated NixOS VM tests, which have no DNS or Internet access.
       '';
     };
   };
@@ -137,136 +278,6 @@ in
         }
 
         {
-          job_name = "blackbox-public";
-          metrics_path = "/probe";
-          params = {
-            module = [ "http_2xx" ];
-          };
-
-          static_configs = map (endpoint: {
-            targets = [ endpoint.url ];
-            labels = {
-              instance = endpoint.name;
-              endpoint = endpoint.name;
-            };
-          }) publicEndpoints;
-
-          relabel_configs = [
-            {
-              source_labels = [ "__address__" ];
-              target_label = "__param_target";
-            }
-            {
-              source_labels = [ "__param_target" ];
-              target_label = "instance";
-            }
-            {
-              target_label = "__address__";
-              replacement = "127.0.0.1:9115";
-            }
-          ];
-        }
-
-        {
-          job_name = "blackbox-matrix-client";
-          metrics_path = "/probe";
-          params = {
-            module = [ "http_2xx" ];
-          };
-
-          static_configs = [
-            {
-              targets = [ "${matrixUrl}/_matrix/client/versions" ];
-              labels = {
-                instance = "matrix-client";
-                host = "r730xd";
-              };
-            }
-          ];
-
-          relabel_configs = [
-            {
-              source_labels = [ "__address__" ];
-              target_label = "__param_target";
-            }
-            {
-              source_labels = [ "__param_target" ];
-              target_label = "instance";
-            }
-            {
-              target_label = "__address__";
-              replacement = "127.0.0.1:9115";
-            }
-          ];
-        }
-
-        {
-          job_name = "blackbox-matrix-federation";
-          metrics_path = "/probe";
-          params = {
-            module = [ "http_2xx" ];
-          };
-
-          static_configs = [
-            {
-              targets = [ "${matrixUrl}/_matrix/key/v2/server" ];
-              labels = {
-                instance = "matrix-federation";
-                host = "r730xd";
-              };
-            }
-          ];
-
-          relabel_configs = [
-            {
-              source_labels = [ "__address__" ];
-              target_label = "__param_target";
-            }
-            {
-              source_labels = [ "__param_target" ];
-              target_label = "instance";
-            }
-            {
-              target_label = "__address__";
-              replacement = "127.0.0.1:9115";
-            }
-          ];
-        }
-
-        {
-          job_name = "blackbox-matrix-rtc";
-          metrics_path = "/probe";
-          params = {
-            module = [ "http_2xx" ];
-          };
-
-          static_configs = [
-            {
-              targets = [ rtcUrl ];
-              labels = {
-                instance = "matrix-rtc";
-                host = "r730xd";
-              };
-            }
-          ];
-
-          relabel_configs = [
-            {
-              source_labels = [ "__address__" ];
-              target_label = "__param_target";
-            }
-            {
-              source_labels = [ "__param_target" ];
-              target_label = "instance";
-            }
-            {
-              target_label = "__address__";
-              replacement = "127.0.0.1:9115";
-            }
-          ];
-        }
-
-        {
           job_name = "blackbox-postgres";
           metrics_path = "/probe";
           params = {
@@ -298,7 +309,9 @@ in
             }
           ];
         }
-      ] ++ lib.optionals (cfg.postgresCaFile != null) [
+      ]
+      ++ lib.optionals cfg.enablePublicEndpointProbes publicBlackboxScrapeJobs
+      ++ lib.optionals (cfg.postgresCaFile != null) [
         {
           job_name = "blackbox-postgres-tls";
           metrics_path = "/probe";

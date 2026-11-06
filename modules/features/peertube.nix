@@ -78,9 +78,15 @@ in
       wants = [ "redis-peertube.service" ];
 
       environment = {
+        # PeerTube plugin installation can invoke optional dependency
+        # lifecycle scripts. Blocking them prevents an untrusted or failing
+        # postinstall script from aborting plugin installation.
         npm_config_ignore_scripts = "true";
       };
 
+      # pnpm and Node are required for plugin management; bash and coreutils
+      # ensure plugin lifecycle helpers can locate standard commands even when
+      # dependency scripts are ignored.
       path = with pkgs; [
         pnpm
         nodejs

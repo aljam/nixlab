@@ -97,11 +97,6 @@ in
     # Make permissions explicit and restrict every secret to its owning
     # service identity.
     {
-      assertion = lib.all (secret: secret.mode != null) sopsSecrets;
-      message = "SOPS secrets must use owner-only mode 0400.";
-    }
-
-    {
       assertion = lib.all
         (secret: secret.mode == "0400")
         sopsSecrets;

@@ -9,6 +9,12 @@
 # - Every authorized key must use the SSH restrictions below.
 # - `nix-builder` remains trusted only while remote builds require daemon
 #   trust; revisit this before enabling distributed builds.
+#
+# Distributed builds are not enabled yet. To turn them on:
+# 1. Generate a dedicated build-only Ed25519 key on each build client.
+# 2. Add each public key above, wrapped with `restrictedKey`.
+# 3. Verify `ssh -i <key> nix-builder@r820 true` from each client.
+# 4. Configure `nix.distributedBuilds` and `nix.buildMachines` on the clients.
 {
   config,
   lib,
@@ -19,8 +25,7 @@
 let
   builderKeys = config.users.users.nix-builder.openssh.authorizedKeys.keys;
 
-  restrictedKey = key:
-    "restrict,no-port-forwarding,no-agent-forwarding,no-X11-forwarding ${key}";
+  restrictedKey = key: "restrict,no-port-forwarding,no-agent-forwarding,no-X11-forwarding ${key}";
 in
 {
   users.users.nix-builder = {
@@ -40,9 +45,7 @@ in
 
   assertions = [
     {
-      assertion =
-        !(config.nix.distributedBuilds or false)
-        || builderKeys != [ ];
+      assertion = !(config.nix.distributedBuilds or false) || builderKeys != [ ];
       message = "Distributed Nix builds require at least one authorized key for nix-builder.";
     }
   ];

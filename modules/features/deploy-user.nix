@@ -1,22 +1,44 @@
-{ lib, config, pkgs, ... }:
+# Dedicated, unprivileged deployment identity.
+#
+# Deployment is pull-based: the deploy user may run exactly one sudo command,
+# `deploy-rebuild`, which rebuilds this host from a pinned revision of the
+# repository flake. The deploy user cannot run arbitrary commands as root, has
+# no interactive shell session (the authorized key is `restrict`ed), and is the
+# only non-wheel identity allowed through sshd.
+#
+# Use `nix run .#deploy -- <host>` from a clean, pushed checkout to drive it.
+{
+  lib,
+  config,
+  pkgs,
+  ...
+}:
 
 let
   cfg = config.roles.security.deployUser;
+
   rebuildWrapper = pkgs.writeShellApplication {
     name = "deploy-rebuild";
     runtimeInputs = [ pkgs.nixos-rebuild ];
     text = ''
-      set -euo pipefail
+      action="''${1:-}"
+      rev="''${2:-}"
 
-      case "''${1:-}" in
-        switch|test|boot|dry-build) ;;
+      case "$action" in
+        switch | test | boot | dry-build) ;;
         *)
-          echo "usage: deploy-rebuild {switch|test|boot|dry-build}" >&2
+          echo "usage: deploy-rebuild {switch|test|boot|dry-build} <git-rev>" >&2
           exit 2
           ;;
       esac
 
-      exec nixos-rebuild "$1" --flake ${lib.escapeShellArg cfg.flakePath}
+      if [[ ! "$rev" =~ ^[0-9a-f]{40}$ ]]; then
+        echo "deploy-rebuild: expected a full 40-character commit hash, got '$rev'" >&2
+        exit 2
+      fi
+
+      exec nixos-rebuild "$action" \
+        --flake ${lib.escapeShellArg cfg.flakeRef}/"$rev"#${lib.escapeShellArg config.networking.hostName}
     '';
   };
 in
@@ -24,12 +46,19 @@ in
   options.roles.security.deployUser = {
     enable = lib.mkEnableOption "dedicated deployment user";
 
-    flakePath = lib.mkOption {
+    flakeRef = lib.mkOption {
       type = lib.types.str;
-      default = "/etc/nixlab";
+      default = "github:Aljam/nixlab";
       description = ''
-        Flake path the deployment user is permitted to rebuild.
+        Flake reference (without revision) the deployment user is permitted
+        to rebuild from. The revision is supplied per deployment.
       '';
+    };
+
+    authorizedKeyFile = lib.mkOption {
+      type = lib.types.path;
+      default = ../../secrets/deploy_authorized_key.pub;
+      description = "Public key allowed to trigger deployments.";
     };
   };
 
@@ -39,11 +68,16 @@ in
     users.users.deploy = {
       isSystemUser = true;
       group = "deploy";
-      shell = "/run/current-system/sw/bin/nologin";
+      # A real shell is required for sshd to execute the forced-style command;
+      # `restrict` on the key denies PTY allocation and all forwarding.
+      shell = pkgs.bash;
       openssh.authorizedKeys.keys = [
-        (builtins.readFile ../../secrets/deploy_authorized_key.pub)
+        "restrict ${lib.fileContents cfg.authorizedKeyFile}"
       ];
     };
+
+    # sshd is otherwise wheel-only (modules/features/ssh.nix).
+    services.openssh.settings.AllowGroups = [ "deploy" ];
 
     environment.systemPackages = [ rebuildWrapper ];
 
@@ -52,7 +86,8 @@ in
         users = [ "deploy" ];
         commands = [
           {
-            command = lib.getExe rebuildWrapper;
+            # Match the system-profile path, as resolved through sudo's secure_path.
+            command = "/run/current-system/sw/bin/deploy-rebuild *";
             options = [ "NOPASSWD" ];
           }
         ];

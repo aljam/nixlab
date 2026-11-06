@@ -68,6 +68,11 @@ let
   };
 
   backupScript = name: job:
+    let
+      resticCommonArgs =
+        "--repo ${lib.escapeShellArg job.repository} "
+        + "--password-file ${lib.escapeShellArg passwordFile}";
+    in
     pkgs.writeShellApplication {
       name = "restic-backup-${name}";
       runtimeInputs = with pkgs; [ restic util-linux postgresql ];
@@ -77,13 +82,11 @@ let
         ${job.preBackupScript}
 
         restic backup \
-          --repo ${lib.escapeShellArg job.repository} \
-          --password-file ${lib.escapeShellArg passwordFile} \
+          ${resticCommonArgs} \
           ${lib.concatMapStringsSep " \\\n          " (path: lib.escapeShellArg path) job.paths}
 
         restic forget \
-          --repo ${lib.escapeShellArg job.repository} \
-          --password-file ${lib.escapeShellArg passwordFile} \
+          ${resticCommonArgs} \
           --keep-daily ${toString job.retention.keepDaily} \
           --keep-weekly ${toString job.retention.keepWeekly} \
           --keep-monthly ${toString job.retention.keepMonthly} \
@@ -124,7 +127,7 @@ in
       "d /var/lib/restic-backup 0711 restic-backup restic-backup - -"
       "d /var/lib/restic-backup/postgresql 0730 postgres restic-backup - -"
     ];
-    
+
     systemd.services = lib.mapAttrs' (name: job:
       lib.nameValuePair "restic-backup-${name}" {
         description = "Restic backup: ${name}";
@@ -137,6 +140,13 @@ in
           User = "root";
           ExecStart = lib.getExe (backupScript name job);
           PrivateTmp = true;
+          NoNewPrivileges = true;
+          PrivateDevices = true;
+          ProtectKernelTunables = true;
+          ProtectKernelModules = true;
+          ProtectControlGroups = true;
+          RestrictSUIDSGID = true;
+          LockPersonality = true;
         };
       }) cfg.jobs;
 

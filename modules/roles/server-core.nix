@@ -27,6 +27,10 @@ in
     }
   ];
 
+  # Every host importing this role is a server; this drives the
+  # server-vs-gaming exclusivity assertion in modules/roles/common.nix.
+  roles.server.enable = true;
+
   networking.interfaces.eno1.ipv4.addresses = [
     {
       address = config.networking.fleet.${config.networking.hostName}.ip;

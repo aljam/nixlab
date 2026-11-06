@@ -26,6 +26,11 @@
         user = "matrix-synapse";
         address = "192.168.1.2/32";
       }
+      {
+        database = "peertube";
+        user = "peertube";
+        address = "192.168.1.2/32";
+      }
     ];
   };
 

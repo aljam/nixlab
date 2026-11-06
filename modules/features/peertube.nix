@@ -17,6 +17,14 @@ in
       restartUnits = [ "peertube.service" ];
     };
 
+    sops.secrets."peertube-db-password" = {
+      sopsFile = ../../secrets/peertube.yaml;
+      owner = "peertube";
+      group = "peertube";
+      mode = "0400";
+      restartUnits = [ "peertube.service" ];
+    };
+
     services.peertube = {
       enable = true;
 
@@ -36,9 +44,12 @@ in
       };
 
       database = {
-        host = "/run/postgresql";
+        host = "192.168.1.4";
+        port = 5432;
         name = "peertube";
         user = "peertube";
+        passwordFile =
+          config.sops.secrets."peertube-db-password".path;
       };
 
       settings = {
@@ -55,25 +66,9 @@ in
       port = 6379;
     };
 
-    services.postgresql = {
-      ensureDatabases = [ "peertube" ];
-      ensureUsers = [
-        {
-          name = "peertube";
-          ensureDBOwnership = true;
-        }
-      ];
-    };
-
     systemd.services.peertube = {
-      after = [
-        "postgresql.service"
-        "redis-peertube.service"
-      ];
-      wants = [
-        "postgresql.service"
-        "redis-peertube.service"
-      ];
+      after = [ "redis-peertube.service" ];
+      wants = [ "redis-peertube.service" ];
     };
 
     environment.systemPackages = with pkgs; [

@@ -13,6 +13,31 @@ in {
   options.modules.features.postgres = {
     enable = lib.mkEnableOption "PostgreSQL server with encrypted LAN access";
 
+    ensureDatabases = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [];
+      description = "Databases to ensure exist.";
+    };
+
+    ensureUsers = lib.mkOption {
+      type = lib.types.listOf (lib.types.submodule {
+        options = {
+          name = lib.mkOption {
+            type = lib.types.str;
+            description = "PostgreSQL role name.";
+          };
+
+          ensureDBOwnership = lib.mkOption {
+            type = lib.types.bool;
+            default = false;
+            description = "Whether the role owns its identically named database.";
+          };
+        };
+      });
+      default = [];
+      description = "PostgreSQL roles to ensure exist.";
+    };
+
     allowedClients = lib.mkOption {
       type = lib.types.listOf (lib.types.submodule {
         options = {
@@ -40,6 +65,15 @@ in {
   config = lib.mkIf cfg.enable {
     services.postgresql = {
       enable = true;
+
+      ensureDatabases = cfg.ensureDatabases;
+
+      ensureUsers = map (
+        user: {
+          inherit (user) name;
+          ensureDBOwnership = user.ensureDBOwnership;
+        }
+      ) cfg.ensureUsers;
 
       settings = {
         listen_addresses = lib.mkForce "*";
@@ -74,7 +108,7 @@ in {
             -out "$certDir/server.crt"
           chown postgres:postgres "$certDir/server.key" "$certDir/server.crt"
           chmod 0600 "$certDir/server.key"
-          chmod 0644 "$certDir/server.crt"
+          chmod 0640 "$certDir/server.crt"
         fi
       '';
     };
@@ -108,7 +142,7 @@ in {
           chown postgres:restic-backup "$postgresDumpDir"
           chmod 0730 "$postgresDumpDir"
 
-          for database in webscraper admin matrix-synapse; do
+          for database in webscraper admin matrix-synapse peertube; do
             dump="$postgresDumpDir/''${database}.dump"
             temporary="''${dump}.tmp"
 

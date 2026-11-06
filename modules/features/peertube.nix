@@ -53,6 +53,8 @@ in
       };
 
       settings = {
+        database.ssl = true;
+
         instance.name = "Derezzed PeerTube";
         instance.short_description = "Self-hosted video";
         storage.videos = "/var/lib/peertube/storage/videos";

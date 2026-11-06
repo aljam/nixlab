@@ -1,10 +1,14 @@
-{ lib, config, pkgs, ... }:
+{
+  lib,
+  config,
+  pkgs,
+  ...
+}:
 let
   cfg = config.modules.features.peertube;
 in
 {
-  options.modules.features.peertube.enable =
-    lib.mkEnableOption "PeerTube video platform";
+  options.modules.features.peertube.enable = lib.mkEnableOption "PeerTube video platform";
 
   config = lib.mkIf cfg.enable {
     networking.proxyBackendPorts = [ 9000 ];
@@ -28,14 +32,13 @@ in
     services.peertube = {
       enable = true;
 
-      localDomain = "peertube.derezzed.info";
+      localDomain = "peertube.${config.networking.myDomain}";
 
       listenHttp = 9000;
       listenWeb = 443;
       enableWebHttps = true;
 
-      secrets.secretsFile =
-        config.sops.secrets."peertube-secrets".path;
+      secrets.secretsFile = config.sops.secrets."peertube-secrets".path;
 
       redis = {
         enableUnixSocket = false;
@@ -44,17 +47,16 @@ in
       };
 
       database = {
-        host = "192.168.1.4";
+        host = config.networking.fleet.r820.ip;
         port = 5432;
         name = "peertube";
         user = "peertube";
-        passwordFile =
-          config.sops.secrets."peertube-db-password".path;
+        passwordFile = config.sops.secrets."peertube-db-password".path;
       };
 
       settings = {
         listen = {
-          hostname = "192.168.1.2";
+          hostname = config.networking.servicesBindAddress;
           port = 9000;
         };
 

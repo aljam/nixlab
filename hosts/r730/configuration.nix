@@ -2,18 +2,18 @@
 # Uncomment below when CUDA/GPU compute support is needed
 # {
 #   imports = [ ../../modules/roles/ai-node.nix ];
-#   
+#
 #   # Enable NVIDIA GPU for compute workloads
 #   hardware.nvidia.containerModes = [ "utility" "compute" "graphics" "video" "display" ];
 #   hardware.nvidia.modesetting.enable = true;
 #   hardware.nvidia.powerManagement.enable = true;
 #   hardware.nvidia.open = true;
-#   
+#
 #   services.xserver.videoDrivers = [ "nvidia" ];
 #   hardware.opengl.enable = true;
 #   hardware.opengl.driSupport = true;
 #   hardware.opengl.driSupport32Bit = true;
-#   
+#
 #   environment.systemPackages = [
 #     pkgs.cudatoolkit
 #     pkgs.cudnn
@@ -21,7 +21,12 @@
 #   ];
 # }
 
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   imports = [
@@ -36,7 +41,7 @@
 
   networking.hostId = "acccc16e"; # Required for ZFS
 
-  boot.kernelPackages = pkgs.linuxPackages_6_1;  
+  boot.kernelPackages = pkgs.linuxPackages_6_1;
 
   # hardware.nvidia-container-toolkit.enable = true; # Passes the P40s into Docker
 
@@ -49,7 +54,8 @@
 
   environment.systemPackages = with pkgs; [
     cudatoolkit
-    linuxPackages.nvidia_x11
+    # Must match the running kernel, not the default linuxPackages set.
+    config.boot.kernelPackages.nvidia_x11
   ];
 
 }

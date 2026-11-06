@@ -12,7 +12,6 @@
     ../../modules/features/gaming.nix
     ../../modules/features/libvirt.nix
     ../../modules/features/flatpak.nix
-    ../../modules/features/remote-builder.nix
     ../../modules/features/fonts.nix
     ../../modules/features/gen1recomp.nix
     ../../modules/features/desktop-portals.nix

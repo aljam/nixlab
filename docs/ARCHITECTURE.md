@@ -82,7 +82,7 @@ Features are optional, flat modules in `modules/features/` that can be mixed int
 
 - **servarr.nix**: *arr stack (radarr, sonarr, prowarr, etc.)
 - **vaultwarden.nix**: Password manager
-- **grafana.nix** / **prometheus-server.nix**: Monitoring stack
+- **grafana/** / **prometheus-server.nix**: Monitoring stack
 - **reverse-proxy-backends.nix**: HAProxy backend configuration with firewall rules
 - **networking-options.nix**: Centralized fleet networking (IPs, subnets, domains)
 - And many more (see `modules/features/`)

@@ -77,10 +77,16 @@ in
       after = [ "redis-peertube.service" ];
       wants = [ "redis-peertube.service" ];
 
+      environment = {
+        npm_config_ignore_scripts = "true";
+      };
+
       path = with pkgs; [
         pnpm
         nodejs
         openssl
+        bash
+        coreutils
       ];
     };
 

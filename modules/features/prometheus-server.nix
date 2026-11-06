@@ -11,6 +11,46 @@ let
     "r820"
   ];
 
+  blackboxProbeJob =
+    {
+      job_name,
+      target,
+      instance,
+      host,
+      module ? "http_2xx",
+    }:
+    {
+      inherit job_name;
+      metrics_path = "/probe";
+      params = {
+        module = [ module ];
+      };
+
+      static_configs = [
+        {
+          targets = [ target ];
+          labels = {
+            inherit instance host;
+          };
+        }
+      ];
+
+      relabel_configs = [
+        {
+          source_labels = [ "__address__" ];
+          target_label = "__param_target";
+        }
+        {
+          source_labels = [ "__param_target" ];
+          target_label = "instance";
+        }
+        {
+          target_label = "__address__";
+          replacement = "127.0.0.1:9115";
+        }
+      ];
+    };
+
   publicEndpoints = [
     { name = "homepage"; url = "https://home.derezzed.info"; }
     { name = "jellyfin"; url = "https://jellyfin.derezzed.info"; }
@@ -61,104 +101,26 @@ let
       ];
     }
 
-    {
+    (blackboxProbeJob {
       job_name = "blackbox-matrix-client";
-      metrics_path = "/probe";
-      params = {
-        module = [ "http_2xx" ];
-      };
+      target = "${matrixUrl}/_matrix/client/versions";
+      instance = "matrix-client";
+      host = "r730xd";
+    })
 
-      static_configs = [
-        {
-          targets = [ "${matrixUrl}/_matrix/client/versions" ];
-          labels = {
-            instance = "matrix-client";
-            host = "r730xd";
-          };
-        }
-      ];
-
-      relabel_configs = [
-        {
-          source_labels = [ "__address__" ];
-          target_label = "__param_target";
-        }
-        {
-          source_labels = [ "__param_target" ];
-          target_label = "instance";
-        }
-        {
-          target_label = "__address__";
-          replacement = "127.0.0.1:9115";
-        }
-      ];
-    }
-
-    {
+    (blackboxProbeJob {
       job_name = "blackbox-matrix-federation";
-      metrics_path = "/probe";
-      params = {
-        module = [ "http_2xx" ];
-      };
+      target = "${matrixUrl}/_matrix/key/v2/server";
+      instance = "matrix-federation";
+      host = "r730xd";
+    })
 
-      static_configs = [
-        {
-          targets = [ "${matrixUrl}/_matrix/key/v2/server" ];
-          labels = {
-            instance = "matrix-federation";
-            host = "r730xd";
-          };
-        }
-      ];
-
-      relabel_configs = [
-        {
-          source_labels = [ "__address__" ];
-          target_label = "__param_target";
-        }
-        {
-          source_labels = [ "__param_target" ];
-          target_label = "instance";
-        }
-        {
-          target_label = "__address__";
-          replacement = "127.0.0.1:9115";
-        }
-      ];
-    }
-
-    {
+    (blackboxProbeJob {
       job_name = "blackbox-matrix-rtc";
-      metrics_path = "/probe";
-      params = {
-        module = [ "http_2xx" ];
-      };
-
-      static_configs = [
-        {
-          targets = [ rtcUrl ];
-          labels = {
-            instance = "matrix-rtc";
-            host = "r730xd";
-          };
-        }
-      ];
-
-      relabel_configs = [
-        {
-          source_labels = [ "__address__" ];
-          target_label = "__param_target";
-        }
-        {
-          source_labels = [ "__param_target" ];
-          target_label = "instance";
-        }
-        {
-          target_label = "__address__";
-          replacement = "127.0.0.1:9115";
-        }
-      ];
-    }
+      target = rtcUrl;
+      instance = "matrix-rtc";
+      host = "r730xd";
+    })
   ];
 in
 {
@@ -166,19 +128,13 @@ in
     postgresCaFile = lib.mkOption {
       type = lib.types.nullOr lib.types.path;
       default = null;
-      description = ''
-        Path to a CA bundle used to verify PostgreSQL TLS certificates.
-        When null, the TLS PostgreSQL Blackbox probe is omitted.
-      '';
+      description = "Path to a CA bundle used to verify PostgreSQL TLS certificates. When null, the TLS PostgreSQL Blackbox probe is omitted.";
     };
 
     enablePublicEndpointProbes = lib.mkOption {
       type = lib.types.bool;
       default = true;
-      description = ''
-        Whether to configure Blackbox probes for public HTTPS endpoints.
-        Disable in isolated NixOS VM tests, which have no DNS or Internet access.
-      '';
+      description = "Whether to configure Blackbox probes for public HTTPS endpoints. Disable in isolated NixOS VM tests, which have no DNS or Internet access.";
     };
   };
 

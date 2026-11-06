@@ -253,10 +253,7 @@
 
             for host in "''${hosts[@]}"; do
               echo "==> Deploying ''${host}"
-              nixos-rebuild switch \\
-                --flake ".#''${host}" \\
-                --target-host "deploy@''${host}" \\
-                --use-remote-sudo
+              nixos-rebuild switch --flake ".#''${host}" --target-host "deploy@''${host}" --use-remote-sudo
             done
           ''}";
         };

@@ -197,31 +197,13 @@ in
         {
           job_name = "node";
 
-          static_configs = [
-            {
-              targets = [ "${config.networking.fleet.r730.ip}:9100" ];
-              labels = {
-                instance = "r730";
-                host = "r730";
-              };
-            }
-
-            {
-              targets = [ "${config.networking.fleet.r730xd.ip}:9100" ];
-              labels = {
-                instance = "r730xd";
-                host = "r730xd";
-              };
-            }
-
-            {
-              targets = [ "${config.networking.fleet.r820.ip}:9100" ];
-              labels = {
-                instance = "r820";
-                host = "r820";
-              };
-            }
-          ];
+          static_configs = map (host: {
+            targets = [ "${config.networking.fleet.${host}.ip}:9100" ];
+            labels = {
+              instance = host;
+              host = host;
+            };
+          }) physicalHosts;
         }
 
         {

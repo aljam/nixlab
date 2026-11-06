@@ -26,17 +26,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          python3 - <<'PY'
-          import json
-          import yaml
-
-          with open("docs/public-endpoints.yaml") as f:
-              data = yaml.safe_load(f)
-
-          with open("/tmp/endpoints.json", "w") as f:
-              json.dump(data["endpoints"], f)
-          PY
-
           failures=0
 
           while IFS= read -r row; do
@@ -63,7 +52,7 @@ jobs:
 
             protocol=$(curl -sSIL -o /dev/null -w '%{http_version}' --max-time 20 "$url")
             echo "$name: HTTP $status, protocol $protocol"
-          done < <(jq -c '.[]' /tmp/endpoints.json)
+          done < <(jq -c '.endpoints[]' docs/public-endpoints.json)
 
           exit "$failures"
 
@@ -101,7 +90,7 @@ jobs:
             else
               echo "$name rejects TLS 1.1"
             fi
-          done < <(jq -c '.[]' /tmp/endpoints.json)
+          done < <(jq -c '.endpoints[]' docs/public-endpoints.json)
 
           exit "$failures"
 
@@ -137,6 +126,6 @@ jobs:
               echo "::error::$name certificate expires in $days_left days"
               failures=$((failures + 1))
             fi
-          done < <(jq -c '.[]' /tmp/endpoints.json)
+          done < <(jq -c '.endpoints[]' docs/public-endpoints.json)
 
           exit "$failures"

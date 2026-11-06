@@ -1,8 +1,15 @@
-{ lib, config, pkgs, ... }:
+{
+  lib,
+  config,
+  pkgs,
+  ...
+}:
 let
   cfg = config.modules.features.radio;
   liquidsoapScript = config.sops.templates.liquidsoap-radio.path;
-  icecastHostname = "radio.derezzed.info";
+  icecastHostname = "radio.${config.networking.myDomain}";
+  # Only the local nginx front-end (radio-visualizer) talks to Icecast.
+  icecastBind = "127.0.0.1";
 in
 {
   options.modules.features.radio = {
@@ -16,13 +23,23 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    sops.secrets.icecast_source_password = {
-      sopsFile = ../../secrets/radio.yaml;
-      owner = "root";
-      group = "root";
-      mode = "0400";
-      restartUnits = [ "icecast.service" "liquidsoap-radio.service" ];
-    };
+    sops.secrets =
+      let
+        icecastSecret = {
+          sopsFile = ../../secrets/radio.yaml;
+          owner = "root";
+          group = "root";
+          mode = "0400";
+          restartUnits = [
+            "icecast.service"
+            "liquidsoap-radio.service"
+          ];
+        };
+      in
+      {
+        icecast_source_password = icecastSecret;
+        icecast_admin_password = icecastSecret;
+      };
 
     sops.templates.liquidsoap-radio = {
       content = ''
@@ -54,7 +71,7 @@ in
           <authentication>
             <source-password>${config.sops.placeholder.icecast_source_password}</source-password>
             <admin-user>admin</admin-user>
-            <admin-password>unused-by-rendered-icecast-config</admin-password>
+            <admin-password>${config.sops.placeholder.icecast_admin_password}</admin-password>
           </authentication>
 
           <paths>
@@ -66,7 +83,7 @@ in
 
           <listen-socket>
             <port>8000</port>
-            <bind-address>0.0.0.0</bind-address>
+            <bind-address>${icecastBind}</bind-address>
           </listen-socket>
 
           <security>
@@ -79,22 +96,26 @@ in
     services.icecast = {
       enable = true;
       hostname = icecastHostname;
-      listen.address = "0.0.0.0";
+      listen.address = icecastBind;
+      # Required by the upstream module, but its generated config is never
+      # used: ExecStart below points at the SOPS-rendered icecast-xml instead.
       admin.password = "unused-by-rendered-icecast-config";
     };
 
     systemd.services.icecast = {
       serviceConfig = {
         LoadCredential = "icecast-xml:/run/secrets/rendered/icecast-xml";
-        ExecStart = lib.mkForce
-          "${pkgs.icecast}/bin/icecast -c \${CREDENTIALS_DIRECTORY}/icecast-xml";
+        ExecStart = lib.mkForce "${pkgs.icecast}/bin/icecast -c \${CREDENTIALS_DIRECTORY}/icecast-xml";
       };
     };
 
     systemd.services.liquidsoap-radio = {
       description = "Liquidsoap radio stream";
       wantedBy = [ "multi-user.target" ];
-      after = [ "sops-nix.service" "icecast.service" ];
+      after = [
+        "sops-nix.service"
+        "icecast.service"
+      ];
 
       serviceConfig = {
         Type = "simple";

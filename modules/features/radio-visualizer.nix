@@ -1,10 +1,15 @@
-{ lib, config, pkgs, ... }:
+{
+  lib,
+  config,
+  pkgs,
+  ...
+}:
 let
   cfg = config.modules.features.radio-visualizer;
   icecastMount = "/stream";
   visualizerHtml = builtins.readFile ./radio-visualizer.html;
   visualizerRoot = pkgs.writeTextDir "index.html" visualizerHtml;
-  listenAddress = config.networking.servicesBindAddress or "0.0.0.0";
+  listenAddress = config.networking.servicesBindAddress;
 in
 {
   options.modules.features.radio-visualizer.enable =

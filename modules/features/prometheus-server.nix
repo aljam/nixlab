@@ -65,7 +65,7 @@ let
       relabel_configs = blackboxRelabelConfigs;
     }
 
-    (blackboxProbeJob {
+    {
       job_name = "blackbox-matrix-client";
       metrics_path = "/probe";
       params = {
@@ -85,7 +85,7 @@ let
       relabel_configs = blackboxRelabelConfigs;
     }
 
-    (blackboxProbeJob {
+    {
       job_name = "blackbox-matrix-federation";
       metrics_path = "/probe";
       params = {
@@ -105,7 +105,7 @@ let
       relabel_configs = blackboxRelabelConfigs;
     }
 
-    (blackboxProbeJob {
+    {
       job_name = "blackbox-matrix-rtc";
       metrics_path = "/probe";
       params = {

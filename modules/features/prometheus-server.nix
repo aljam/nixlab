@@ -11,6 +11,23 @@ let
     "r820"
   ];
 
+  # Every Blackbox probe sends the original target to the loopback exporter
+  # and preserves it as the Prometheus instance label.
+  blackboxRelabelConfigs = [
+    {
+      source_labels = [ "__address__" ];
+      target_label = "__param_target";
+    }
+    {
+      source_labels = [ "__param_target" ];
+      target_label = "instance";
+    }
+    {
+      target_label = "__address__";
+      replacement = "127.0.0.1:9115";
+    }
+  ];
+
   publicEndpoints = [
     { name = "homepage"; url = "https://home.derezzed.info"; }
     { name = "jellyfin"; url = "https://jellyfin.derezzed.info"; }
@@ -45,20 +62,7 @@ let
         };
       }) publicEndpoints;
 
-      relabel_configs = [
-        {
-          source_labels = [ "__address__" ];
-          target_label = "__param_target";
-        }
-        {
-          source_labels = [ "__param_target" ];
-          target_label = "instance";
-        }
-        {
-          target_label = "__address__";
-          replacement = "127.0.0.1:9115";
-        }
-      ];
+      relabel_configs = blackboxRelabelConfigs;
     }
 
     {
@@ -78,20 +82,7 @@ let
         }
       ];
 
-      relabel_configs = [
-        {
-          source_labels = [ "__address__" ];
-          target_label = "__param_target";
-        }
-        {
-          source_labels = [ "__param_target" ];
-          target_label = "instance";
-        }
-        {
-          target_label = "__address__";
-          replacement = "127.0.0.1:9115";
-        }
-      ];
+      relabel_configs = blackboxRelabelConfigs;
     }
 
     {
@@ -111,20 +102,7 @@ let
         }
       ];
 
-      relabel_configs = [
-        {
-          source_labels = [ "__address__" ];
-          target_label = "__param_target";
-        }
-        {
-          source_labels = [ "__param_target" ];
-          target_label = "instance";
-        }
-        {
-          target_label = "__address__";
-          replacement = "127.0.0.1:9115";
-        }
-      ];
+      relabel_configs = blackboxRelabelConfigs;
     }
 
     {
@@ -144,20 +122,7 @@ let
         }
       ];
 
-      relabel_configs = [
-        {
-          source_labels = [ "__address__" ];
-          target_label = "__param_target";
-        }
-        {
-          source_labels = [ "__param_target" ];
-          target_label = "instance";
-        }
-        {
-          target_label = "__address__";
-          replacement = "127.0.0.1:9115";
-        }
-      ];
+      relabel_configs = blackboxRelabelConfigs;
     }
   ];
 in
@@ -270,20 +235,7 @@ in
             }
           ];
 
-          relabel_configs = [
-            {
-              source_labels = [ "__address__" ];
-              target_label = "__param_target";
-            }
-            {
-              source_labels = [ "__param_target" ];
-              target_label = "instance";
-            }
-            {
-              target_label = "__address__";
-              replacement = "127.0.0.1:9115";
-            }
-          ];
+          relabel_configs = blackboxRelabelConfigs;
         }
       ]
       ++ lib.optionals cfg.enablePublicEndpointProbes publicBlackboxScrapeJobs
@@ -305,20 +257,7 @@ in
             }
           ];
 
-          relabel_configs = [
-            {
-              source_labels = [ "__address__" ];
-              target_label = "__param_target";
-            }
-            {
-              source_labels = [ "__param_target" ];
-              target_label = "instance";
-            }
-            {
-              target_label = "__address__";
-              replacement = "127.0.0.1:9115";
-            }
-          ];
+          relabel_configs = blackboxRelabelConfigs;
         }
       ];
 

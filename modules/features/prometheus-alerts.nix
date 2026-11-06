@@ -44,6 +44,10 @@ let
     import urllib.request
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+    # The SOPS secret is intentionally named `nfty-url` to match the existing
+    # encrypted monitoring secret. Its decrypted path is exposed to the relay
+    # through NFTY_URL_FILE; the URL itself is never placed in the unit
+    # environment.
     with open(os.environ["NFTY_URL_FILE"], "r", encoding="utf-8") as handle:
         NFTY_URL = handle.read().strip()
 

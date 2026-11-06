@@ -1,8 +1,18 @@
 { config, lib, pkgs, ... }:
 
 let
-    securityDashboard = pkgs.writeText "security-posture.json" (builtins.readFile ./assets/security-posture.json);
-    prometheusDatasource = pkgs.writeText "prometheus-datasource.yaml" ''
+  # Grafana secrets share the same SOPS source and service identity.
+  grafanaSecret = {
+    sopsFile = ../../../secrets/monitoring.yaml;
+    owner = "grafana";
+    group = "grafana";
+    mode = "0400";
+  };
+
+  securityDashboard = pkgs.writeText "security-posture.json"
+    (builtins.readFile ./assets/security-posture.json);
+
+  prometheusDatasource = pkgs.writeText "prometheus-datasource.yaml" ''
     apiVersion: 1
 
     datasources:
@@ -16,52 +26,42 @@ let
   '';
 in
 {
-  sops.secrets."grafana-admin-password" = {
-    sopsFile = ../../../secrets/monitoring.yaml;
-    owner = "grafana";
-    group = "grafana";
-    mode = "0400";
-  };
+  sops.secrets."grafana-admin-password" = grafanaSecret;
 
-  sops.secrets."grafana-secret-key" = {
-    sopsFile = ../../../secrets/monitoring.yaml;
-    owner = "grafana";
-    group = "grafana";
-    mode = "0400";
-  };
+  sops.secrets."grafana-secret-key" = grafanaSecret;
 
   services.grafana = {
     enable = true;
+
     settings = {
       server = {
         http_addr = config.networking.servicesBindAddress;
         http_port = 3000;
       };
+
       security = {
         admin_user = "aljam";
         admin_password = "$__file{/run/secrets/grafana-admin-password}";
         secret_key = "$__file{/run/secrets/grafana-secret-key}";
       };
+
       "auth.anonymous".enabled = false;
-      users = {
-        allow_sign_up = false;
-      };
+
+      users.allow_sign_up = false;
     };
 
-    provision = {
+    provision.dashboards.settings = {
+      apiVersion = 1;
 
-      dashboards.settings = {
-        apiVersion = 1;
-        providers = [
-          {
-            name = "NixLab security";
-            options = {
-              path = securityDashboard;
-              foldersFromFilesStructure = false;
-            };
-          }
-        ];
-      };
+      providers = [
+        {
+          name = "NixLab security";
+          options = {
+            path = securityDashboard;
+            foldersFromFilesStructure = false;
+          };
+        }
+      ];
     };
   };
 

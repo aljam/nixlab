@@ -76,6 +76,12 @@ in
     systemd.services.peertube = {
       after = [ "redis-peertube.service" ];
       wants = [ "redis-peertube.service" ];
+
+      path = with pkgs; [
+        pnpm
+        nodejs
+        openssl
+      ];
     };
 
     environment.systemPackages = with pkgs; [

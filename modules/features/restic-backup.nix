@@ -24,6 +24,15 @@ let
         description = "Commands run before `restic backup`. Use this to create consistent application dumps.";
       };
 
+      runtimePackages = lib.mkOption {
+        type = with lib.types; listOf package;
+        default = [ ];
+        description = ''
+          Additional packages required by this job’s pre-backup script.
+          Keep this limited to the tools that job actually needs.
+        '';
+      };
+
       schedule = lib.mkOption {
         type = lib.types.str;
         default = "*-*-* 03:30:00";
@@ -75,7 +84,7 @@ let
     in
     pkgs.writeShellApplication {
       name = "restic-backup-${name}";
-      runtimeInputs = with pkgs; [ restic util-linux postgresql ];
+      runtimeInputs = [ pkgs.restic pkgs.util-linux ] ++ job.runtimePackages;
       text = ''
         set -euo pipefail
 

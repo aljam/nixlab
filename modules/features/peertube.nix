@@ -53,6 +53,11 @@ in
       };
 
       settings = {
+        listen = {
+          hostname = "192.168.1.2";
+          port = 9000;
+        };
+
         database.ssl = true;
 
         instance.name = "Derezzed PeerTube";

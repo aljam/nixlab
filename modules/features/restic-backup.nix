@@ -146,7 +146,6 @@ in
         description = "Restic backup: ${name}";
         requires = job.requires;
         after = [ "sops-nix.service" ] ++ job.after;
-        wantedBy = [ "multi-user.target" ];
 
         serviceConfig = {
           Type = "oneshot";

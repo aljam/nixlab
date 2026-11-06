@@ -7,12 +7,17 @@
 [![SOPS](https://img.shields.io/badge/secrets-SOPS%20%2B%20age-2F855A?logo=gnuprivacyguard&logoColor=white)](https://github.com/getsops/sops)
 [![Home Manager](https://img.shields.io/badge/Home-Manager-7EBF4B?logo=nix-community&logoColor=white)](https://github.com/nix-community/home-manager)
 
-Declarative NixOS infrastructure for a multi-server homelab. Managed via flakes, sops-nix for secrets, and GitHub Actions for CI.
+Declarative NixOS infrastructure for a multi-server homelab.
+
+- Nix flakes for reproducible hosts
+- sops-nix and age for service-scoped secrets
+- NixOS tests and GitHub Actions CI
+- HAProxy on pfSense as the public reverse-proxy gateway
+- Prometheus, Grafana, and node_exporter for observability
 
 ## Quick Start
 
 ```bash
-# Clone and enter the repository
 git clone https://github.com/aljam/nixlab.git
 cd nixlab
 
@@ -25,13 +30,24 @@ nix flake check
 
 ## Hosts
 
-| Host    | Role                                      | Hardware              |
-|---------|-------------------------------------------|-----------------------|
-| `navi`  | Desktop / daily driver (Hyprland, Steam)  | AMD Ryzen desktop     |
-| `oryx`  | Laptop / development                      | System76 laptop       |
-| `r730`  | ZFS storage / AI workloads | Dell PowerEdge R730 |
-| `r730xd`| Media server / applications (Jellyfin, *arr, Vaultwarden) | Dell PowerEdge R730xd |
-| `r820`  | Edge services / PostgreSQL / distributed build    | Dell PowerEdge R820   |
+| Host | Role | Primary services |
+|---|---|---|
+| `navi` | Desktop / daily driver | Hyprland, gaming, emulation |
+| `oryx` | Laptop / development | Development, portable workstation |
+| `r730` | Storage / AI | ZFS, PostgreSQL, remote builds |
+| `r730xd` | Media / applications | Jellyfin, servarr, Vaultwarden, Matrix, PeerTube, monitoring |
+| `r820` | Edge / data | Reverse-proxy backends, Grafana, PostgreSQL, distributed builds |
+
+## Service catalogue
+
+| Area | Services |
+|---|---|
+| Media | Jellyfin, Seerr, Audiobookshelf, PeerTube |
+| Downloads | Sonarr, Radarr, Prowlarr, Bazarr, Lidarr, qBittorrent, Autobrr, Recyclarr |
+| Identity / communication | Vaultwarden, Matrix Synapse, Matrix RTC |
+| Monitoring | Prometheus, Grafana, Alertmanager, node_exporter, Blackbox exporter |
+| Storage / backup | ZFS, Sanoid, Restic |
+| Platform | PostgreSQL, Cachix, remote builders, static sites, radio/Icecast |
 
 ## Architecture
 
@@ -40,24 +56,12 @@ nixlab/
 ├── flake.nix              # Entry point: mkHost helper, inputs, outputs
 ├── flake.lock             # Pinned dependencies
 ├── hosts/                 # Per-host configurations
-│   ├── navi/              # Desktop (hyprland, gaming, emulation)
-│   ├── oryx/              # Laptop (System76, portable)
-│   ├── r730/              # Storage server (ZFS, PostgreSQL, remote-builder)
-│   ├── r730xd/            # Media/apps (Jellyfin, servarr, vaultwarden, prometheus)
-│   └── r820/              # Edge (reverse-proxy-backends, grafana)
-├── modules/               # Reusable NixOS modules
-│   ├── features/          # Optional features (~30 flat .nix files)
-│   ├── hardware/          # Hardware modules (dell-poweredge, navi-desktop, system76-laptop)
-│   └── roles/             # Role modules (common, server-core, desktop-node, media-node, storage-node, ai-node, mail-node)
+├── modules/
+│   ├── features/          # Reusable feature and service modules
+│   ├── hardware/          # Hardware-specific modules
+│   └── roles/             # Shared host roles
 ├── secrets/               # SOPS-encrypted secrets, split by service or trust boundary
-│   ├── common.yaml        # Fleet-wide user/login secrets
-│   ├── database.yaml      # PostgreSQL / pgAdmin
-│   ├── matrix.yaml        # Matrix Synapse and Matrix RTC / LiveKit
-│   ├── vaultwarden.yaml   # Vaultwarden
-│   ├── monitoring.yaml    # Grafana and alerting
-│   └── media.yaml         # Media automation API keys
 ├── tests/                 # NixOS tests
-│   └── firewall.nix       # Security property tests
 └── users/                 # User configurations
 ```
 
@@ -67,6 +71,15 @@ nixlab/
 - [Secrets](docs/SECRETS.md) - Service-scoped SOPS files, SSH Ed25519 keys, host-key recovery
 - [Runbook](docs/RUNBOOK.md) - Common operations, rollback, host-key recovery
 - [Networking](docs/NETWORKING.md) - 192.168.1.x topology, HAProxy on pfSense, firewall rules
+
+## Security model
+
+- Services bind to loopback or explicit fleet service addresses.
+- HAProxy is the only permitted source for reverse-proxied backend ports.
+- Internal services are excluded from the HAProxy allowlist.
+- SOPS secrets require an explicit file, owner, and `0400` mode.
+- SSH is key-only; sudo requires a password.
+- Remote PostgreSQL clients must use TLS.
 
 ## Development
 
@@ -79,13 +92,8 @@ nixlab/
 ### Running Checks
 
 ```bash
-# Run every evaluation and NixOS test
 nix flake check
-
-# Show a full trace when a check fails
 nix flake check --show-trace
-
-# Format all Nix files (nixfmt via treefmt)
 nix fmt
 ```
 

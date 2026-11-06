@@ -1,9 +1,39 @@
-{ lib, config, ... }:
+{ lib, config, pkgs, ... }:
 
+let
+  cfg = config.roles.security.deployUser;
+  rebuildWrapper = pkgs.writeShellApplication {
+    name = "deploy-rebuild";
+    runtimeInputs = [ pkgs.nixos-rebuild ];
+    text = ''
+      set -euo pipefail
+
+      case "''${1:-}" in
+        switch|test|boot|dry-build) ;;
+        *)
+          echo "usage: deploy-rebuild {switch|test|boot|dry-build}" >&2
+          exit 2
+          ;;
+      esac
+
+      exec nixos-rebuild "$1" --flake ${lib.escapeShellArg cfg.flakePath}
+    '';
+  };
+in
 {
-  options.roles.security.deployUser.enable = lib.mkEnableOption "dedicated deployment user";
+  options.roles.security.deployUser = {
+    enable = lib.mkEnableOption "dedicated deployment user";
 
-  config = lib.mkIf config.roles.security.deployUser.enable {
+    flakePath = lib.mkOption {
+      type = lib.types.str;
+      default = "/etc/nixlab";
+      description = ''
+        Flake path the deployment user is permitted to rebuild.
+      '';
+    };
+  };
+
+  config = lib.mkIf cfg.enable {
     users.groups.deploy = { };
 
     users.users.deploy = {
@@ -15,12 +45,14 @@
       ];
     };
 
+    environment.systemPackages = [ rebuildWrapper ];
+
     security.sudo.extraRules = [
       {
         users = [ "deploy" ];
         commands = [
           {
-            command = "/run/current-system/sw/bin/nixos-rebuild";
+            command = lib.getExe rebuildWrapper;
             options = [ "NOPASSWD" ];
           }
         ];

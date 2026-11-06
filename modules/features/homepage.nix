@@ -28,6 +28,7 @@ in
           (mkLink "Jellyfin" "jellyfin" "Media Streaming" "jellyfin.png")
           (mkLink "Seerr" "seerr" "Media Requests" "seerr.png")
           (mkLink "Audiobookshelf" "audiobookshelf" "Audiobooks & Podcasts" "audiobookshelf.png")
+          (mkLink "PeerTube" "peertube" "Self-hosted Video" "peertube.png")
         ];
       }
       {
@@ -39,6 +40,17 @@ in
           (mkLink "Lidarr" "lidarr" "Music Automation" "lidarr.png")
           (mkLink "qBittorrent" "qb" "Torrents" "qbittorrent.png")
           (mkLink "Autobrr" "autobrr" "IRC Torrent Filters" "autobrr.png")
+        ];
+      }
+      {
+        "Communication" = [
+          (mkLink "Matrix" "matrix" "Matrix Synapse" "matrix.png")
+          (mkLink "Vaultwarden" "vaultwarden" "Password Manager" "vaultwarden.png")
+        ];
+      }
+      {
+        "Music & Radio" = [
+          (mkLink "Radio" "radio" "Icecast Radio" "icecast.png")
         ];
       }
       {

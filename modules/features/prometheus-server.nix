@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   cfg = config.modules.features.prometheus-server;
@@ -28,23 +33,9 @@ let
     }
   ];
 
-  publicEndpoints = [
-    { name = "homepage"; url = "https://home.derezzed.info"; }
-    { name = "jellyfin"; url = "https://jellyfin.derezzed.info"; }
-    { name = "seerr"; url = "https://seerr.derezzed.info"; }
-    { name = "audiobookshelf"; url = "https://audiobookshelf.derezzed.info"; }
-    { name = "sonarr"; url = "https://sonarr.derezzed.info"; }
-    { name = "radarr"; url = "https://radarr.derezzed.info"; }
-    { name = "prowlarr"; url = "https://prowlarr.derezzed.info"; }
-    { name = "bazarr"; url = "https://bazarr.derezzed.info"; }
-    { name = "lidarr"; url = "https://lidarr.derezzed.info"; }
-    { name = "qbittorrent"; url = "https://qb.derezzed.info"; }
-    { name = "autobrr"; url = "https://autobrr.derezzed.info"; }
-    { name = "grafana"; url = "https://grafana.derezzed.info"; }
-    { name = "vaultwarden"; url = "https://vault.derezzed.info"; }
-    { name = "matrix"; url = "https://matrix.derezzed.info"; }
-    { name = "matrix-rtc"; url = "https://rtc.derezzed.info"; }
-  ];
+  # Shared with .github/workflows/edge-security.yml; see docs/PUBLIC_SERVICES.md.
+  publicEndpoints =
+    (builtins.fromJSON (builtins.readFile ../../docs/public-endpoints.json)).endpoints;
 
   publicBlackboxScrapeJobs = [
     {
@@ -284,7 +275,8 @@ in
                   preferred_ip_protocol = "ip4";
                 };
               };
-            } // lib.optionalAttrs (cfg.postgresCaFile != null) {
+            }
+            // lib.optionalAttrs (cfg.postgresCaFile != null) {
               tls_postgres = {
                 prober = "tcp";
                 timeout = "5s";

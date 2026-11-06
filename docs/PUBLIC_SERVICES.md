@@ -57,7 +57,7 @@ For each public service, record and verify:
 
 ## Availability and certificate monitoring
 
-Prometheus probes every hostname in `docs/public-endpoints.yaml` through the
+Prometheus probes every hostname in `docs/public-endpoints.json` through the
 Blackbox exporter using the `blackbox-public` scrape job.
 
 - `PublicEndpointDown` fires when an endpoint fails to return HTTP 200 for five
@@ -67,9 +67,9 @@ Blackbox exporter using the `blackbox-public` scrape job.
 - `PublicCertificateExpiringCritical` fires when a public TLS certificate has
   fewer than seven days remaining.
 
-When adding or removing a public hostname, update both
-`docs/public-endpoints.yaml` and the `publicEndpoints` list in
-`modules/features/prometheus-server.nix`.
+When adding or removing a public hostname, edit `docs/public-endpoints.json`.
+Both the edge-security workflow and the Prometheus `publicEndpoints` list read
+from that one file.
 
 ## Internal-only services
 

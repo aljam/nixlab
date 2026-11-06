@@ -196,12 +196,7 @@ in
       message = "sudo must require a password when enabled.";
     }
 
-    # SSH must remain key-only; password authentication is disabled centrally.
-    {
-      assertion =
-        !(config.services.openssh.enable or false)
-        || config.services.openssh.settings.PasswordAuthentication == false;
-      message = "SSH password authentication must remain disabled centrally.";
-    }
+    # SSH policy, including key-only authentication, is owned by
+    # modules/features/ssh.nix.
   ];
 }

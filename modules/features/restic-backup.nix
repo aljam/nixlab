@@ -24,6 +24,17 @@ let
         description = "Commands run before `restic backup`. Use this to create consistent application dumps.";
       };
 
+      prune = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = ''
+          Whether to prune removed snapshots after applying retention.
+          Pruning can be expensive; disabling it lets `restic forget` mark
+          snapshots for later removal without rewriting repository data on
+          every backup.
+        '';
+      };
+
       schedule = lib.mkOption {
         type = lib.types.str;
         default = "*-*-* 03:30:00";
@@ -72,6 +83,8 @@ let
       resticCommonArgs =
         "--repo ${lib.escapeShellArg job.repository} "
         + "--password-file ${lib.escapeShellArg passwordFile}";
+
+      pruneArgs = lib.optionalString job.prune "--prune";
     in
     pkgs.writeShellApplication {
       name = "restic-backup-${name}";
@@ -90,7 +103,7 @@ let
           --keep-daily ${toString job.retention.keepDaily} \
           --keep-weekly ${toString job.retention.keepWeekly} \
           --keep-monthly ${toString job.retention.keepMonthly} \
-          --prune
+          ${pruneArgs}
       '';
     };
 in

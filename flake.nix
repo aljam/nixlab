@@ -107,8 +107,6 @@
         { hostname }:
         [
           ./modules/roles/common.nix
-	  ./modules/features/deploy-user.nix
-
           ./modules/features/deploy-user.nix
 
           sops-nix.nixosModules.sops
@@ -218,6 +216,7 @@
       apps.${system} = {
         deploy = {
           type = "app";
+          meta.description = "Deploy NixOS configurations to one or more hosts.";
           program = "${nixpkgs.legacyPackages.${system}.writeShellScript "deploy-all" ''
             set -euo pipefail
 

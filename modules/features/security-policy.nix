@@ -106,15 +106,14 @@ in
       '';
     }
 
-    # Grafana is the internet-facing monitoring dashboard. It must require
-    # authentication and must not permit self-registration.
+    # Grafana is the internet-facing monitoring dashboard. When exposed
+    # through the HAProxy backend allowlist, it must require authentication
+    # and must not permit self-registration.
     {
       assertion = !grafanaExposed || !grafanaAnonymous;
       message = "Grafana must disable anonymous access when exposed through the HAProxy backend allowlist.";
     }
 
-    # Grafana is the internet-facing monitoring dashboard. It must require
-    # authentication and must not permit self-registration.
     {
       assertion = !grafanaExposed || !grafanaSignup;
       message = "Grafana must disable self-registration when exposed through the HAProxy backend allowlist.";

@@ -30,8 +30,31 @@ let
         isDefault: true
         editable: false
   '';
+
+  lokiDatasource = pkgs.writeText "loki-datasource.yaml" (
+    lib.generators.toYAML { } {
+      apiVersion = 1;
+
+      datasources = [
+        {
+          name = "Loki";
+          uid = "loki";
+          type = "loki";
+          access = "proxy";
+          url = config.services.nixlab.grafana.lokiUrl;
+          editable = false;
+        }
+      ];
+    }
+  );
 in
 {
+  options.services.nixlab.grafana.lokiUrl = lib.mkOption {
+    type = lib.types.nullOr lib.types.str;
+    default = null;
+    description = "Loki URL to provision as a Grafana datasource, if any.";
+  };
+
   sops.secrets."grafana-admin-password" = grafanaSecret;
 
   sops.secrets."grafana-secret-key" = grafanaSecret;
@@ -55,6 +78,23 @@ in
 
       users.allow_sign_up = false;
     };
+
+    provision.datasources.settings = lib.mkIf
+      (config.services.nixlab.grafana.lokiUrl != null)
+      {
+        apiVersion = 1;
+
+        datasources = [
+          {
+            name = "Loki";
+            uid = "loki";
+            type = "loki";
+            access = "proxy";
+            url = config.services.nixlab.grafana.lokiUrl;
+            editable = false;
+          }
+        ];
+      };
 
     provision.dashboards.settings = {
       apiVersion = 1;

@@ -12,6 +12,7 @@
     ../../modules/features/libvirt.nix
     ../../modules/features/postgres.nix
     ../../modules/features/nix-builder.nix
+    ../../modules/features/promtail.nix
     #../../modules/features/mail-server.nix
     #../../modules/roles/mail-node.nix
   ];
@@ -90,4 +91,9 @@
     "aljam"
   ];
   nix.settings.allowed-users = [ "@users" ];
+
+  services.nixlab.promtail = {
+    enable = true;
+    lokiUrl = "http://${config.networking.fleet.r730xd.ip}:3100/loki/api/v1/push";
+  };
 }

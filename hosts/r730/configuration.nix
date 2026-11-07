@@ -37,6 +37,7 @@
     ../../modules/roles/storage-node.nix
     # ../../modules/roles/ai-node.nix
     ../../modules/features/nvidia-headless.nix
+    ../../modules/features/promtail.nix
   ];
 
   networking.hostId = "acccc16e"; # Required for ZFS
@@ -58,4 +59,8 @@
     config.boot.kernelPackages.nvidia_x11
   ];
 
+  services.nixlab.promtail = {
+    enable = true;
+    lokiUrl = "http://${config.networking.fleet.r730xd.ip}:3100/loki/api/v1/push";
+  };
 }

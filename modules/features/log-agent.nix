@@ -1,8 +1,8 @@
 {
-  "config",
-  "lib",
-  "...":
-}: 
+  config,
+  lib,
+  ...
+}:
 
 {
   options.services.nixlab.logShipping = {

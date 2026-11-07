@@ -18,6 +18,8 @@ let
     builtins.readFile ./assets/security-posture.json
   );
 
+  lokiDashboard = pkgs.writeText "loki.json" (builtins.readFile ./assets/loki.json);
+
   prometheusDatasource = pkgs.writeText "prometheus-datasource.yaml" ''
     apiVersion: 1
 
@@ -86,6 +88,14 @@ in
             name = "NixLab security";
             options = {
               path = securityDashboard;
+              foldersFromFilesStructure = false;
+            };
+          }
+
+          {
+            name = "NixLab logs";
+            options = {
+              path = lokiDashboard;
               foldersFromFilesStructure = false;
             };
           }

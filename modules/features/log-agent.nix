@@ -31,7 +31,7 @@
         max_age = "12h"
 
         labels = {
-          job = "systemd-journal"
+          job = "systemd-journal",
         }
 
         relabel_rules = loki.relabel.journal.rules

@@ -24,9 +24,7 @@
   services.tailscale = {
     enable = true;
     useRoutingFeatures = "both";
-    extraUpFlags = [
-      "--accept-routes=true"
-    ];
+    extraUpFlags = [ "--accept-routes=true" ];
   };
 
   programs.kdeconnect.enable = true;

@@ -15,6 +15,8 @@
     ../../modules/roles/media-node.nix
     ../../modules/roles/storage-node.nix
     ../../modules/features/prometheus-server.nix
+    ../../modules/features/loki.nix
+    ../../modules/features/log-agent.nix
     ../../modules/features/matrix-synapse.nix
     ../../modules/features/matrix-rtc.nix
     ../../modules/features/static-site.nix
@@ -36,4 +38,16 @@
   modules.features.radio-visualizer.enable = true;
   modules.features.vaultwarden.enable = true;
   modules.features.peertube.enable = true;
+
+  services.nixlab.loki = {
+    enable = true;
+    listenAddress = config.networking.fleet.r730xd.ip;
+  };
+
+  services.nixlab.logShipping = {
+    enable = true;
+    lokiUrl = "http://${config.networking.fleet.r730xd.ip}:3100/loki/api/v1/push";
+  };
+
+  services.nixlab.grafana.lokiUrl = "http://${config.networking.fleet.r730xd.ip}:3100";
 }

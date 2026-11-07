@@ -16,7 +16,7 @@
     ../../modules/roles/storage-node.nix
     ../../modules/features/prometheus-server.nix
     ../../modules/features/loki.nix
-    ../../modules/features/promtail.nix
+    ../../modules/features/log-agent.nix
     ../../modules/features/matrix-synapse.nix
     ../../modules/features/matrix-rtc.nix
     ../../modules/features/static-site.nix
@@ -44,7 +44,7 @@
     listenAddress = config.networking.fleet.r730xd.ip;
   };
 
-  services.nixlab.promtail = {
+  services.nixlab.logShipping = {
     enable = true;
     lokiUrl = "http://${config.networking.fleet.r730xd.ip}:3100/loki/api/v1/push";
   };

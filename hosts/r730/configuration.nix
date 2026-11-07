@@ -6,7 +6,6 @@
 #   # Enable NVIDIA GPU for compute workloads
 #   hardware.nvidia.containerModes = [ "utility" "compute" "graphics" "video" "display" ];
 #   hardware.nvidia.modesetting.enable = true;
-#   hardware.nvidia.powerManagement.enable = true;
 #   hardware.nvidia.open = true;
 #
 #   services.xserver.videoDrivers = [ "nvidia" ];
@@ -37,7 +36,7 @@
     ../../modules/roles/storage-node.nix
     # ../../modules/roles/ai-node.nix
     ../../modules/features/nvidia-headless.nix
-    ../../modules/features/promtail.nix
+    ../../modules/features/log-agent.nix
   ];
 
   networking.hostId = "acccc16e"; # Required for ZFS
@@ -59,7 +58,7 @@
     config.boot.kernelPackages.nvidia_x11
   ];
 
-  services.nixlab.promtail = {
+  services.nixlab.logShipping = {
     enable = true;
     lokiUrl = "http://${config.networking.fleet.r730xd.ip}:3100/loki/api/v1/push";
   };

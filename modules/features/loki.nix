@@ -4,6 +4,7 @@
   pkgs,
   ...
 }:
+
 {
   options.services.nixlab.loki = {
     enable = lib.mkEnableOption "Loki log aggregation server";
@@ -11,7 +12,7 @@
     listenAddress = lib.mkOption {
       type = lib.types.str;
       default = "127.0.0.1";
-      description = "Address on which Loki listens for Promtail and Grafana clients.";
+      description = "Address on which Loki listens for Alloy and Grafana clients.";
     };
   };
 

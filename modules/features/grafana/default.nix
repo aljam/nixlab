@@ -30,23 +30,6 @@ let
         isDefault: true
         editable: false
   '';
-
-  lokiDatasource = pkgs.writeText "loki-datasource.yaml" (
-    lib.generators.toYAML { } {
-      apiVersion = 1;
-
-      datasources = [
-        {
-          name = "Loki";
-          uid = "loki";
-          type = "loki";
-          access = "proxy";
-          url = config.services.nixlab.grafana.lokiUrl;
-          editable = false;
-        }
-      ];
-    }
-  );
 in
 {
   options.services.nixlab.grafana.lokiUrl = lib.mkOption {
@@ -55,61 +38,63 @@ in
     description = "Loki URL to provision as a Grafana datasource, if any.";
   };
 
-  sops.secrets."grafana-admin-password" = grafanaSecret;
+  config = {
+    sops.secrets."grafana-admin-password" = grafanaSecret;
 
-  sops.secrets."grafana-secret-key" = grafanaSecret;
+    sops.secrets."grafana-secret-key" = grafanaSecret;
 
-  services.grafana = {
-    enable = true;
+    services.grafana = {
+      enable = true;
 
-    settings = {
-      server = {
-        http_addr = config.networking.servicesBindAddress;
-        http_port = 3000;
+      settings = {
+        server = {
+          http_addr = config.networking.servicesBindAddress;
+          http_port = 3000;
+        };
+
+        security = {
+          admin_user = "aljam";
+          admin_password = "$__file{/run/secrets/grafana-admin-password}";
+          secret_key = "$__file{/run/secrets/grafana-secret-key}";
+        };
+
+        "auth.anonymous".enabled = false;
+
+        users.allow_sign_up = false;
       };
 
-      security = {
-        admin_user = "aljam";
-        admin_password = "$__file{/run/secrets/grafana-admin-password}";
-        secret_key = "$__file{/run/secrets/grafana-secret-key}";
-      };
+      provision.datasources.settings = lib.mkIf
+        (config.services.nixlab.grafana.lokiUrl != null)
+        {
+          apiVersion = 1;
 
-      "auth.anonymous".enabled = false;
+          datasources = [
+            {
+              name = "Loki";
+              uid = "loki";
+              type = "loki";
+              access = "proxy";
+              url = config.services.nixlab.grafana.lokiUrl;
+              editable = false;
+            }
+          ];
+        };
 
-      users.allow_sign_up = false;
-    };
-
-    provision.datasources.settings = lib.mkIf
-      (config.services.nixlab.grafana.lokiUrl != null)
-      {
+      provision.dashboards.settings = {
         apiVersion = 1;
 
-        datasources = [
+        providers = [
           {
-            name = "Loki";
-            uid = "loki";
-            type = "loki";
-            access = "proxy";
-            url = config.services.nixlab.grafana.lokiUrl;
-            editable = false;
+            name = "NixLab security";
+            options = {
+              path = securityDashboard;
+              foldersFromFilesStructure = false;
+            };
           }
         ];
       };
-
-    provision.dashboards.settings = {
-      apiVersion = 1;
-
-      providers = [
-        {
-          name = "NixLab security";
-          options = {
-            path = securityDashboard;
-            foldersFromFilesStructure = false;
-          };
-        }
-      ];
     };
-  };
 
-  networking.proxyBackendPorts = [ 3000 ];
+    networking.proxyBackendPorts = [ 3000 ];
+  };
 }

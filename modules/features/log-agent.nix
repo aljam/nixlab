@@ -1,8 +1,8 @@
 {
-  config,
-  lib,
-  ...
-}:
+  "config",
+  "lib",
+  "...":
+}: 
 
 {
   options.services.nixlab.logShipping = {
@@ -33,8 +33,6 @@
         labels = {
           job = "systemd-journal",
         }
-
-        relabel_rules = loki.relabel.journal.rules
 
         forward_to = [loki.relabel.journal.receiver]
       }

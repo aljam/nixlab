@@ -34,8 +34,6 @@
           job = "systemd-journal",
         }
 
-        relabel_rules = loki.relabel.journal.rules
-
         forward_to = [loki.relabel.journal.receiver]
       }
 

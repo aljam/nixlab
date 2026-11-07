@@ -11,6 +11,7 @@ let
   backupGroup = "restic-backup";
   passwordFile = config.sops.secrets.restic-backup-password.path;
   lockFile = "/run/restic-backup.lock";
+  metricsDirectory = "/var/lib/node-exporter/textfile";
 
   jobModule = {
     options = {
@@ -86,6 +87,8 @@ let
         "--repo ${lib.escapeShellArg job.repository} "
         + "--password-file ${lib.escapeShellArg passwordFile}";
 
+      metricFile = "${metricsDirectory}/restic-backup-${name}.prom";
+
       initCommand =
         if lib.hasPrefix "/" job.repository then
           ''
@@ -107,6 +110,23 @@ let
       text = ''
         set -euo pipefail
 
+        install -d -o node-exporter -g node-exporter -m 0750 \
+          ${lib.escapeShellArg metricsDirectory}
+
+        metric_file=${lib.escapeShellArg metricFile}
+        metric_tmp="${metricFile}.tmp"
+
+        if [[ ! -s "$metric_file" ]]; then
+          cat > "$metric_tmp" <<EOF
+        # HELP nixlab_restic_backup_last_success_timestamp_seconds Unix time of the last successful Restic backup.
+        # TYPE nixlab_restic_backup_last_success_timestamp_seconds gauge
+        nixlab_restic_backup_last_success_timestamp_seconds{job="${name}"} 0
+        EOF
+          install -o node-exporter -g node-exporter -m 0644 \
+            "$metric_tmp" "$metric_file"
+          rm -f "$metric_tmp"
+        fi
+
         exec 9>${lib.escapeShellArg lockFile}
         flock 9
 
@@ -124,6 +144,15 @@ let
           --keep-weekly ${toString job.retention.keepWeekly} \
           --keep-monthly ${toString job.retention.keepMonthly} \
           --prune
+
+        cat > "$metric_tmp" <<EOF
+        # HELP nixlab_restic_backup_last_success_timestamp_seconds Unix time of the last successful Restic backup.
+        # TYPE nixlab_restic_backup_last_success_timestamp_seconds gauge
+        nixlab_restic_backup_last_success_timestamp_seconds{job="${name}"} "$(date +%s)"
+        EOF
+        install -o node-exporter -g node-exporter -m 0644 \
+          "$metric_tmp" "$metric_file"
+        rm -f "$metric_tmp"
       '';
     };
 in

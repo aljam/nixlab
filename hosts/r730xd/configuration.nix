@@ -39,6 +39,31 @@
   modules.features.vaultwarden.enable = true;
   modules.features.peertube.enable = true;
 
+  modules.features.restic-backup = {
+    enable = true;
+
+    jobs.peertube-media = {
+      repository = "/var/lib/restic-backup/repo";
+      paths = [ "/var/lib/peertube/storage" ];
+      schedule = "*-*-* 02:00:00";
+      randomizedDelay = "15m";
+    };
+
+    jobs.matrix-media = {
+      repository = "/var/lib/restic-backup/repo";
+      paths = [ "/var/lib/matrix-synapse" ];
+      schedule = "*-*-* 02:30:00";
+      randomizedDelay = "15m";
+    };
+
+    jobs.vaultwarden-data = {
+      repository = "/var/lib/restic-backup/repo";
+      paths = [ "/var/lib/vaultwarden" ];
+      schedule = "*-*-* 03:00:00";
+      randomizedDelay = "15m";
+    };
+  };
+
   services.nixlab.loki = {
     enable = true;
     listenAddress = config.networking.fleet.r730xd.ip;

@@ -93,6 +93,7 @@ in
               foldersFromFilesStructure = false;
             };
           }
+
           {
             name = "NixLab logs";
             options = {

@@ -29,6 +29,13 @@
 
         auth_enabled = false;
 
+        common = {
+          ring = {
+            instance_addr = "127.0.0.1";
+            kvstore.store = "inmemory";
+          };
+        };
+
         ingester = {
           lifecycler.address = "127.0.0.1";
           chunk_idle_period = "1h";

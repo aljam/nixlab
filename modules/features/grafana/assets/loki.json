@@ -230,6 +230,7 @@
   "templating": {
     "list": [
       {
+        "allValue": ".+",
         "current": {},
         "datasource": {
           "type": "loki",
@@ -252,6 +253,7 @@
         "type": "query"
       },
       {
+        "allValue": ".+",
         "current": {},
         "datasource": {
           "type": "loki",
@@ -283,6 +285,6 @@
   "timezone": "browser",
   "title": "Loki Logs",
   "uid": "nixlab-loki-logs",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }

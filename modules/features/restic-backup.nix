@@ -157,7 +157,6 @@ in
           User = "root";
           ExecStart = lib.getExe (backupScript name job);
           PrivateTmp = true;
-          NoNewPrivileges = true;
           PrivateDevices = true;
           ProtectKernelTunables = true;
           ProtectKernelModules = true;

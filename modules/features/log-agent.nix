@@ -16,7 +16,13 @@
   };
 
   config = lib.mkIf config.services.nixlab.logShipping.enable {
-    users.users.alloy.extraGroups = [ "systemd-journal" ];
+    users.groups.alloy = { };
+
+    users.users.alloy = {
+      isSystemUser = true;
+      group = "alloy";
+      extraGroups = [ "systemd-journal" ];
+    };
 
     services.alloy.enable = true;
 

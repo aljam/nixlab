@@ -61,6 +61,36 @@ groups:
           summary: "Host memory pressure"
           description: "{{ $labels.instance }} has less than 10% available memory."
 
+  - name: backups
+    rules:
+      - alert: ResticBackupFailed
+        expr: node_systemd_unit_state{name=~"restic-backup-.*\\.service",state="failed"} == 1
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Restic backup failed"
+          description: >-
+            Restic backup unit {{ $labels.name }} on {{ $labels.instance }}
+            has been failed for 10 minutes. Check its journal, repository
+            availability, and repository lock state.
+
+      - alert: ResticBackupStale
+        expr: >-
+          time()
+          -
+          nixlab_restic_backup_last_success_timestamp_seconds
+          >
+          26 * 60 * 60
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Restic backup is stale"
+          description: >-
+            Restic backup {{ $labels.job }} on {{ $labels.instance }} has not
+            recorded a successful completion in more than 26 hours.
+
   - name: disk-health
     rules:
       - alert: SmartHealthFailed

@@ -34,7 +34,7 @@ jobs:
           useDaemon: false
 
       - name: Check formatting (nixfmt)
-        run: nix run .#formatter.x86_64-linux -- --check .
+        run: nix fmt -- --ci
 
       - name: Flake check
         run: nix flake check --no-build --print-build-logs

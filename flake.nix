@@ -196,7 +196,7 @@
       deployHosts = builtins.attrNames hostConfigurations;
     in
     {
-      formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt;
+      formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt-tree;
 
       packages.${system} = {
         firewall-isolation = nixpkgs.legacyPackages.${system}.testers.runNixOSTest ./tests/firewall.nix;
@@ -223,7 +223,6 @@
             if [[ -n "$(git status --porcelain)" ]]; then
               echo "Refusing to deploy: Git working tree is dirty." >&2
               echo "Commit or stash changes, then retry." >&2
-              exit 1
             fi
 
             rev="$(git rev-parse HEAD)"
@@ -233,7 +232,6 @@
             if ! git merge-base --is-ancestor "$rev" origin/main; then
               echo "Refusing to deploy: $rev is not on origin/main." >&2
               echo "Push (or merge) first, then retry." >&2
-              exit 1
             fi
 
             echo "==> Running flake checks"
@@ -247,8 +245,7 @@
             for host in "''${hosts[@]}"; do
               if [[ ! " ''${known_hosts[*]} " == *" ''${host} "* ]]; then
                 echo "Unknown deploy host: ''${host}" >&2
-                echo "Available hosts: ''${known_hosts[*]}" >&2
-                exit 1
+                echo "Available hosts: ''${known_hosts[@]}" >&2
               fi
             done
 

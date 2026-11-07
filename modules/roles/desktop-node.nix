@@ -1,4 +1,10 @@
-{ config, pkgs, lib, inputs, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  inputs,
+  ...
+}:
 
 {
   imports = [
@@ -16,17 +22,15 @@
     ../../modules/features/gen1recomp.nix
     ../../modules/features/desktop-portals.nix
   ];
-  
+
   boot.kernelPackages = pkgs.cachyosKernels."linuxPackages-cachyos-latest";
-  
+
   networking.networkmanager.enable = true;
-  
+
   services.tailscale = {
     enable = true;
     useRoutingFeatures = "both";
-    extraUpFlags = [
-      "--accept-routes=true"
-    ];
+    extraUpFlags = [ "--accept-routes=true" ];
   };
 
   programs.kdeconnect.enable = true;

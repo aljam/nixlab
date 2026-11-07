@@ -85,6 +85,17 @@ let
       resticCommonArgs =
         "--repo ${lib.escapeShellArg job.repository} "
         + "--password-file ${lib.escapeShellArg passwordFile}";
+
+      initCommand =
+        if lib.hasPrefix "/" job.repository then
+          ''
+            if [[ ! -f ${lib.escapeShellArg job.repository}/config ]]; then
+              runuser -u ${backupUser} -- restic init \
+                ${resticCommonArgs}
+            fi
+          ''
+        else
+          "";
     in
     pkgs.writeShellApplication {
       name = "restic-backup-${name}";
@@ -99,14 +110,7 @@ let
         exec 9>${lib.escapeShellArg lockFile}
         flock 9
 
-        ${
-          lib.optionalString (lib.hasPrefix "/" job.repository) ''
-        if [[ ! -f ${lib.escapeShellArg job.repository}/config ]]; then
-          runuser -u ${backupUser} -- restic init \
-            ${resticCommonArgs}
-        fi
-        ''
-        }
+        ${initCommand}
 
         ${job.preBackupScript}
 

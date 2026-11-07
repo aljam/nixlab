@@ -17,6 +17,7 @@
     ../../modules/features/prometheus-server.nix
     ../../modules/features/loki.nix
     ../../modules/features/log-agent.nix
+    ../../modules/features/restic-backup.nix
     ../../modules/features/matrix-synapse.nix
     ../../modules/features/matrix-rtc.nix
     ../../modules/features/static-site.nix

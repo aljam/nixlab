@@ -18,9 +18,7 @@ let
     builtins.readFile ./assets/security-posture.json
   );
 
-  lokiDashboard = pkgs.writeText "loki.json" (
-    builtins.readFile ./assets/loki.json
-  );
+  lokiDashboard = pkgs.writeText "loki.json" (builtins.readFile ./assets/loki.json);
 
   prometheusDatasource = pkgs.writeText "prometheus-datasource.yaml" ''
     apiVersion: 1

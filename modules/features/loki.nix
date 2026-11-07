@@ -24,6 +24,7 @@
         server = {
           http_listen_address = config.services.nixlab.loki.listenAddress;
           http_listen_port = 3100;
+          grpc_listen_port = 9096;
         };
 
         auth_enabled = false;

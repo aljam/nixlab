@@ -10,6 +10,7 @@ let
   backupUser = "restic-backup";
   backupGroup = "restic-backup";
   passwordFile = config.sops.secrets.restic-backup-password.path;
+  lockFile = "/run/restic-backup.lock";
 
   jobModule = {
     options = {
@@ -84,6 +85,17 @@ let
       resticCommonArgs =
         "--repo ${lib.escapeShellArg job.repository} "
         + "--password-file ${lib.escapeShellArg passwordFile}";
+
+      initCommand =
+        if lib.hasPrefix "/" job.repository then
+          ''
+            if [[ ! -f ${lib.escapeShellArg job.repository}/config ]]; then
+              runuser -u ${backupUser} -- restic init \
+                ${resticCommonArgs}
+            fi
+          ''
+        else
+          "";
     in
     pkgs.writeShellApplication {
       name = "restic-backup-${name}";
@@ -94,6 +106,11 @@ let
       ++ job.runtimePackages;
       text = ''
         set -euo pipefail
+
+        exec 9>${lib.escapeShellArg lockFile}
+        flock 9
+
+        ${initCommand}
 
         ${job.preBackupScript}
 
@@ -142,6 +159,7 @@ in
     systemd.tmpfiles.rules = [
       "d /var/lib/restic-backup 0711 restic-backup restic-backup - -"
       "d /var/lib/restic-backup/postgresql 0730 postgres restic-backup - -"
+      "d /var/lib/restic-backup/repo 0700 restic-backup restic-backup - -"
     ];
 
     systemd.services = lib.mapAttrs' (

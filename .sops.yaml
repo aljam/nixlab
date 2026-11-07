@@ -92,6 +92,7 @@ creation_rules:
     key_groups:
       - age:
           - *aljam
+          - *r730xd
           - *r820
 
   # PeerTube instance secrets.

@@ -17,6 +17,7 @@
     ../../modules/features/prometheus-server.nix
     ../../modules/features/loki.nix
     ../../modules/features/log-agent.nix
+    ../../modules/features/restic-backup.nix
     ../../modules/features/matrix-synapse.nix
     ../../modules/features/matrix-rtc.nix
     ../../modules/features/static-site.nix
@@ -38,6 +39,31 @@
   modules.features.radio-visualizer.enable = true;
   modules.features.vaultwarden.enable = true;
   modules.features.peertube.enable = true;
+
+  modules.features.restic-backup = {
+    enable = true;
+
+    jobs.peertube-media = {
+      repository = "/var/lib/restic-backup/repo";
+      paths = [ "/var/lib/peertube/storage" ];
+      schedule = "*-*-* 02:00:00";
+      randomizedDelay = "15m";
+    };
+
+    jobs.matrix-media = {
+      repository = "/var/lib/restic-backup/repo";
+      paths = [ "/var/lib/matrix-synapse" ];
+      schedule = "*-*-* 02:30:00";
+      randomizedDelay = "15m";
+    };
+
+    jobs.vaultwarden-data = {
+      repository = "/var/lib/restic-backup/repo";
+      paths = [ "/var/lib/vaultwarden" ];
+      schedule = "*-*-* 03:00:00";
+      randomizedDelay = "15m";
+    };
+  };
 
   services.nixlab.loki = {
     enable = true;

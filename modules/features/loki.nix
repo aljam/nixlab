@@ -36,6 +36,10 @@
           wal.enabled = true;
         };
 
+        compactor = {
+          working_directory = "/var/lib/loki/compactor";
+        };
+
         schema_config.configs = [
           {
             from = "2024-01-01";

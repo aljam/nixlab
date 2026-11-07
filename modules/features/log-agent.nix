@@ -29,7 +29,13 @@
     environment.etc."alloy/config.alloy".text = ''
       loki.source.journal "journal" {
         max_age = "12h"
-        labels = { job = "systemd-journal" }
+
+        labels = {
+          job = "systemd-journal"
+        }
+
+        relabel_rules = loki.relabel.journal.rules
+
         forward_to = [loki.relabel.journal.receiver]
       }
 

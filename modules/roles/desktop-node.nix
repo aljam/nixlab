@@ -16,11 +16,11 @@
     ../../modules/features/gen1recomp.nix
     ../../modules/features/desktop-portals.nix
   ];
-  
+
   boot.kernelPackages = pkgs.cachyosKernels."linuxPackages-cachyos-latest";
-  
+
   networking.networkmanager.enable = true;
-  
+
   services.tailscale = {
     enable = true;
     useRoutingFeatures = "both";

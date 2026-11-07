@@ -30,10 +30,11 @@
         auth_enabled = false;
 
         common = {
+          replication_factor = 1;
+
           ring = {
             instance_addr = "127.0.0.1";
             kvstore.store = "inmemory";
-            replication_factor = 1;
           };
         };
 

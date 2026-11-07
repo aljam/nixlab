@@ -34,11 +34,12 @@
           job = "systemd-journal",
         }
 
-        forward_to = [loki.relabel.journal.receiver]
+        relabel_rules = loki.relabel.journal.rules
+        forward_to = [loki.write.loki.receiver]
       }
 
       loki.relabel "journal" {
-        forward_to = [loki.write.loki.receiver]
+        forward_to = []
 
         rule {
           source_labels = ["__journal__hostname"]

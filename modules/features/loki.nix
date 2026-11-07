@@ -64,10 +64,10 @@
       };
     };
 
-    networking.firewall.extraInputRules = lib.mkIf
-      (config.services.nixlab.loki.listenAddress != "127.0.0.1")
-      ''
-        ip saddr ${config.networking.subnets.lan}.0/24 tcp dport 3100 accept comment "Loki from LAN"
-      '';
+    networking.firewall.extraInputRules =
+      lib.mkIf (config.services.nixlab.loki.listenAddress != "127.0.0.1")
+        ''
+          ip saddr ${config.networking.subnets.lan}.0/24 tcp dport 3100 accept comment "Loki from LAN"
+        '';
   };
 }

@@ -63,22 +63,20 @@ in
         users.allow_sign_up = false;
       };
 
-      provision.datasources.settings = lib.mkIf
-        (config.services.nixlab.grafana.lokiUrl != null)
-        {
-          apiVersion = 1;
+      provision.datasources.settings = lib.mkIf (config.services.nixlab.grafana.lokiUrl != null) {
+        apiVersion = 1;
 
-          datasources = [
-            {
-              name = "Loki";
-              uid = "loki";
-              type = "loki";
-              access = "proxy";
-              url = config.services.nixlab.grafana.lokiUrl;
-              editable = false;
-            }
-          ];
-        };
+        datasources = [
+          {
+            name = "Loki";
+            uid = "loki";
+            type = "loki";
+            access = "proxy";
+            url = config.services.nixlab.grafana.lokiUrl;
+            editable = false;
+          }
+        ];
+      };
 
       provision.dashboards.settings = {
         apiVersion = 1;

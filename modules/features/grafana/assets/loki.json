@@ -231,7 +231,15 @@
     "list": [
       {
         "allValue": ".+",
-        "current": {},
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
         "datasource": {
           "type": "loki",
           "uid": "loki"
@@ -254,7 +262,15 @@
       },
       {
         "allValue": ".+",
-        "current": {},
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
         "datasource": {
           "type": "loki",
           "uid": "loki"
@@ -285,6 +301,6 @@
   "timezone": "browser",
   "title": "Loki Logs",
   "uid": "nixlab-loki-logs",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }

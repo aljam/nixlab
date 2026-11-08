@@ -72,7 +72,7 @@ in
             uid = "prometheus";
             type = "prometheus";
             access = "proxy";
-            url = "http://127.0.0.1:9090";
+            url = "http://${config.networking.servicesBindAddress}:9090";
             isDefault = true;
             editable = false;
           }

@@ -80,6 +80,7 @@ in
       NoNewPrivileges = true;
       PrivateTmp = true;
       ProtectSystem = "strict";
+      ReadWritePaths = [ textfileDirectory ];
       ProtectHome = true;
       PrivateDevices = true;
       ProtectKernelTunables = true;

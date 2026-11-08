@@ -55,6 +55,17 @@ in
       provision.datasources.settings = {
         apiVersion = 1;
 
+        deleteDatasources = [
+          {
+            name = "Prometheus";
+            orgId = 1;
+          }
+          {
+            name = "Loki";
+            orgId = 1;
+          }
+        ];
+
         datasources = [
           {
             name = "Prometheus";

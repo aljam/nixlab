@@ -15,6 +15,7 @@
     ../../modules/roles/media-node.nix
     ../../modules/roles/storage-node.nix
     ../../modules/features/prometheus-server.nix
+    ../../modules/features/drift-monitoring.nix
     ../../modules/features/loki.nix
     ../../modules/features/log-agent.nix
     ../../modules/features/restic-backup.nix
@@ -28,7 +29,7 @@
 
   boot.kernelPackages = pkgs.linuxPackages_6_1;
 
-  boot.kernelParams = [ "zfs.zfs_arc_max=68719476736" ];
+  boot.kernelParams = [ "zfs.zfs_arc_max=6871947636" ];
 
   networking.hostId = "d2083fdc"; # Required for ZFS
 
@@ -59,7 +60,7 @@
 
     jobs.vaultwarden-data = {
       repository = "/var/lib/restic-backup/repo";
-      paths = [ "/var/lib/vaultwarden" ];
+      paths = [ "/var/lib/vaultwarden-data" ];
       schedule = "*-*-* 03:00:00";
       randomizedDelay = "15m";
     };

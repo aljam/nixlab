@@ -18,9 +18,7 @@ let
     builtins.readFile ./assets/security-posture.json
   );
 
-  lokiDashboard = pkgs.writeTextDir "loki.json" (
-    builtins.readFile ./assets/loki.json
-  );
+  lokiDashboard = pkgs.writeTextDir "loki.json" (builtins.readFile ./assets/loki.json);
 in
 {
   options.services.nixlab.grafana.lokiUrl = lib.mkOption {
@@ -57,28 +55,27 @@ in
       provision.datasources.settings = {
         apiVersion = 1;
 
-        datasources =
-          [
-            {
-              name = "Prometheus";
-              uid = "prometheus";
-              type = "prometheus";
-              access = "proxy";
-              url = "http://127.0.0.1:9090";
-              isDefault = true;
-              editable = false;
-            }
-          ]
-          ++ lib.optionals (config.services.nixlab.grafana.lokiUrl != null) [
-            {
-              name = "Loki";
-              uid = "loki";
-              type = "loki";
-              access = "proxy";
-              url = config.services.nixlab.grafana.lokiUrl;
-              editable = false;
-            }
-          ];
+        datasources = [
+          {
+            name = "Prometheus";
+            uid = "prometheus";
+            type = "prometheus";
+            access = "proxy";
+            url = "http://127.0.0.1:9090";
+            isDefault = true;
+            editable = false;
+          }
+        ]
+        ++ lib.optionals (config.services.nixlab.grafana.lokiUrl != null) [
+          {
+            name = "Loki";
+            uid = "loki";
+            type = "loki";
+            access = "proxy";
+            url = config.services.nixlab.grafana.lokiUrl;
+            editable = false;
+          }
+        ];
       };
 
       provision.dashboards.settings = {

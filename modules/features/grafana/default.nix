@@ -14,14 +14,16 @@ let
     mode = "0400";
   };
 
-  securityDashboard = pkgs.writeText "security-posture.json" (
+  securityDashboard = pkgs.writeTextDir "security-posture.json" (
     builtins.readFile ./assets/security-posture.json
   );
 
-  lokiDashboard = pkgs.writeText "loki.json" (builtins.readFile ./assets/loki.json);
+  lokiDashboard = pkgs.writeTextDir "loki.json" (
+    builtins.readFile ./assets/loki.json
+  );
 
   prometheusDatasource = pkgs.writeText "prometheus-datasource.yaml" ''
-    apiVersion: 1
+    apiVersion = 1;
 
     datasources:
       - name: Prometheus

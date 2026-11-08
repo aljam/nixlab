@@ -19,6 +19,7 @@
       "zfs"
       "hwmon"
       "nvme"
+      "textfile"
     ];
   };
 

@@ -124,8 +124,10 @@ in
 
     # Shared access to /mnt/media. Declaring membership on the group (rather
     # than `users.users.<name>.extraGroups`) means this module never has to
-    # define a user that an upstream service module owns.
-    users.groups.media.members = lib.attrNames staticServices;
+    # define a user that an upstream service module owns. Shoko is added here
+    # because it is intentionally omitted from `serviceDefs` and its LAN-only
+    # port must not enter `networking.proxyBackendPorts`.
+    users.groups.media.members = [ "shoko" ] ++ lib.attrNames staticServices;
 
     systemd.services = lib.genAttrs (lib.attrNames serviceDefs) (name: {
       serviceConfig = {

@@ -4,7 +4,6 @@
   pkgs,
   ...
 }:
-
 {
   options.services.nixlab.loki = {
     enable = lib.mkEnableOption "Loki log aggregation server";
@@ -81,7 +80,7 @@
     systemd.services.loki.serviceConfig = {
       NoNewPrivileges = true;
       PrivateTmp = true;
-      ProtectSystem = "strict";
+      ProtectSystem = lib.mkDefault "strict";
       ProtectHome = true;
       ReadWritePaths = [ "/var/lib/loki" ];
       ProtectKernelTunables = true;

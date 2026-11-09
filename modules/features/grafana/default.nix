@@ -115,7 +115,7 @@ in
     systemd.services.grafana.serviceConfig = {
       NoNewPrivileges = true;
       PrivateTmp = true;
-      ProtectSystem = "strict";
+      ProtectSystem = lib.mkDefault "strict";
       ProtectHome = true;
       ReadWritePaths = [ "/var/lib/grafana" ];
     };

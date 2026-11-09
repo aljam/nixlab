@@ -1,8 +1,6 @@
 { lib, config, ... }:
 
 let
-  sopsSecrets = lib.attrValues config.sops.secrets;
-
   grafanaPort = config.services.grafana.settings.server.http_port or 3000;
   grafanaExposed = lib.elem grafanaPort config.networking.proxyBackendPorts;
   grafanaAnonymous = config.services.grafana.settings.auth.anonymous.enabled or false;

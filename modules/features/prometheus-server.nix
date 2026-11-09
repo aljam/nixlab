@@ -305,13 +305,18 @@ in
       DynamicUser = lib.mkForce false;
       User = lib.mkForce "prometheus";
       Group = lib.mkForce "prometheus";
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      ProtectKernelTunables = true;
+      ProtectKernelModules = true;
+      ProtectControlGroups = true;
+      RestrictSUIDSGID = true;
+      LockPersonality = true;
     };
 
     systemd.services.prometheus.serviceConfig = {
-      NoNewPrivileges = true;
-      PrivateTmp = true;
-      ProtectSystem = lib.mkForce "strict";
-      ProtectHome = true;
       ReadWritePaths = [ "/var/lib/prometheus2" ];
       ProtectKernelTunables = true;
       ProtectKernelModules = true;
@@ -320,11 +325,12 @@ in
       LockPersonality = true;
     };
 
-    systemd.services."prometheus-blackbox-exporter".serviceConfig = {
+    systemd.services.prometheus-alertmanager.serviceConfig = {
       NoNewPrivileges = true;
       PrivateTmp = true;
-      ProtectSystem = lib.mkForce "strict";
+      ProtectSystem = "strict";
       ProtectHome = true;
+      ReadWritePaths = [ "/var/lib/alertmanager" ];
       ProtectKernelTunables = true;
       ProtectKernelModules = true;
       ProtectControlGroups = true;

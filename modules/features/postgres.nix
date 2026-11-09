@@ -13,12 +13,10 @@ let
 
   broadPostgresRules = lib.strings.hasInfix "host all all" postgresAuth;
 
-  isLoopbackRule =
-    line:
-    lib.strings.hasInfix "127.0.0.1/32" line
-    || lib.strings.hasInfix "::1/128" line;
+  isLoopbackRule = line: lib.strings.hasInfix "127.0.0.1/32" line || lib.strings.hasInfix "::1/128" line;
 
-  plaintextRemotePostgresRules = lib.filter (client:
+  plaintextRemotePostgresRules = lib.filter (
+    client:
     let
       trimmed = lib.strings.trim client;
     in

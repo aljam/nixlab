@@ -31,7 +31,7 @@ in
           sopsFile = ../../secrets/radio.yaml;
           owner = "icecast";
           group = "radio";
-          mode = "0440";
+          mode = "0400";
           restartUnits = [
             "icecast.service"
             "liquidsoap-radio.service"

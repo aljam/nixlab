@@ -4,7 +4,6 @@
   pkgs,
   ...
 }:
-
 {
   options.services.nixlab.loki = {
     enable = lib.mkEnableOption "Loki log aggregation server";
@@ -76,6 +75,19 @@
           reject_old_samples_max_age = "168h";
         };
       };
+    };
+
+    systemd.services.loki.serviceConfig = {
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      ProtectSystem = lib.mkDefault "strict";
+      ProtectHome = true;
+      ReadWritePaths = [ "/var/lib/loki" ];
+      ProtectKernelTunables = true;
+      ProtectKernelModules = true;
+      ProtectControlGroups = true;
+      RestrictSUIDSGID = true;
+      LockPersonality = true;
     };
 
     networking.firewall.extraInputRules =

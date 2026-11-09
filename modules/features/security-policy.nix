@@ -38,11 +38,90 @@ let
 
   gamingEnabled =
     (config.programs.steam.enable or false) || (config.programs.gamescope.enable or false);
+
+  sopsSecrets = lib.attrValues config.sops.secrets;
+
+  rootOwnedSecrets = lib.filter (secret: secret.owner == "root") sopsSecrets;
+
+  unauthorizedRootOwnedSecrets = lib.filter (
+    secret: !lib.elem secret.name config.roles.security.sopsAllowedRootSecrets
+  ) rootOwnedSecrets;
+
+  unauthorizedSecretNames = map (secret: secret.name) unauthorizedRootOwnedSecrets;
+
+  # Map a secret to the service identity that is intended to consume it.
+  # A mapping is checked only when that secret is declared on the evaluated
+  # host, allowing host-specific secret sets to remain explicit.
+  expectedOwners = config.roles.security.sopsExpectedOwners;
+
+  mismatchedSecretOwners = lib.filter (
+    secret:
+    let
+      expectedOwner = expectedOwners.${secret.name} or null;
+    in
+    expectedOwner != null && secret.owner != expectedOwner
+  ) sopsSecrets;
+
+  mismatchedSecretNames = map (secret: secret.name) mismatchedSecretOwners;
 in
 {
   options.roles.server.enable = lib.mkEnableOption "server role policies";
 
+  options.roles.security.sopsExpectedOwners = lib.mkOption {
+    type = lib.types.attrsOf lib.types.str;
+    default = { };
+    description = ''
+      Maps SOPS secret names to the service identity expected to own and
+      consume them. A mapping is enforced only when the named secret is
+      declared on the evaluated host.
+    '';
+  };
+
   config.assertions = [
+    # Preserve the service-scoped SOPS model. A missing `sopsFile` would
+    # otherwise depend on a global default, which this repository intentionally
+    # does not define.
+    {
+      assertion = lib.all (secret: secret.sopsFile != null) sopsSecrets;
+      message = "Every sops secret must declare an explicit sopsFile.";
+    }
+
+    # Make the effective identity of every decrypted secret explicit.
+    {
+      assertion = lib.all (secret: secret.owner != null) sopsSecrets;
+      message = "Every sops secret must declare an explicit owner.";
+    }
+
+    # Make permissions explicit and restrict every secret to its owning
+    # service identity.
+    {
+      assertion = lib.all (secret: secret.mode == "0400") sopsSecrets;
+      message = "SOPS secrets must use owner-only mode 0400.";
+    }
+
+    # Root ownership is sometimes necessary for system-level credentials,
+    # but it must be explicit and auditable.
+    {
+      assertion = unauthorizedRootOwnedSecrets == [ ];
+      message = ''
+        SOPS secrets owned by root must be listed in
+        roles.security.sopsAllowedRootSecrets. Unauthorized secrets:
+        ${lib.concatStringsSep ", " unauthorizedSecretNames}
+      '';
+    }
+
+    # Ensure that a mapped secret is owned by the service intended to
+    # consume it. This prevents accidental credential sharing across
+    # service identities.
+    {
+      assertion = mismatchedSecretOwners == [ ];
+      message = ''
+        SOPS secrets must be owned by their expected consuming service.
+        Mismatched secrets:
+        ${lib.concatStringsSep ", " mismatchedSecretNames}
+      '';
+    }
+
     # Grafana is the internet-facing monitoring dashboard. When exposed
     # through the HAProxy backend allowlist, it must require authentication
     # and must not permit self-registration.
@@ -128,4 +207,14 @@ in
     # SSH policy, including key-only authentication, is owned by
     # modules/features/ssh.nix.
   ];
+
+  config.roles.security.sopsExpectedOwners = {
+    "grafana-admin-password" = "grafana";
+    "grafana-secret-key" = "grafana";
+    "peertube-secrets" = "peertube";
+    "vaultwarden-admin-token" = "vaultwarden";
+    "nfty-url" = "alertmanager";
+    "pfsense-root-ca-matrix" = "matrix-synapse";
+    "radarr_api_key" = "recyclarr";
+  };
 }

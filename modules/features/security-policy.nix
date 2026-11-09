@@ -39,6 +39,8 @@ let
   gamingEnabled =
     (config.programs.steam.enable or false) || (config.programs.gamescope.enable or false);
 
+  sopsSecrets = lib.attrValues config.sops.secrets;
+
   rootOwnedSecrets = lib.filter (secret: secret.owner == "root") sopsSecrets;
 
   unauthorizedRootOwnedSecrets = lib.filter (

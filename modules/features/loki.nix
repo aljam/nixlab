@@ -78,6 +78,19 @@
       };
     };
 
+    systemd.services.loki.serviceConfig = {
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      ReadWritePaths = [ "/var/lib/loki" ];
+      ProtectKernelTunables = true;
+      ProtectKernelModules = true;
+      ProtectControlGroups = true;
+      RestrictSUIDSGID = true;
+      LockPersonality = true;
+    };
+
     networking.firewall.extraInputRules =
       lib.mkIf (config.services.nixlab.loki.listenAddress != "127.0.0.1")
         ''

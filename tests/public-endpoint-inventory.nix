@@ -22,7 +22,12 @@ let
       https = url != null && lib.hasPrefix "https://" url;
       positiveStatus = expectedStatus != null && expectedStatus > 0;
       hstsRequired = requireHsts == true;
-      tlsVersionSupported = minTlsVersion != null && lib.elem minTlsVersion [ "1.2" "1.3" ];
+      tlsVersionSupported =
+        minTlsVersion != null
+        && lib.elem minTlsVersion [
+          "1.2"
+          "1.3"
+        ];
     in
     lib.optionals (name == null || name == "") [
       "Public endpoint must declare a non-empty name: ${builtins.toJSON endpoint}"
@@ -44,10 +49,9 @@ let
     ]
   ) endpoints;
 
-  duplicateNames =
-    lib.lists.subtractLists
-      (lib.unique (map (endpoint: endpoint.name or "") endpoints))
-      (map (endpoint: endpoint.name or "") endpoints);
+  duplicateNames = lib.lists.subtractLists (lib.unique (
+    map (endpoint: endpoint.name or "") endpoints
+  )) (map (endpoint: endpoint.name or "") endpoints);
 
   failures =
     lib.optionals (endpoints == [ ]) [ "Public endpoint inventory must contain at least one endpoint" ]

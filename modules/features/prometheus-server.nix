@@ -240,7 +240,7 @@ in
 
           static_configs = [
             {
-              targets = [ "r820:5432" ];
+              targets = [ "${config.networking.fleet.r820.ip}:5432" ];
               labels = {
                 instance = "r820-postgresql-tls";
                 host = "r820";
@@ -289,6 +289,7 @@ in
                   tls = true;
                   tls_config = {
                     ca_file = cfg.postgresCaFile;
+                    server_name = "r820";
                   };
                 };
               };

@@ -99,6 +99,11 @@ in
 
       shoko.enable = true;
 
+      # Shoko is intentionally excluded from serviceDefs so its LAN-only port is
+      # not added to the HAProxy backend allowlist. Grant its fixed service user
+      # the shared media group directly so it can traverse and read /mnt/media.
+      users.users.shoko.extraGroups = [ "media" ];
+
       audiobookshelf = {
         enable = true;
         host = config.networking.servicesBindAddress;

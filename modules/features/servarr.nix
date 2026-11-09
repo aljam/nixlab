@@ -1,17 +1,3 @@
-# Consolidated media automation stack ("*arr" and friends).
-#
-# Security: none of these services are exposed to the LAN. They listen on the
-# host's fleet address and are reachable only through the HAProxy gateway;
-# the per-backend firewall rules are generated centrally from
-# `networking.proxyBackendPorts` in reverse-proxy-backends.nix.
-#
-# Shoko is intentionally LAN-only. It remains enabled for local Jellyfin and
-# other media integrations, but it is not added to `networking.proxyBackendPorts`,
-# HAProxy, or the public Homepage dashboard.
-#
-# `serviceDefs` is the single source of truth for each service's web UI port
-# and shared-group model. Upstream service options remain explicit because the
-# upstream modules do not share a common option surface.
 {
   config,
   lib,
@@ -70,6 +56,14 @@ let
   staticServices = lib.filterAttrs (_: service: service.userType == "static") serviceDefs;
 
   dynamicServices = lib.filterAttrs (_: service: service.userType == "dynamic") serviceDefs;
+
+  proxyBackendPorts = config.networking.proxyBackendPorts;
+
+  unexposedServices = lib.filterAttrs (
+    _: service: !lib.elem service.port proxyBackendPorts
+  ) serviceDefs;
+
+  unexposedServiceNames = lib.attrNames unexposedServices;
 in
 {
   imports = [
@@ -139,5 +133,36 @@ in
         SupplementaryGroups = [ "media" ];
       };
     });
+
+    assertions = [
+      # Shoko is intentionally LAN-only. It must not become reachable through
+      # the HAProxy backend allowlist.
+      {
+        assertion = !(lib.elem 8111 proxyBackendPorts);
+        message = "Shoko must remain LAN-only and must not be exposed through the HAProxy backend allowlist.";
+      }
+
+      # Every declared media-stack service must have an explicit proxy exposure
+      # entry. This prevents a service from silently disappearing from the
+      # HAProxy allowlist after a port or service change.
+      {
+        assertion = unexposedServices == { };
+        message =
+          "Every Servarr service must be explicitly exposed through the HAProxy backend allowlist. Missing services: "
+          + lib.concatStringsSep ", " unexposedServiceNames;
+      }
+
+      # qBittorrent requires an inbound swarm port. Keep that exception
+      # explicit so it cannot disappear silently.
+      {
+        assertion = lib.elem 6881 config.networking.firewall.allowedTCPPorts;
+        message = "qBittorrent swarm TCP port 6881 must remain explicitly allowed when Servarr is enabled.";
+      }
+
+      {
+        assertion = lib.elem 6881 config.networking.firewall.allowedUDPPorts;
+        message = "qBittorrent swarm UDP port 6881 must remain explicitly allowed when Servarr is enabled.";
+      }
+    ];
   };
 }

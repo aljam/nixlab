@@ -26,6 +26,18 @@
 
     services.alloy.enable = true;
 
+    systemd.services.alloy.serviceConfig = {
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      ProtectKernelTunables = true;
+      ProtectKernelModules = true;
+      ProtectControlGroups = true;
+      RestrictSUIDSGID = true;
+      LockPersonality = true;
+    };
+
     environment.etc."alloy/config.alloy".text = ''
       loki.source.journal "journal" {
         max_age = "12h"

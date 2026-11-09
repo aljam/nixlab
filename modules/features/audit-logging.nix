@@ -51,5 +51,9 @@
       assertion = config.security.audit.enable;
       message = "Audit logging must remain enabled on NixLab hosts.";
     }
+    {
+      assertion = config.services.journald.persistent;
+      message = "Persistent journald storage must remain enabled for audit visibility.";
+    }
   ];
 }

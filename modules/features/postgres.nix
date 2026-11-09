@@ -99,6 +99,19 @@ in
       ) cfg.allowedClients;
     };
 
+    systemd.services.postgresql.serviceConfig = {
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      ReadWritePaths = [ "/var/lib/postgresql" ];
+      ProtectKernelTunables = true;
+      ProtectKernelModules = true;
+      ProtectControlGroups = true;
+      RestrictSUIDSGID = true;
+      LockPersonality = true;
+    };
+
     systemd.services.postgresql-tls-cert = {
       description = "Generate self-signed PostgreSQL TLS certificate";
       before = [ "postgresql.service" ];

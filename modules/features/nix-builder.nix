@@ -13,7 +13,8 @@ let
     || !(lib.strings.hasInfix "no-X11-forwarding" key)
   ) builderKeys;
 
-  builderIsTrusted = lib.elem "nix-builder" (config.nix.settings.trusted-users or [ ]);
+  builderIsTrusted =
+    lib.elem "nix-builder" (config.nix.settings.trusted-users or [ ]);
 in
 {
   users.users.nix-builder = {
@@ -29,7 +30,8 @@ in
 
   # Required for remote builds to interact with the local Nix daemon.
   # Review this boundary before enabling distributed builds.
-  nix.settings.trusted-users = lib.mkIf (config.nix.distributedBuilds or false) [ "nix-builder" ];
+  nix.settings.trusted-users =
+    lib.mkIf (config.nix.distributedBuilds or false) [ "nix-builder" ];
 
   assertions = [
     # Every builder key must be explicitly restricted. This prevents a build

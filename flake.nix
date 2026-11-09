@@ -39,7 +39,7 @@
     nix-flatpak.url = "github:gmodena/nix-flatpak";
 
     hyprland = {
-      url = "github:hyrwm/Hyprland";
+      url = "github:hyprwm/Hyprland";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -242,13 +242,6 @@
             if (( ''${#hosts[@]} == 0 )); then
               hosts=("''${known_hosts[@]}")
             fi
-
-            for host in "''${hosts[@]}"; do
-              if [[ ! " ''${known_hosts[*]} " == *" ''${host} "* ]]; then
-                echo "Unknown deploy host: ''${host}" >&2
-                echo "Available hosts: ''${known_hosts[@]}" >&2
-              fi
-            done
 
             for host in "''${hosts[@]}"; do
               echo "==> Deploying ''${host} @ ''${rev}"

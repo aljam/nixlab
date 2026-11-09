@@ -1,10 +1,3 @@
-# Central firewall rules for the services that sit behind the HAProxy gateway.
-#
-# Every rule here MUST be a single line ending in a verdict. nftables accepts a
-# rule with no verdict (it matches and falls through), so a rule split across
-# two lines does not fail loudly: the match half silently becomes a no-op and
-# the verdict half becomes an unconditional `accept` in the input-allow chain,
-# which lets in every new inbound connection on every port.
 { config, lib, ... }:
 
 let
@@ -27,10 +20,50 @@ let
   prometheusRule = lib.optionalString (nodeExporter.enable && prometheusIP != null) ''
     ip saddr ${prometheusIP} tcp dport ${toString nodeExporter.port} accept comment "Prometheus node exporter scrape"
   '';
+
+  # Sensitive or internal-only services that must not be exposed through the
+  # HAProxy backend allowlist.
+  internalServicePorts = {
+    pgAdmin = 5050;
+    prometheus = 9090;
+    blackboxExporter = 9115;
+    alertmanager = 9093;
+    postgresql = config.services.postgresql.settings.port or 5432;
+  };
+
+  forbiddenProxyPorts = lib.attrValues internalServicePorts;
+  forbiddenExposedPorts = lib.intersectLists forbiddenProxyPorts backendPorts;
+  duplicateProxyPorts = lib.lists.subtractLists (lib.unique backendPorts) backendPorts;
 in
 {
   networking.firewall.extraInputRules = lib.concatStrings [
     haproxyRule
     prometheusRule
+  ];
+
+  assertions = [
+    # Services using the shared bind address must never listen on every
+    # interface; use loopback or an explicit fleet service address.
+    {
+      assertion =
+        config.networking.servicesBindAddress != "0.0.0.0" && config.networking.servicesBindAddress != "::";
+      message = "servicesBindAddress must not bind services to every interface.";
+    }
+
+    # Duplicate backend ports make the exposure allowlist misleading and are
+    # usually a configuration mistake.
+    {
+      assertion = duplicateProxyPorts == [ ];
+      message = "HAProxy backend ports must not contain duplicates.";
+    }
+
+    # Prevent sensitive or internal-only services from being exposed through
+    # the HAProxy backend allowlist.
+    {
+      assertion = forbiddenExposedPorts == [ ];
+      message =
+        "Forbidden service ports must not be exposed through the HAProxy backend allowlist: "
+        + lib.concatStringsSep ", " (map (p: toString p) forbiddenExposedPorts);
+    }
   ];
 }

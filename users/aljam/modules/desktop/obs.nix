@@ -23,8 +23,4 @@ in
       obs-retro-effects-fixed
     ];
   };
-
-  home.packages = [
-    pkgs.streamcontroller
-  ];
 }

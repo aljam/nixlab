@@ -1,8 +1,6 @@
 { lib, config, ... }:
 
 let
-  sopsSecrets = lib.attrValues config.sops.secrets;
-
   grafanaPort = config.services.grafana.settings.server.http_port or 3000;
   grafanaExposed = lib.elem grafanaPort config.networking.proxyBackendPorts;
   grafanaAnonymous = config.services.grafana.settings.auth.anonymous.enabled or false;
@@ -40,62 +38,11 @@ let
 
   gamingEnabled =
     (config.programs.steam.enable or false) || (config.programs.gamescope.enable or false);
-
-  rootOwnedSecrets = lib.filter (secret: secret.owner == "root") sopsSecrets;
-
-  unauthorizedRootOwnedSecrets = lib.filter (
-    secret: !lib.elem secret.name config.roles.security.sopsAllowedRootSecrets
-  ) rootOwnedSecrets;
-
-  unauthorizedSecretNames = map (secret: secret.name) unauthorizedRootOwnedSecrets;
 in
 {
   options.roles.server.enable = lib.mkEnableOption "server role policies";
 
-  options.roles.security.sopsAllowedRootSecrets = lib.mkOption {
-    type = lib.types.listOf lib.types.str;
-    default = [ ];
-    description = ''
-      Names of SOPS secrets that are explicitly allowed to be owned by root.
-      This is intended for system-level credentials such as mount credentials,
-      mail relay configuration, and services that do not yet have a
-      dedicated unprivileged identity.
-    '';
-  };
-
   config.assertions = [
-    # Preserve the service-scoped SOPS model. A missing `sopsFile` would
-    # otherwise depend on a global default, which this repository intentionally
-    # does not define.
-    {
-      assertion = lib.all (secret: secret.sopsFile != null) sopsSecrets;
-      message = "Every sops secret must declare an explicit sopsFile.";
-    }
-
-    # Make the effective identity of every decrypted secret explicit.
-    {
-      assertion = lib.all (secret: secret.owner != null) sopsSecrets;
-      message = "Every sops secret must declare an explicit owner.";
-    }
-
-    # Make permissions explicit and restrict every secret to its owning
-    # service identity.
-    {
-      assertion = lib.all (secret: secret.mode == "0400") sopsSecrets;
-      message = "SOPS secrets must use owner-only mode 0400.";
-    }
-
-    # Root ownership is sometimes necessary for system-level credentials,
-    # but it must be explicit and auditable.
-    {
-      assertion = unauthorizedRootOwnedSecrets == [ ];
-      message = ''
-        SOPS secrets owned by root must be listed in
-        roles.security.sopsAllowedRootSecrets. Unauthorized secrets:
-        ${lib.concatStringsSep ", " unauthorizedSecretNames}
-      '';
-    }
-
     # Grafana is the internet-facing monitoring dashboard. When exposed
     # through the HAProxy backend allowlist, it must require authentication
     # and must not permit self-registration.

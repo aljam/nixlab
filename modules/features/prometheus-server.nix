@@ -289,7 +289,7 @@ in
                   tls = true;
                   tls_config = {
                     ca_file = cfg.postgresCaFile;
-                    server_name = "r820";
+                    server_name = "r820.lan";
                   };
                 };
               };

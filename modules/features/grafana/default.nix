@@ -117,6 +117,14 @@ in
       };
     };
 
+    systemd.services.grafana.serviceConfig = {
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      ProtectSystem = lib.mkDefault "strict";
+      ProtectHome = true;
+      ReadWritePaths = [ "/var/lib/grafana" ];
+    };
+
     networking.proxyBackendPorts = [ 3000 ];
 
     assertions = [

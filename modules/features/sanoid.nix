@@ -28,4 +28,17 @@
       };
     };
   };
+
+  # Sanoid requires ZFS privileges and host filesystem visibility, so avoid
+  # NoNewPrivileges and ProtectSystem=strict here.
+  systemd.services.sanoid.serviceConfig = {
+    PrivateTmp = true;
+    PrivateDevices = true;
+    ProtectHome = true;
+    ProtectKernelTunables = true;
+    ProtectKernelModules = true;
+    ProtectControlGroups = true;
+    RestrictSUIDSGID = true;
+    LockPersonality = true;
+  };
 }

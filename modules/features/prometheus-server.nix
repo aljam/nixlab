@@ -4,7 +4,6 @@
   pkgs,
   ...
 }:
-
 let
   cfg = config.modules.features.prometheus-server;
   primaryDomain = config.networking.domains.primary;
@@ -336,6 +335,31 @@ in
       ProtectSystem = "strict";
       ProtectHome = true;
       ReadWritePaths = [ "/var/lib/alertmanager" ];
+      ProtectKernelTunables = true;
+      ProtectKernelModules = true;
+      ProtectControlGroups = true;
+      RestrictSUIDSGID = true;
+      LockPersonality = true;
+    };
+
+    systemd.services.prometheus.serviceConfig = {
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      ProtectSystem = lib.mkDefault "strict";
+      ProtectHome = true;
+      ReadWritePaths = [ "/var/lib/prometheus2" ];
+      ProtectKernelTunables = true;
+      ProtectKernelModules = true;
+      ProtectControlGroups = true;
+      RestrictSUIDSGID = true;
+      LockPersonality = true;
+    };
+
+    systemd.services."prometheus-blackbox-exporter".serviceConfig = {
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      ProtectSystem = "strict";
+      ProtectHome = true;
       ProtectKernelTunables = true;
       ProtectKernelModules = true;
       ProtectControlGroups = true;

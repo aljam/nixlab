@@ -13,6 +13,7 @@
     ../../modules/features/postgres.nix
     ../../modules/features/nix-builder.nix
     ../../modules/features/log-agent.nix
+    ../../modules/features/nix-cache.nix
     #../../modules/features/mail-server.nix
     #../../modules/roles/mail-node.nix
   ];

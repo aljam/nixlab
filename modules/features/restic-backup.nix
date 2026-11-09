@@ -1,3 +1,8 @@
+# Local Restic backups.
+#
+# Each job runs as root because it may need to read protected application data
+# and create consistent dumps. It writes only to its dedicated state tree, lock
+# file, and node-exporter metrics directory.
 {
   lib,
   config,
@@ -206,6 +211,13 @@ in
           ExecStart = lib.getExe (backupScript name job);
           PrivateTmp = true;
           PrivateDevices = true;
+          ProtectSystem = "strict";
+          ProtectHome = true;
+          ReadWritePaths = [
+            "/var/lib/restic-backup"
+            "/run/restic-backup.lock"
+            "/var/lib/node-exporter/textfile"
+          ];
           ProtectKernelTunables = true;
           ProtectKernelModules = true;
           ProtectControlGroups = true;

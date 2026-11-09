@@ -1,1 +1,17 @@
-eyBjb25maWcsIC4uLiB9OgoKewogICMgVGhlIHBmU2Vuc2Ugcm9vdCBDQSBpcyBwdWJsaWMgdHJ1c3QgbWF0ZXJpYWwuIE1hdHJpeCBTeW5hcHNlIG93bnMgaXRzCiAgIyBkZWNyeXB0ZWQgY29weSwgd2hpbGUgUHJvbWV0aGV1cyByZWFkcyB0aGUgc2FtZSBDQSBmb3IgUG9zdGdyZVNRTCBUTFMKICAjIHZlcmlmaWNhdGlvbi4gTW9kZSAwNDQ0IHBlcm1pdHMgYm90aCBzZXJ2aWNlIHVzZXJzIHRvIHJlYWQgaXQuCiAgc29wcy5zZWNyZXRzLnBmc2Vuc2Utcm9vdC1jYSA9IHsKICAgIHNvcHNGaWxlID0gLi4vLi4vc2VjcmV0cy9tYXRyaXgueWFtbDsKICAgIG93bmVyID0gIm1hdHJpeC1zeW5hcHNlIjsKICAgIGdyb3VwID0gIm1hdHJpeC1zeW5hcHNlIjsKICAgIG1vZGUgPSAiMDQ0NCI7CiAgICByZXN0YXJ0VW5pdHMgPSBbCiAgICAgICJtYXRyaXgtc3luYXBzZS5zZXJ2aWNlIgogICAgICAicHJvbWV0aGV1cy5zZXJ2aWNlIgogICAgXTsKICB9Owp9Cg==
+{ config, ... }:
+
+{
+  # The pfSense root CA is public trust material. Matrix Synapse owns its
+  # decrypted copy, while Prometheus reads the same CA for PostgreSQL TLS
+  # verification. Mode 0444 permits both service users to read it.
+  sops.secrets.pfsense-root-ca = {
+    sopsFile = ../../secrets/matrix.yaml;
+    owner = "matrix-synapse";
+    group = "matrix-synapse";
+    mode = "0444";
+    restartUnits = [
+      "matrix-synapse.service"
+      "prometheus.service"
+    ];
+  };
+}

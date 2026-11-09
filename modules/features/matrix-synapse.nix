@@ -103,4 +103,17 @@ in
       ];
     };
   };
+
+  systemd.services.matrix-synapse.serviceConfig = {
+    NoNewPrivileges = true;
+    PrivateTmp = true;
+    ProtectSystem = "strict";
+    ProtectHome = true;
+    ReadWritePaths = [ "/var/lib/matrix-synapse" ];
+    ProtectKernelTunables = true;
+    ProtectKernelModules = true;
+    ProtectControlGroups = true;
+    RestrictSUIDSGID = true;
+    LockPersonality = true;
+  };
 }

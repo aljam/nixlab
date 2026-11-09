@@ -271,8 +271,6 @@ let
 
       nodes = {
         database = { lib, ... }: {
-          virtualisation.qemu.forceAccel = true;
-
           services.postgresql = {
             enable = true;
             enableTCPIP = true;

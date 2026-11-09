@@ -11,6 +11,7 @@
     ./hardware-configuration.nix
     ../../modules/roles/desktop-node.nix
     ../../modules/features/log-agent.nix
+    ../../modules/features/nix-cache.nix
     ../../modules/hardware/navi-desktop.nix
   ];
 

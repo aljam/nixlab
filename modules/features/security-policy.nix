@@ -219,7 +219,7 @@ in
     # modules/features/ssh.nix.
   ];
 
-  roles.security.sopsExpectedOwners = {
+  config.roles.security.sopsExpectedOwners = {
     "grafana-admin-password" = "grafana";
     "grafana-secret-key" = "grafana";
     "peertube-secrets" = "peertube";

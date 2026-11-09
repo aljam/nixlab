@@ -13,9 +13,17 @@ let
 
   broadPostgresRules = lib.strings.hasInfix "host all all" postgresAuth;
 
-  plaintextRemotePostgresRules = lib.filter (client: !lib.strings.hasPrefix "hostssl " client) (
-    lib.strings.splitString "\n" postgresAuth
-  );
+  isLoopbackRule =
+    line:
+    lib.strings.hasInfix "127.0.0.1/32" line
+    || lib.strings.hasInfix "::1/128" line;
+
+  plaintextRemotePostgresRules = lib.filter (client:
+    let
+      trimmed = lib.strings.trim client;
+    in
+    lib.strings.hasPrefix "host " trimmed && !isLoopbackRule trimmed
+  ) (lib.strings.splitString "\n" postgresAuth);
 in
 {
   imports = [
@@ -191,7 +199,8 @@ in
         message = "PostgreSQL authentication must not contain broad host/all/all rules.";
       }
 
-      # Remote PostgreSQL clients must explicitly negotiate TLS.
+      # Remote PostgreSQL clients must explicitly negotiate TLS. Loopback
+      # rules are local-only and may retain the standard host authentication.
       {
         assertion = plaintextRemotePostgresRules == [ ];
         message = "PostgreSQL authentication must use hostssl for every non-loopback client rule.";

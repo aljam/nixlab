@@ -67,17 +67,6 @@ in
 {
   options.roles.server.enable = lib.mkEnableOption "server role policies";
 
-  options.roles.security.sopsAllowedRootSecrets = lib.mkOption {
-    type = lib.types.listOf lib.types.str;
-    default = [ ];
-    description = ''
-      Names of SOPS secrets that are explicitly allowed to be owned by root.
-      This is intended for system-level credentials such as mount credentials,
-      mail relay configuration, and services that do not yet have a
-      dedicated unprivileged identity.
-    '';
-  };
-
   options.roles.security.sopsExpectedOwners = lib.mkOption {
     type = lib.types.attrsOf lib.types.str;
     default = { };

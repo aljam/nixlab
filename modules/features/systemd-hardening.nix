@@ -14,8 +14,9 @@
   };
 
   config.systemd.services = lib.listToAttrs (
-    map
-      (name: lib.nameValuePair name {
+    map (
+      name:
+      lib.nameValuePair name {
         serviceConfig = {
           NoNewPrivileges = lib.mkDefault true;
           PrivateTmp = lib.mkDefault true;
@@ -27,7 +28,7 @@
           RestrictSUIDSGID = lib.mkDefault true;
           LockPersonality = lib.mkDefault true;
         };
-      })
-      config.roles.security.systemdHardenedServices
+      }
+    ) config.roles.security.systemdHardenedServices
   );
 }

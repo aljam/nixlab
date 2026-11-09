@@ -105,7 +105,7 @@ let
 
       static_configs = [
         {
-          targets = [ rtcUrl ];
+          targets = [ "${rtcUrl}" ];
           labels = {
             instance = "matrix-rtc";
             host = "r730xd";
@@ -257,6 +257,10 @@ in
         listenAddress = "127.0.0.1";
         port = 9115;
 
+        # Run with a fixed identity so it can read its owner-only SOPS CA secret.
+        user = "prometheus";
+        group = "prometheus";
+
         configFile = pkgs.writeText "blackbox.yml" (
           builtins.toJSON {
             modules = {
@@ -292,6 +296,15 @@ in
           }
         );
       };
+    };
+
+    # NixOS exporter services use DynamicUser by default. Disable it so the
+    # Blackbox exporter runs as the fixed prometheus user and can read the
+    # owner-only SOPS-managed PostgreSQL CA file.
+    systemd.services."prometheus-blackbox-exporter".serviceConfig = {
+      DynamicUser = lib.mkForce false;
+      User = lib.mkForce "prometheus";
+      Group = lib.mkForce "prometheus";
     };
   };
 }

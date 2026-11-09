@@ -308,28 +308,7 @@ in
     };
 
     systemd.services.prometheus.serviceConfig = {
-      NoNewPrivileges = true;
-      PrivateTmp = true;
-      ProtectSystem = lib.mkForce "strict";
-      ProtectHome = true;
       ReadWritePaths = [ "/var/lib/prometheus2" ];
-      ProtectKernelTunables = true;
-      ProtectKernelModules = true;
-      ProtectControlGroups = true;
-      RestrictSUIDSGID = true;
-      LockPersonality = true;
-    };
-
-    systemd.services."prometheus-blackbox-exporter".serviceConfig = {
-      NoNewPrivileges = true;
-      PrivateTmp = true;
-      ProtectSystem = lib.mkForce "strict";
-      ProtectHome = true;
-      ProtectKernelTunables = true;
-      ProtectKernelModules = true;
-      ProtectControlGroups = true;
-      RestrictSUIDSGID = true;
-      LockPersonality = true;
     };
   };
 }

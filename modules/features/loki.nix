@@ -78,16 +78,7 @@
     };
 
     systemd.services.loki.serviceConfig = {
-      NoNewPrivileges = true;
-      PrivateTmp = true;
-      ProtectSystem = lib.mkDefault "strict";
-      ProtectHome = true;
       ReadWritePaths = [ "/var/lib/loki" ];
-      ProtectKernelTunables = true;
-      ProtectKernelModules = true;
-      ProtectControlGroups = true;
-      RestrictSUIDSGID = true;
-      LockPersonality = true;
     };
 
     networking.firewall.extraInputRules =

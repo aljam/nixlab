@@ -4,7 +4,6 @@
   pkgs,
   ...
 }:
-
 let
   cfg = config.modules.features.vaultwarden;
 in
@@ -33,6 +32,31 @@ in
         ADMIN_TOKEN_FILE = config.sops.secrets."vaultwarden-admin-token".path;
         ADMIN_RATELIMIT_SECONDS = "60";
         ADMIN_RATELIMIT_MAX_BURST = "3";
+      };
+    };
+
+    systemd.services.vaultwarden = {
+      serviceConfig = {
+        NoNewPrivileges = true;
+        PrivateTmp = true;
+        ProtectSystem = "strict";
+        ProtectHome = true;
+        ProtectKernelTunables = true;
+        ProtectKernelModules = true;
+        ProtectControlGroups = true;
+        RestrictSUIDSGID = true;
+        LockPersonality = true;
+        MemoryDenyWriteExecute = true;
+        RestrictNamespaces = true;
+        RestrictRealtime = true;
+        RestrictAddressFamilies = [
+          "AF_UNIX"
+          "AF_INET"
+          "AF_INET6"
+        ];
+        CapabilityBoundingSet = [ "" ];
+        SystemCallArchitectures = "native";
+        ReadWritePaths = [ "/var/lib/vaultwarden" ];
       };
     };
   };

@@ -18,6 +18,7 @@
     ../../modules/features/drift-monitoring.nix
     ../../modules/features/loki.nix
     ../../modules/features/log-agent.nix
+    ../../modules/features/nix-cache.nix
     ../../modules/features/restic-backup.nix
     ../../modules/features/matrix-synapse.nix
     ../../modules/features/matrix-rtc.nix

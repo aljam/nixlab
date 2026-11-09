@@ -240,7 +240,7 @@ in
 
           static_configs = [
             {
-              targets = [ "${config.networking.fleet.r820.ip}:5432" ];
+              targets = [ "r820:5432" ];
               labels = {
                 instance = "r820-postgresql-tls";
                 host = "r820";

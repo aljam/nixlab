@@ -310,7 +310,7 @@ in
     systemd.services.prometheus.serviceConfig = {
       NoNewPrivileges = true;
       PrivateTmp = true;
-      ProtectSystem = lib.mkForce "strict";
+      ProtectSystem = lib.mkDefault "strict";
       ProtectHome = true;
       ReadWritePaths = [ "/var/lib/prometheus2" ];
       ProtectKernelTunables = true;
@@ -323,7 +323,7 @@ in
     systemd.services."prometheus-blackbox-exporter".serviceConfig = {
       NoNewPrivileges = true;
       PrivateTmp = true;
-      ProtectSystem = lib.mkForce "strict";
+      ProtectSystem = "strict";
       ProtectHome = true;
       ProtectKernelTunables = true;
       ProtectKernelModules = true;

@@ -18,6 +18,16 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
+  action-pinning:
+    name: Require SHA-pinned GitHub Actions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Check action pinning
+        run: python3 scripts/check-action-pins.py
+
   gitleaks:
     name: Scan tracked files and Git history
     runs-on: ubuntu-latest

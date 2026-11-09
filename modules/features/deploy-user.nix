@@ -25,9 +25,9 @@ let
       rev="''${2:-}"
 
       case "$action" in
-        switch | test | boot | dry-build) ;;
+        switch) ;;
         *)
-          echo "usage: deploy-rebuild {switch|test|boot|dry-build} <git-rev>" >&2
+          echo "usage: deploy-rebuild switch <git-rev>" >&2
           exit 2
           ;;
       esac

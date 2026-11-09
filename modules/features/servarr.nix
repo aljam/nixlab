@@ -99,11 +99,6 @@ in
 
       shoko.enable = true;
 
-      # Shoko is intentionally excluded from serviceDefs so its LAN-only port is
-      # not added to the HAProxy backend allowlist. Grant its fixed service user
-      # the shared media group directly so it can traverse and read /mnt/media.
-      users.users.shoko.extraGroups = [ "media" ];
-
       audiobookshelf = {
         enable = true;
         host = config.networking.servicesBindAddress;
@@ -120,6 +115,11 @@ in
         webuiPort = serviceDefs.qbittorrent.port;
       };
     };
+
+    # Shoko is intentionally excluded from serviceDefs so its LAN-only port is
+    # not added to the HAProxy backend allowlist. Grant its fixed service user
+    # the shared media group directly so it can traverse and read /mnt/media.
+    users.users.shoko.extraGroups = [ "media" ];
 
     # Inbound BitTorrent swarm port. This is the only port in the stack that is
     # deliberately reachable from outside the gateway; without it qBittorrent can

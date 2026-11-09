@@ -23,12 +23,14 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    users.groups.radio = { };
+
     sops.secrets =
       let
         icecastSecret = {
           sopsFile = ../../secrets/radio.yaml;
-          owner = "root";
-          group = "root";
+          owner = "icecast";
+          group = "radio";
           mode = "0400";
           restartUnits = [
             "icecast.service"
@@ -54,15 +56,15 @@ in
           radio
         )
       '';
-      owner = "root";
-      group = "root";
-      mode = "0400";
+      owner = "icecast";
+      group = "radio";
+      mode = "0440";
     };
 
     sops.templates.icecast-xml = {
-      owner = "root";
-      group = "root";
-      mode = "0400";
+      owner = "icecast";
+      group = "radio";
+      mode = "0440";
       content = ''
         <?xml version="1.0"?>
         <icecast>
@@ -121,6 +123,7 @@ in
         Type = "simple";
         Restart = "always";
         ExecStart = "${pkgs.liquidsoap}/bin/liquidsoap ${liquidsoapScript}";
+        SupplementaryGroups = [ "radio" ];
       };
     };
   };

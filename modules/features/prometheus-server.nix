@@ -4,7 +4,6 @@
   pkgs,
   ...
 }:
-
 let
   cfg = config.modules.features.prometheus-server;
   primaryDomain = config.networking.domains.primary;
@@ -306,6 +305,31 @@ in
       DynamicUser = lib.mkForce false;
       User = lib.mkForce "prometheus";
       Group = lib.mkForce "prometheus";
+    };
+
+    systemd.services.prometheus.serviceConfig = {
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      ProtectSystem = lib.mkForce "strict";
+      ProtectHome = true;
+      ReadWritePaths = [ "/var/lib/prometheus2" ];
+      ProtectKernelTunables = true;
+      ProtectKernelModules = true;
+      ProtectControlGroups = true;
+      RestrictSUIDSGID = true;
+      LockPersonality = true;
+    };
+
+    systemd.services."prometheus-blackbox-exporter".serviceConfig = {
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      ProtectSystem = lib.mkForce "strict";
+      ProtectHome = true;
+      ProtectKernelTunables = true;
+      ProtectKernelModules = true;
+      ProtectControlGroups = true;
+      RestrictSUIDSGID = true;
+      LockPersonality = true;
     };
   };
 }

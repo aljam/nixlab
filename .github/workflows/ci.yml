@@ -39,6 +39,20 @@ jobs:
       - name: Flake check
         run: nix flake check --no-build --print-build-logs
 
+      - name: Evaluate host configurations
+        run: |
+          set -euo pipefail
+
+          hosts="$(nix eval --json --apply 'hosts: builtins.attrNames hosts' '.#nixosConfigurations' | jq -r '.[]')"
+
+          for host in $hosts; do
+            echo "Evaluating $host"
+            nix eval \
+              --raw \
+              ".#nixosConfigurations.${host}.config.system.build.toplevel.drvPath" \
+              > /dev/null
+          done
+
   select-hosts:
     needs: check
     runs-on: ubuntu-latest

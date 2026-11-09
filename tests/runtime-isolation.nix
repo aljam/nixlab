@@ -268,6 +268,7 @@ let
 
     postgresql-auth = pkgs.testers.nixosTest {
       name = "postgresql-auth";
+      qemu.forceAccel = true;
 
       nodes = {
         database = { lib, ... }: {

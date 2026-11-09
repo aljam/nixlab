@@ -17,6 +17,7 @@
     ../features/sops.nix
     ../features/ssh.nix
     ../features/security-policy.nix
+    ../features/systemd-hardening.nix
   ];
 
   options.networking.servicesBindAddress = lib.mkOption {
@@ -49,6 +50,13 @@
       "icecast_source_password"
     ];
 
+    roles.security.systemdHardenedServices = [
+      "grafana"
+      "loki"
+      "prometheus"
+      "prometheus-blackbox-exporter"
+    ];
+
     nixpkgs.config.allowUnfree = true;
 
     time.timeZone = lib.mkDefault "America/Toronto";
@@ -64,8 +72,8 @@
     };
 
     i18n.supportedLocales = [
-      "en_CA.UTF-8/UTF-8"
-      "en_US.UTF-8/UTF-8"
+      "en_CA.UTF-8"
+      "en_US.UTF-8"
     ];
 
     nix.settings.experimental-features = [

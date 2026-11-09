@@ -317,10 +317,6 @@ in
     };
 
     systemd.services.prometheus.serviceConfig = {
-      NoNewPrivileges = true;
-      PrivateTmp = true;
-      ProtectSystem = lib.mkForce "strict";
-      ProtectHome = true;
       ReadWritePaths = [ "/var/lib/prometheus2" ];
       ProtectKernelTunables = true;
       ProtectKernelModules = true;

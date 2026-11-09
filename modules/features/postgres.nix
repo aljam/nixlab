@@ -6,6 +6,16 @@
 }:
 let
   cfg = config.modules.features.postgres;
+
+  postgresAuth = config.services.postgresql.authentication or "";
+  postgresPort = config.services.postgresql.settings.port or 5432;
+  proxyBackendPorts = config.networking.proxyBackendPorts;
+
+  broadPostgresRules = lib.strings.hasInfix "host all all" postgresAuth;
+
+  plaintextRemotePostgresRules = lib.filter (
+    client: !lib.strings.hasPrefix "hostssl " client
+  ) (lib.strings.splitString "\n" postgresAuth);
 in
 {
   imports = [
@@ -102,9 +112,9 @@ in
         install -d -m 0700 -o postgres -g postgres "$certDir"
 
         if [ ! -s "$certDir/server.key" ] || [ ! -s "$certDir/server.crt" ]; then
-          ${pkgs.openssl}/bin/openssl req -new -x509 -days 3650 -nodes \
-            -subj "/CN=r820.lan" \
-            -keyout "$certDir/server.key" \
+          ${pkgs.openssl}/bin/openssl req -new -x509 -days 3650 -nodes \\
+            -subj "/CN=r820.lan" \\
+            -keyout "$certDir/server.key" \\
             -out "$certDir/server.crt"
           chown postgres:postgres "$certDir/server.key" "$certDir/server.crt"
           chmod 0600 "$certDir/server.key"
@@ -160,5 +170,26 @@ in
         '';
       };
     };
+
+    assertions = [
+      # Prevent regression to broad PostgreSQL authentication rules.
+      {
+        assertion = !broadPostgresRules;
+        message = "PostgreSQL authentication must not contain broad host/all/all rules.";
+      }
+
+      # Remote PostgreSQL clients must explicitly negotiate TLS.
+      {
+        assertion = plaintextRemotePostgresRules == [ ];
+        message = "PostgreSQL authentication must use hostssl for every non-loopback client rule.";
+      }
+
+      # PostgreSQL is a sensitive backend service and must not be exposed
+      # through the HAProxy backend allowlist.
+      {
+        assertion = !(lib.elem postgresPort proxyBackendPorts);
+        message = "PostgreSQL must not be exposed through the HAProxy backend allowlist.";
+      }
+    ];
   };
 }

@@ -1,3 +1,7 @@
+# Recyclarr configuration synchronization.
+#
+# The service runs as its dedicated user and needs read access to the generated
+# configuration and Radarr API key. It has no persistent writable state.
 {
   lib,
   config,
@@ -40,6 +44,15 @@ in
         User = "recyclarr";
         Group = "recyclarr";
         ExecStart = "${pkgs.recyclarr}/bin/recyclarr sync --config ${recyclarrConfig}";
+        NoNewPrivileges = true;
+        PrivateTmp = true;
+        ProtectSystem = "strict";
+        ProtectHome = true;
+        ProtectKernelTunables = true;
+        ProtectKernelModules = true;
+        ProtectControlGroups = true;
+        RestrictSUIDSGID = true;
+        LockPersonality = true;
       };
     };
   };

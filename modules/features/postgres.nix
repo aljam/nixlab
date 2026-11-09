@@ -13,9 +13,9 @@ let
 
   broadPostgresRules = lib.strings.hasInfix "host all all" postgresAuth;
 
-  plaintextRemotePostgresRules = lib.filter (
-    client: !lib.strings.hasPrefix "hostssl " client
-  ) (lib.strings.splitString "\n" postgresAuth);
+  plaintextRemotePostgresRules = lib.filter (client: !lib.strings.hasPrefix "hostssl " client) (
+    lib.strings.splitString "\n" postgresAuth
+  );
 in
 {
   imports = [

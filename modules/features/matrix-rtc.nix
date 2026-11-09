@@ -90,6 +90,7 @@ in
         "/etc/livekit/livekit.yaml"
       ];
       volumes = [ "${livekitConfig}:/etc/livekit/livekit.yaml:ro" ];
+      extraOptions = [ "--security-opt=no-new-privileges" ];
     };
 
     lk-jwt-service = {
@@ -102,6 +103,7 @@ in
         LIVEKIT_KEY = "matrixrtc";
       };
       environmentFiles = [ config.sops.secrets.livekit-jwt-env.path ];
+      extraOptions = [ "--security-opt=no-new-privileges" ];
     };
   };
 }

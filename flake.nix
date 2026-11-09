@@ -39,7 +39,7 @@
     nix-flatpak.url = "github:gmodena/nix-flatpak";
 
     hyprland = {
-      url = "github:hyprwm/Hyprland";
+      url = "github:hyrwm/Hyprland";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -231,7 +231,8 @@
             git fetch --quiet origin
             if ! git merge-base --is-ancestor "$rev" origin/main; then
               echo "Refusing to deploy: $rev is not on origin/main." >&2
-              echo "Push (or merge) first, then retry." >&2
+              echo "Deploying a revision that is not on origin/main would deploy stale configuration."
+              exit 1
             fi
 
             echo "==> Running flake checks"
@@ -271,6 +272,10 @@
         public-service-hardening = import ./tests/public-service-hardening.nix {
           pkgs = nixpkgs.legacyPackages.${system};
           hosts = self.nixosConfigurations;
+        };
+
+        public-endpoint-inventory = import ./tests/public-endpoint-inventory.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
         };
 
         monitoring-health = import ./tests/runtime-isolation.nix {

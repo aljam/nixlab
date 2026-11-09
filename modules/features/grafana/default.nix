@@ -19,6 +19,11 @@ let
   );
 
   lokiDashboard = pkgs.writeTextDir "loki.json" (builtins.readFile ./assets/loki.json);
+
+  grafanaPort = config.services.grafana.settings.server.http_port or 3000;
+  grafanaExposed = lib.elem grafanaPort config.networking.proxyBackendPorts;
+  grafanaAnonymous = config.services.grafana.settings."auth.anonymous".enabled or false;
+  grafanaSignup = config.services.grafana.settings.users.allow_sign_up or false;
 in
 {
   options.services.nixlab.grafana.lokiUrl = lib.mkOption {
@@ -113,5 +118,20 @@ in
     };
 
     networking.proxyBackendPorts = [ 3000 ];
+
+    assertions = [
+      # Grafana is internet-facing when included in the HAProxy backend
+      # allowlist. It must require authentication and must not permit
+      # self-registration.
+      {
+        assertion = !grafanaExposed || !grafanaAnonymous;
+        message = "Grafana must disable anonymous access when exposed through the HAProxy backend allowlist.";
+      }
+
+      {
+        assertion = !grafanaExposed || !grafanaSignup;
+        message = "Grafana must disable self-registration when exposed through the HAProxy backend allowlist.";
+      }
+    ];
   };
 }

@@ -19,7 +19,10 @@ let
 
   rebuildWrapper = pkgs.writeShellApplication {
     name = "deploy-rebuild";
-    runtimeInputs = [ pkgs.nixos-rebuild ];
+    runtimeInputs = [
+      pkgs.nixos-rebuild
+      pkgs.git
+    ];
     text = ''
       action="''${1:-}"
       rev="''${2:-}"
@@ -35,6 +38,11 @@ let
       if [[ ! "$rev" =~ ^[0-9a-f]{40}$ ]]; then
         echo "deploy-rebuild: expected a full 40-character commit hash, got '$rev'" >&2
         exit 2
+      fi
+
+      if ! git ls-remote "${lib.escapeShellArg cfg.flakeRef}" | grep -Eq "(^|[[:space:]])${rev}$"; then
+        echo "deploy-rebuild: revision is not reachable from ${lib.escapeShellArg cfg.flakeRef}" >&2
+        exit 1
       fi
 
       exec nixos-rebuild "$action" \

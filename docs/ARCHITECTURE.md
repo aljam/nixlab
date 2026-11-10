@@ -60,7 +60,7 @@ mkHost = { name, roles ? [], extraModules ? [] }:
 
 1. **Base role**: Every host gets `modules/roles/common.nix`, which sets up SSH, SOPS, fail2ban, locales, Cachix, and other fleet-wide defaults.
 
-2. **Role composition**: The `roles` list imports role profiles from `modules/roles/`. For example, `server-core` adds node-exporter and reverse-proxy-backends; `media-node` adds the *arr stack, Vaultwarden, and Grafana.
+2. **Role composition**: The `roles` list imports role profiles from `modules/roles/`. For example, `server-core` adds node-exporter, Prometheus alerts, and reverse-proxy backends; `media-node` adds the *arr stack, Vaultwarden, Grafana, Homepage, Autobrr, and Recyclarr.
 
 3. **Extra modules**: Host-specific overrides and feature modules go in `extraModules`. This is where you add hardware configuration, user modules, and optional features.
 
@@ -72,11 +72,11 @@ Roles are composable profiles that define a machine's purpose:
 
 - **common.nix**: Base configuration applied to all hosts (SSH hardening, SOPS, fail2ban, etc.)
 - **desktop-node.nix**: Desktop workstation features (Hyprland, audio, gaming, etc.)
-- **server-core.nix**: Core server services (node-exporter, reverse-proxy-backends)
-- **media-node.nix**: Media server stack (servarr, vaultwarden, grafana, postgres)
+- **server-core.nix**: Core server services (node-exporter, Prometheus alerts, reverse-proxy backends)
+- **media-node.nix**: Media server stack (Servarr, Vaultwarden, Grafana, Homepage, Autobrr, Recyclarr)
 - **storage-node.nix**: Minimal storage server (ZFS, S.M.A.R.T. monitoring)
 - **mail-node.nix**: Mail server (smtpd, dovecot, rspamd)
-- **ai-node.nix**: AI/ML workstation (CUDA, NVIDIA drivers) - planned/future
+- **ai-node.nix**: AI/ML workstation (CUDA, NVIDIA drivers)
 
 ## Features
 

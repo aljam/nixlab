@@ -9,7 +9,7 @@
 {
   hardware.steam-hardware.enable = true;
   environment.sessionVariables = {
-    STEAM_EXTRA_COMPAT_TOOLS_PATHS = "\${HOME}/.steam/root/compatibilitytools.d";
+    STEAM_EXTRA_COMPAT_TOOLS_PATHS = "$HOME/.steam/root/compatibilitytools.d";
   };
   programs.gamemode = {
     enable = true;
@@ -34,7 +34,7 @@
     "vm.swappiness" = 10;
     "net.core.rmem_max" = 2500000; # helps Steam downloads
   };
-  services.scx.enable = true; # sched_ext, pairs well with your CachyOS kernel
+  services.scx-loader.enable = true; # sched_ext, pairs well with your CachyOS kernel
   hardware.xpadneo.enable = true; # Xbox controllers over BT
   programs.gamescope.capSysNice = true;
 

@@ -135,6 +135,8 @@
         ];
 
       desktopModules = [
+        ./modules/features/baloo-portal-compat.nix
+
         {
           programs.appimage = {
             enable = true;

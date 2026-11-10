@@ -26,7 +26,6 @@
     ensureDatabases = [
       "matrix-synapse"
       "admin"
-      "webscraper"
       "peertube"
     ];
 
@@ -37,10 +36,6 @@
       }
       {
         name = "admin";
-        ensureDBOwnership = true;
-      }
-      {
-        name = "webscraper";
         ensureDBOwnership = true;
       }
       {
@@ -74,8 +69,7 @@
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       Type = "oneshot";
-      User = "postgres";
-      Group = "postgres";
+      UMask = "0077";
     };
     path = [ config.services.postgresql.package ];
     script = ''

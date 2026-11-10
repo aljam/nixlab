@@ -1,1 +1,116 @@
-IyBEZWRpY2F0ZWQsIHVucHJpdmlsZWdlZCBkZXBsb3ltZW50IGlkZW50aXR5LgojCiMgRGVwbG95bWVudCBpcyBwdWxsLWJhc2VkOiB0aGUgZGVwbG95IHVzZXIgbWF5IHJ1biBleGFjdGx5IG9uZSBzdWRvIGNvbW1hbmQsCiMgYGRlcGxveS1yZWJ1aWxkYCwgd2hpY2ggcmVidWlsZHMgdGhpcyBob3N0IGZyb20gYSBwaW5uZWQgcmV2aXNpb24gb2YgdGhlCiMgcmVwb3NpdG9yeSBmbGFrZS4gVGhlIGRlcGxveSB1c2VyIGNhbm5vdCBydW4gYXJiaXRyYXJ5IGNvbW1hbmRzIGFzIHJvb3QsIGhhcwpubyBpbnRlcmFjdGl2ZSBzaGVsbCBzZXNzaW9uICh0aGUgYXV0aG9yaXplZCBrZXkgaXMgYHJlc3RyaWN0YGVkKSwgYW5kIGlzIHRoZQojIG9ubHkgbm9uLXdoZWVsIGlkZW50aXR5IGFsbG93ZWQgdGhyb3VnaCBzc2hkLgojCiMgVXNlIGBuaXggcnVuIC4jZGVwbG95IC0tIDxob3N0PmAgZnJvbSBhIGNsZWFuLCBwdXNoZWQgY2hlY2tvdXQgdG8gZHJpdmUgaXQuCnsKICBsaWIsCiAgY29uZmlnLAogIHBrZ3MsCiAgLi4uCn06CgpsZXQKICBjZmcgPSBjb25maWcucm9sZXMuc2VjdXJpdHkuZGVwbG95VXNlciwKCiAgcmVidWlsZFdyYXBwZXIgPSBwa2dzLndyaXRlU2hlbGxBcHBsaWNhdGlvbiB7CiAgICBuYW1lID0gImRlcGxveS1yZWJ1aWxkIjsKICAgIHJ1bnRpbWVJbnB1dHMgPSBbCiAgICAgIHBrZ3MuaGl4b3MtcmVidWlsZAogICAgICBwa2dzLmdpdAogICAgXTsKICAgIHRleHQgPSAnJwogICAgICBhY3Rpb249IiR7MXotfSIKICAgICAgcmV2PSIke3IyOi19IgoKICAgICAgY2FzZSAiJGFjdGlvbiIgaW4KICAgICAgICBzd2l0Y2gpIDs7CiAgICAgICAgKikKICAgICAgICAgIGVjaG8gInVzYWdlOiBkZXBsb3ktcmVidWlsZCBzd2l0Y2ggPGdpdC1yZXY+IiA+JjIKICAgICAgICAgIGV4aXQgMgogICAgICAgICAgOzsKICAgICAgZXNhYwoKICAgICAgaWYgW1sgISAiJHJldiIgPX4gXlswLTlhLWZdezQwfSQgXV07IHRoZW4KICAgICAgICBlY2hvICJkZXBsb3ktcmVidWlsZDogZXhwZWN0ZWQgYSBmdWxsIDQwLWNoYXJhY3RlciBjb21taXQgaGFzaCwgZ290ICckcmV2JyIgPiYyCiAgICAgICAgZXhpdCAyCiAgICAgIGZpCgogICAgICBpZiAhIGdpdCBscy1yZW1vdGUgIiR7bGliLmVzY2FwZVNoZWxsQXJnIGNmZy5mbGFrZVJlZn0iIHwgZ3JlcCAtRXEgIihefFtbOnNwYWNlOl1dKSR7cmV2fSQiOyB0aGVuCiAgICAgICAgZWNobyAiZGVwbG95LXJlYnVpbGQ6IHJldmlzaW9uIGlzIG5vdCByZWFjaGFibGUgZnJvbSAke2xpYi5lc2NhcGVTaGVsbEFyZyBjZmcuZmxha2VSZWZ9IiA+JjIKICAgICAgICBleGl0IDEKICAgICAgZmkKCiAgICAgIGV4ZWMgbml4b3MtcmVidWlsZCAiJGFjdGlvbiIgXFwKICAgICAgICAtLWZsYWtlICR7bGliLmVzY2FwZVNoZWxsQXJnIGNmZy5mbGFrZVJlZn0vIiRyZXYiI3Mke2xpYi5lc2NhcGVTaGVsbEFyZyBjb25maWcubmV0d29ya2luZy5ob3N0TmFtZX0KICAgICcnOwogIH07CmluCgp7CiAgb3B0aW9ucy5yb2xlcy5zZWN1cml0eS5kZXBsb3lVc2VyID0gewogICAgZW5hYmxlID0gbGliLm1rRW5hYmxlT3B0aW9uICJkZWRpY2F0ZWQgZGVwbG95bWVudCB1c2VyIjsKCiAgICBmbGFrZVJlZiA9IGxpYi5ta09wdGlvbiB7CiAgICAgIHR5cGUgPSBsaWIudHlwZXMuc3RyOwogICAgICBkZWZhdWx0ID0gImh0dHBzOi8vZ2l0aHViLmNvbS9BbGphbS9uaXhsYWIuZ2l0IjsKICAgICAgZGVzY3JpcHRpb24gPSAnJwogICAgICAgIEZsYWtlIHJlZmVyZW5jZSAod2l0aG91dCByZXZpc2lvbikgdGhlIGRlcGxveW1lbnQgdXNlciBpcyBwZXJtaXR0ZWQKICAgICAgICB0byByZWJ1aWxkIGZyb20uIFRoZSByZXZpc2lvbiBpcyBzdXBwbGllZCBwZXIgZGVwbG95bWVudC4KICAgICAgJyc7CiAgICB9OwoKICAgIGF1dGhvcml6ZWRLZXlGaWxlID0gbGliLm1rT3B0aW9uIHsKICAgICAgdHlwZSA9IGxpYi50eXBlcy5wYXRoOwogICAgICBkZWZhdWx0ID0gLi4vLi4vc2VjcmV0cy9kZXBsb3lfYXV0aG9yaXplZF9rZXkucHViOwogICAgICBkZXNjcmlwdGlvbiA9ICJQdWJsaWMga2V5IGFsbG93ZWQgdG8gdHJpZ2dlciBkZXBsb3ltZW50cy4iOwogICAgfTsKICB9OwoKICBjb25maWcgPSBsaWIubWtJZiBjZmcuZW5hYmxlIHsKICAgIHVzZXJzLmdyb3Vwcy5kZXBsb3kgPSB7IH07CgogICAgdXNlcnMudXNlcnMuZGVwbG95ID0gewogICAgICBpc1N5c3RlbVVzZXIgPSB0cnVlOwogICAgICBncm91cCA9ICJkZXBsb3kiOwogICAgICAjIEEgcmVhbCBzaGVsbCBpcyByZXF1aXJlZCBmb3Igc3NoZCB0byBleGVjdXRlIHRoZSBmb3JjZWQtc3R5bGUgY29tbWFuZDsKICAgICAgIyBgcmVzdHJpY3RgIG9uIHRoZSBrZXkgZGVuaWVzIFBUWSBhbGxvY2F0aW9uIGFuZCBhbGwgZm9yd2FyZGluZy4KICAgICAgc2hlbGwgPSBwa2dzLmJhc2g7CiAgICAgIG9wZW5zc2guYXV0aG9yaXplZEtleXMua2V5cyA9IFsKICAgICAgICAicmVzdHJpY3QgJHtsaWIuZmlsZUNvbnRlbnRzIGNmZy5hdXRob3JpemVkS2V5RmlsZX0iCiAgICAgIF07CiAgICB9OwoKICAgICMgc3NoZCBpcyBvdGhlcndpc2Ugd2hlZWwtb25seSAobW9kdWxlcy9mZWF0dXJlcy9zc2gubml4KS4KICAgIHNlcnZpY2VzLm9wZW5zc2guc2V0dGluZ3MuQWxsb3dHcm91cHMgPSBbICJkZXBsb3kiIF07CgogICAgZW52aXJvbm1lbnQuc3lzdGVtUGFja2FnZXMgPSBbIHJlYnVpbGRXcmFwcGVyIF07CgogICAgc2VjdXJpdHkuc3Vkby5leHRyYVJ1bGVzID0gWwogICAgICB7CiAgICAgICAgdXNlcnMgPSBbICJkZXBsb3kiIF07CiAgICAgICAgY29tbWFuZHMgPSBbCiAgICAgICAgICB7CiAgICAgICAgICAgICMgTWF0Y2ggdGhlIHN5c3RlbS1wcm9maWxlIHBhdGgsIGFzIHJlc29sdmVkIHRocm91Z2ggc3VkbydzIHNlY3VyZV9wYXRoLgogICAgICAgICAgICBjb21tYW5kID0gIi9ydW4vY3VycmVudC1zeXN0ZW0vc3cvYmluL2RlcGxveS1yZWJ1aWxkICoiOwogICAgICAgICAgICBvcHRpb25zID0gWyAiTk9QQVNTV0QiIF07CiAgICAgICAgICB9CiAgICAgICAgXTsKICAgICAgfQogICAgXTsKCiAgICBhc3NlcnRpb25zID0gWwogICAgICB7CiAgICAgICAgYXNzZXJ0aW9uID0gY29uZmlnLnNlcnZpY2VzLm9wZW5zc2guZW5hYmxlOwogICAgICAgIG1lc3NhZ2UgPSAiVGhlIGRlcGxveSB1c2VyIHJlcXVpcmVzIE9wZW5TU0guIjsKICAgICAgfQogICAgICB7CiAgICAgICAgYXNzZXJ0aW9uID0gY29uZmlnLnNlcnZpY2VzLm9wZW5zc2guc2V0dGluZ3MuUGFzc3dvcmRBdXRoZW50aWNhdGlvbiA9PSBmYWxzZTsKICAgICAgICBtZXNzYWdlID0gIlRoZSBkZXBsb3kgdXNlciBtdXN0IHVzZSBrZXktb25seSBTU0ggYXV0aGVudGljYXRpb24uIjsKICAgICAgfQogICAgXTsKICB9Owp9Cg==
+# Dedicated, unprivileged deployment identity.
+#
+# Deployment is pull-based: the deploy user may run exactly one sudo command,
+# `deploy-rebuild`, which rebuilds this host from a pinned revision of the
+# repository flake. The deploy user cannot run arbitrary commands as root, has
+# no interactive shell session (the authorized key is `restrict`ed), and is the
+# only non-wheel identity allowed through sshd.
+#
+# Use `nix run .#deploy -- <host>` from a clean, pushed checkout to drive it.
+{
+  lib,
+  config,
+  pkgs,
+  ...
+}:
+
+let
+  cfg = config.roles.security.deployUser;
+
+  rebuildWrapper = pkgs.writeShellApplication {
+    name = "deploy-rebuild";
+    runtimeInputs = [
+      pkgs.nixos-rebuild
+      pkgs.git
+    ];
+    text = ''
+      action="${1:-}"
+      rev="${2:-}"
+
+      case "$action" in
+        switch) ;;
+        *)
+          echo "usage: deploy-rebuild switch <git-rev>" >&2
+          exit 2
+          ;;
+      esac
+
+      if [[ ! "$rev" =~ ^[0-9a-f]{40}$ ]]; then
+        echo "deploy-rebuild: expected a full 40-character commit hash, got '$rev'" >&2
+        exit 2
+      fi
+
+      if ! git ls-remote "${lib.escapeShellArg cfg.flakeRef}" | grep -Eq "(^|[[:space:]])${rev}$"; then
+        echo "deploy-rebuild: revision is not reachable from ${lib.escapeShellArg cfg.flakeRef}" >&2
+        exit 1
+      fi
+
+      exec nixos-rebuild "$action" \
+        --flake ${lib.escapeShellArg cfg.flakeRef}/"$rev"#${lib.escapeShellArg config.networking.hostName}
+    '';
+  };
+in
+{
+  options.roles.security.deployUser = {
+    enable = lib.mkEnableOption "dedicated deployment user";
+
+    flakeRef = lib.mkOption {
+      type = lib.types.str;
+      default = "https://github.com/Aljam/nixlab.git";
+      description = ''
+        Flake reference (without revision) the deployment user is permitted
+        to rebuild from. The revision is supplied per deployment.
+      '';
+    };
+
+    authorizedKeyFile = lib.mkOption {
+      type = lib.types.path;
+      default = ../../secrets/deploy_authorized_key.pub;
+      description = "Public key allowed to trigger deployments.";
+    };
+  };
+
+  config = lib.mkIf cfg.enable {
+    users.groups.deploy = { };
+
+    users.users.deploy = {
+      isSystemUser = true;
+      group = "deploy";
+      # A real shell is required for sshd to execute the forced-style command;
+      # `restrict` on the key denies PTY allocation and all forwarding.
+      shell = pkgs.bash;
+      openssh.authorizedKeys.keys = [
+        "restrict ${lib.fileContents cfg.authorizedKeyFile}"
+      ];
+    };
+
+    # sshd is otherwise wheel-only (modules/features/ssh.nix).
+    services.openssh.settings.AllowGroups = [ "deploy" ];
+
+    environment.systemPackages = [ rebuildWrapper ];
+
+    security.sudo.extraRules = [
+      {
+        users = [ "deploy" ];
+        commands = [
+          {
+            # Match the system-profile path, as resolved through sudo's secure_path.
+            command = "/run/current-system/sw/bin/deploy-rebuild *";
+            options = [ "NOPASSWD" ];
+          }
+        ];
+      }
+    ];
+
+    assertions = [
+      {
+        assertion = config.services.openssh.enable;
+        message = "The deploy user requires OpenSSH.";
+      }
+      {
+        assertion = config.services.openssh.settings.PasswordAuthentication == false;
+        message = "The deploy user must use key-only SSH authentication.";
+      }
+    ];
+  };
+}

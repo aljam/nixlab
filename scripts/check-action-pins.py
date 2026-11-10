@@ -9,12 +9,8 @@ import sys
 
 WORKFLOW_DIR = pathlib.Path(".github/workflows")
 
-# Temporary exceptions for existing mutable action references. Remove each
-# entry after resolving its full commit SHA and updating the workflow.
-ALLOWED_MUTABLE_REFS = {
-    "gitleaks/gitleaks-action@v3",
-    "DeterminateSystems/nix-installer-action@v23",
-}
+# Third-party GitHub Actions must be pinned to full commit SHAs.
+ALLOWED_MUTABLE_REFS = set()
 
 USES_RE = re.compile(r"^\s*-?\s*uses:\s*['\"]?([^'\"\s]+)['\"]?\s*$", re.MULTILINE)
 FULL_SHA_RE = re.compile(r"^[0-9a-f]{40}$")

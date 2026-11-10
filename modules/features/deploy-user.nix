@@ -56,7 +56,7 @@ in
 
     flakeRef = lib.mkOption {
       type = lib.types.str;
-      default = "github:Aljam/nixlab";
+      default = "https://github.com/Aljam/nixlab.git";
       description = ''
         Flake reference (without revision) the deployment user is permitted
         to rebuild from. The revision is supplied per deployment.

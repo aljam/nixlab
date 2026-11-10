@@ -6,10 +6,11 @@
 # the portal an application identity without exposing Baloo in application
 # launchers.
 {
-  xdg.desktopEntries."org.kde.baloo" = {
-    name = "KDE Baloo";
-    type = "Application";
-    exec = "baloo_file_extractor %U";
-    noDisplay = true;
-  };
+  environment.etc."xdg/applications/org.kde.baloo.desktop".text = ''
+    [Desktop Entry]
+    Type=Application
+    Name=KDE Baloo
+    Exec=baloo_file_extractor %U
+    NoDisplay=true
+  '';
 }

@@ -208,7 +208,7 @@ in
         wantedBy = [ "multi-user.target" ];
 
         environment = {
-          CACHE_DIR = cacheDirectory;
+          RESTIC_CACHE_DIR = cacheDirectory;
         };
 
         serviceConfig = {

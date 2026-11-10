@@ -231,7 +231,8 @@
             git fetch --quiet origin
             if ! git merge-base --is-ancestor "$rev" origin/main; then
               echo "Refusing to deploy: $rev is not on origin/main." >&2
-              echo "Push (or merge) first, then retry." >&2
+              echo "Deploying a revision that is not on origin/main would deploy stale configuration."
+              exit 1
             fi
 
             echo "==> Running flake checks"
@@ -241,13 +242,6 @@
             if (( ''${#hosts[@]} == 0 )); then
               hosts=("''${known_hosts[@]}")
             fi
-
-            for host in "''${hosts[@]}"; do
-              if [[ ! " ''${known_hosts[*]} " == *" ''${host} "* ]]; then
-                echo "Unknown deploy host: ''${host}" >&2
-                echo "Available hosts: ''${known_hosts[@]}" >&2
-              fi
-            done
 
             for host in "''${hosts[@]}"; do
               echo "==> Deploying ''${host} @ ''${rev}"
@@ -271,6 +265,10 @@
         public-service-hardening = import ./tests/public-service-hardening.nix {
           pkgs = nixpkgs.legacyPackages.${system};
           hosts = self.nixosConfigurations;
+        };
+
+        public-endpoint-inventory = import ./tests/public-endpoint-inventory.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
         };
 
         monitoring-health = import ./tests/runtime-isolation.nix {

@@ -25,6 +25,12 @@ in
   config = lib.mkIf cfg.enable {
     users.groups.radio = { };
 
+    users.users.icecast = {
+      isSystemUser = true;
+      group = "radio";
+      description = "Icecast streaming server";
+    };
+
     sops.secrets =
       let
         icecastSecret = {

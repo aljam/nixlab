@@ -1,8 +1,6 @@
 # SOPS secrets
 
-Secrets are service-scoped to reduce the impact of a compromised host or
-credential. Every secret file has an explicit SOPS creation rule; there is no
-fleet-wide fallback rule.
+Secrets are service-scoped to reduce the impact of a compromised host or credential. Every secret file has an explicit SOPS creation rule; there is no fleet-wide fallback rule.
 
 ## Recipient model
 
@@ -20,21 +18,41 @@ Servers do not receive NAS credentials because they do not mount the NAS.
 
 ## Recipient audit
 
-CI runs `scripts/check-sops-recipients.py` to enforce the recipient matrix
-above. The audit verifies that:
+CI runs `scripts/check-sops-recipients.py` to enforce the recipient matrix above. The audit verifies that every expected host and administrator recipient is defined exactly once, every recipient reference resolves to a defined key, every secret file has exactly one explicit creation rule, each rule grants exactly the documented recipients, no fleet-wide fallback rule exists, and the age recipients embedded in each encrypted file match the declared policy.
 
-- every expected host and administrator recipient is defined exactly once;
-- every recipient reference resolves to a defined key;
-- every secret file has exactly one explicit creation rule;
-- each rule grants exactly the recipients documented for that file;
-- no fleet-wide fallback rule exists; and
-- the age recipients embedded in each encrypted file exactly match that file’s
-  declared policy.
+The encrypted-recipient check reads SOPS metadata only. It does not decrypt secret files, but it detects recipient drift introduced directly by `sops updatekeys` or another tool that changes an encrypted file without updating `.sops.yaml`.
 
-The encrypted-recipient check reads SOPS metadata only. It does not decrypt
-secret files, but it detects recipient drift introduced directly by
-`sops updatekeys` or another tool that changes an encrypted file without
-updating `.sops.yaml`.
+## Secret inventory
+
+Maintain an inventory entry for every `sops.secrets` declaration. Record the secret, SOPS file, consuming host and service, owner, mode, and rotation interval.
+
+| Secret | SOPS file | Host | Consuming service | Owner | Mode | Rotation |
+|---|---|---|---|---|---|---|
+| Example API token | `secrets/hosts/example/example.yaml` | `example` | `example.service` | `example` | `0400` | Every 90 days |
+
+NixOS policy requires every `sops.secrets` entry to declare an explicit `sopsFile`, `owner`, and `mode`; decrypted files must use owner-only mode `0400`.
+
+## Adding a secret
+
+1. Create or update the service- or trust-boundary-scoped SOPS file.
+2. Add only the intended host and administrator recipients in `.sops.yaml`.
+3. Encrypt the file with `sops`.
+4. Declare the secret in the consuming NixOS module with explicit `sopsFile`, `owner`, and `mode = "0400"`.
+5. Add or update its inventory row, including consumer and rotation interval.
+6. Run `nix flake check` before committing.
+
+Avoid granting unrelated hosts access to a secret file.
+
+## Rotating a secret
+
+1. Generate the replacement credential.
+2. Update the SOPS file with `sops`.
+3. Update the consuming service configuration if the secret name or format changes.
+4. Update the inventory rotation date.
+5. Deploy the affected host.
+6. Verify service health and decryption.
+
+For recipient changes, follow [Changing recipients](#changing-recipients).
 
 ## Recovery drill
 
@@ -44,25 +62,19 @@ Run the host-specific recovery drill before relying on a new or rebuilt host:
 bash scripts/sops-recovery-drill.sh --host r730xd
 ```
 
-The drill validates the recipient policy, resolves the selected host's SOPS
-recipient, lists the secret files intended for that host, and prints the
-recovery checklist.
+The drill validates the recipient policy, resolves the selected host's SOPS recipient, lists the secret files intended for that host, and prints the recovery checklist.
 
-To exercise decryption from a local SOPS identity that is authorized for the
-host's allowed files, run:
+To exercise decryption from a local SOPS identity that is authorized for the host's allowed files, run:
 
 ```bash
 bash scripts/sops-recovery-drill.sh --host r730xd --decrypt
 ```
 
-CI runs the non-decrypting drill for `r730xd` and validates the script syntax.
-Decryption requires a real SOPS identity and must be run locally or from a
-trusted administrative environment.
+CI runs the non-decrypting drill for `r730xd` and validates the script syntax. Decryption requires a real SOPS identity and must be run locally or from a trusted administrative environment.
 
 ## Changing recipients
 
-After changing a creation rule in `.sops.yaml`, re-encrypt the affected file
-locally:
+After changing a creation rule in `.sops.yaml`, re-encrypt the affected file locally:
 
 ```bash
 sops updatekeys secrets/nas.yaml
@@ -71,7 +83,4 @@ sops -d secrets/nas.yaml >/dev/null
 
 Then rebuild only hosts that should retain access to that secret file.
 
-When replacing or rebuilding a host, preserve or rotate its SSH Ed25519 host
-key, update its recipient in `.sops.yaml`, run `sops updatekeys` for every
-affected secret file, and confirm decryption on the rebuilt host before
-deploying further changes.
+When replacing or rebuilding a host, preserve or rotate its SSH Ed25519 host key, update its recipient in `.sops.yaml`, run `sops updatekeys` for every affected secret file, and confirm decryption on the rebuilt host before deploying further changes.

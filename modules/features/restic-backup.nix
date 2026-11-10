@@ -16,6 +16,7 @@ let
   backupGroup = "restic-backup";
   passwordFile = config.sops.secrets.restic-backup-password.path;
   lockFile = "/run/restic-backup.lock";
+  cacheDirectory = "/var/lib/restic-backup/cache";
   metricsDirectory = "/var/lib/node-exporter/textfile";
 
   jobModule = {
@@ -193,6 +194,7 @@ in
 
     systemd.tmpfiles.rules = [
       "d /var/lib/restic-backup 0711 restic-backup restic-backup - -"
+      "d /var/lib/restic-backup/cache 0700 restic-backup restic-backup - -"
       "d /var/lib/restic-backup/postgresql 0730 postgres restic-backup - -"
       "d /var/lib/restic-backup/repo 0700 restic-backup restic-backup - -"
     ];
@@ -204,6 +206,10 @@ in
         requires = job.requires;
         after = [ "sops-nix.service" ] ++ job.after;
         wantedBy = [ "multi-user.target" ];
+
+        environment = {
+          CACHE_DIR = cacheDirectory;
+        };
 
         serviceConfig = {
           Type = "oneshot";

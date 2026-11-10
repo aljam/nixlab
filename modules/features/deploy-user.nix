@@ -17,6 +17,8 @@
 let
   cfg = config.roles.security.deployUser;
 
+  flakeArg = "git+${cfg.flakeRef}?rev=\${rev}#${config.networking.hostName}";
+
   rebuildWrapper = pkgs.writeShellApplication {
     name = "deploy-rebuild";
     runtimeInputs = [
@@ -46,7 +48,7 @@ let
       fi
 
       exec nixos-rebuild "$action" \
-        --flake ${lib.escapeShellArg cfg.flakeRef}/"$rev"#${lib.escapeShellArg config.networking.hostName}
+        --flake ${lib.escapeShellArg flakeArg}
     '';
   };
 in

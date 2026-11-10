@@ -71,11 +71,6 @@
       LC_TIME = "en_CA.UTF-8";
     };
 
-    i18n.supportedLocales = [
-      "en_CA.UTF-8"
-      "en_US.UTF-8"
-    ];
-
     nix.settings.experimental-features = [
       "nix-command"
       "flakes"

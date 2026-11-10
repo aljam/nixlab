@@ -27,6 +27,14 @@
 
   networking.networkmanager.enable = true;
 
+  services.scx-loader = {
+    enable = true;
+    config = {
+      default_sched = "scx_lavd";
+      default_mode = "Auto";
+    };
+  };
+
   services.tailscale = {
     enable = true;
     useRoutingFeatures = "both";

@@ -73,7 +73,7 @@
     };
     path = [ config.services.postgresql.package ];
     script = ''
-      psql --set=ON_ERROR_STOP=1 --dbname=peertube <<'SQL'
+      psql --set=ON_ERROR_STOP=1 --username=postgres --dbname=peertube <<'SQL'
         CREATE EXTENSION IF NOT EXISTS pg_trgm;
         CREATE EXTENSION IF NOT EXISTS unaccent;
       SQL

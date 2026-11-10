@@ -28,9 +28,9 @@ let
     mkdir -p "$(dirname "$tmp")"
     chmod 0750 "$(dirname "$tmp")"
 
-    tcp_listeners="$(ss -Hltn | wc -l)"
-    udp_listeners="$(ss -Hlun | wc -l)"
-    ruleset_hash="$(nft list ruleset | sha256sum | cut -d' ' -f1)"
+    tcp_listeners="$(${lib.getExe' pkgs.iproute2 "ss"} -Hltn | wc -l)"
+    udp_listeners="$(${lib.getExe' pkgs.iproute2 "ss"} -Hlun | wc -l)"
+    ruleset_hash="$(${lib.getExe' pkgs.nftables "nft"} list ruleset | sha256sum | cut -d' ' -f1)"
     revision="$(nixos-version --configuration-revision 2>/dev/null || true)"
 
     cat > "$tmp" <<EOF

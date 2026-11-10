@@ -24,6 +24,22 @@ in
       mode = "0400";
       restartUnits = [ "matrix-synapse.service" ];
     };
+
+    matrix-recaptcha-site-key = {
+      sopsFile = ../../secrets/matrix.yaml;
+      owner = "matrix-synapse";
+      group = "matrix-synapse";
+      mode = "0400";
+      restartUnits = [ "matrix-synapse.service" ];
+    };
+
+    matrix-recaptcha-secret-key = {
+      sopsFile = ../../secrets/matrix.yaml;
+      owner = "matrix-synapse";
+      group = "matrix-synapse";
+      mode = "0400";
+      restartUnits = [ "matrix-synapse.service" ];
+    };
   };
 
   services.matrix-synapse = {
@@ -84,7 +100,9 @@ in
 
       enable_registration = true;
       registration_requires_token = false;
-      enable_registration_without_verification = true;
+      enable_registration_captcha = true;
+      recaptcha_public_key = config.sops.secrets.matrix-recaptcha-site-key.path;
+      recaptcha_private_key = config.sops.secrets.matrix-recaptcha-secret-key.path;
       registration_shared_secret_path =
         config.sops.secrets.matrix-synapse-registration-shared-secret.path;
 

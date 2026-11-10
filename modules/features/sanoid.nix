@@ -33,7 +33,6 @@
   # NoNewPrivileges and ProtectSystem=strict here.
   systemd.services.sanoid.serviceConfig = {
     PrivateTmp = true;
-    PrivateDevices = true;
     ProtectHome = true;
     ProtectKernelTunables = true;
     ProtectKernelModules = true;

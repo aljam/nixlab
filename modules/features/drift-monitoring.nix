@@ -1,15 +1,3 @@
-# Runtime drift monitoring.
-#
-# Exports lightweight runtime signals through the node_exporter textfile
-# collector:
-#
-# - Number of listening TCP and UDP sockets.
-# - SHA-256 of the active nftables ruleset.
-# - Active NixOS configuration revision.
-#
-# These metrics make unexpected listeners, out-of-band firewall edits, and
-# untracked deployments visible to Prometheus without exposing any new network
-# service.
 {
   config,
   lib,
@@ -28,9 +16,9 @@ let
     mkdir -p "$(dirname "$tmp")"
     chmod 0750 "$(dirname "$tmp")"
 
-    tcp_listeners="$(ss -Hltn | wc -l)"
-    udp_listeners="$(ss -Hlun | wc -l)"
-    ruleset_hash="$(nft list ruleset | sha256sum | cut -d' ' -f1)"
+    tcp_listeners="$(${lib.getExe' pkgs.iproute2 "ss"} -Hltn | wc -l)"
+    udp_listeners="$(${lib.getExe' pkgs.iproute2 "ss"} -Hlun | wc -l)"
+    ruleset_hash="$(${lib.getExe' pkgs.nftables "nft"} list ruleset | sha256sum | cut -d' ' -f1)"
     revision="$(nixos-version --configuration-revision 2>/dev/null || true)"
 
     cat > "$tmp" <<EOF
@@ -91,6 +79,8 @@ in
         "AF_INET6"
         "AF_NETLINK"
       ];
+      AmbientCapabilities = [ "CAP_NET_ADMIN" ];
+      CapabilityBoundingSet = [ "CAP_NET_ADMIN" ];
       LockPersonality = true;
     };
   };

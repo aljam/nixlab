@@ -26,7 +26,6 @@
     ensureDatabases = [
       "matrix-synapse"
       "admin"
-      "webscraper"
       "peertube"
     ];
 
@@ -37,10 +36,6 @@
       }
       {
         name = "admin";
-        ensureDBOwnership = true;
-      }
-      {
-        name = "webscraper";
         ensureDBOwnership = true;
       }
       {
@@ -74,12 +69,17 @@
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       Type = "oneshot";
-      User = "postgres";
-      Group = "postgres";
+      UMask = "0077";
     };
-    path = [ config.services.postgresql.package ];
+    path = with pkgs; [
+      postgresql
+      util-linux
+    ];
     script = ''
-      psql --set=ON_ERROR_STOP=1 --dbname=peertube <<'SQL'
+      runuser -u postgres -- psql \
+        --set=ON_ERROR_STOP=1 \
+        --username=postgres \
+        --dbname=peertube <<'SQL'
         CREATE EXTENSION IF NOT EXISTS pg_trgm;
         CREATE EXTENSION IF NOT EXISTS unaccent;
       SQL

@@ -18,6 +18,16 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
+  action-pinning:
+    name: Require SHA-pinned GitHub Actions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Check action pinning
+        run: python3 scripts/check-action-pins.py
+
   gitleaks:
     name: Scan tracked files and Git history
     runs-on: ubuntu-latest
@@ -28,7 +38,7 @@ jobs:
           fetch-depth: 0
 
       - name: Scan repository with Gitleaks
-        uses: gitleaks/gitleaks-action@v3
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -135,7 +145,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v23
+        uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
 
       - name: Check flake
         run: nix flake check --show-trace

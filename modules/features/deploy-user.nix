@@ -40,7 +40,7 @@ let
         exit 2
       fi
 
-      if ! git ls-remote "${lib.escapeShellArg cfg.flakeRef}" | grep -Eq "(^|[[:space:]])''${rev}$"; then
+      if ! git ls-remote "${lib.escapeShellArg cfg.flakeRef}" | grep -Eq "^''${rev}[[:space:]]"; then
         echo "deploy-rebuild: revision is not reachable from ${lib.escapeShellArg cfg.flakeRef}" >&2
         exit 1
       fi

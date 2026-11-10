@@ -1,7 +1,4 @@
-{ config,
-  lib,
-  pkgs,
-  ...}:
+{ config, lib, pkgs, ... }:
 let
   textfileDirectory = "/var/lib/node-exporter/textfile";
 

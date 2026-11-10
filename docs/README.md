@@ -8,6 +8,7 @@ Use this map to find the canonical guide for each concern.
 | Planned updates and deployments | [Updates](UPDATES.md) |
 | Unexpected failures and recovery | [Recovery](RECOVERY.md) |
 | Routine health checks | [Runbook](RUNBOOK.md) |
+| Disk health | [Disk health](DISK-HEALTH.md) |
 | Recurring maintenance | [Maintenance](MAINTENANCE.md) |
 | Secret policy and SOPS procedures | [Secrets](SECRETS.md) |
 | Security policy | [Security](SECURITY.md) |
@@ -31,9 +32,8 @@ Use this map to find the canonical guide for each concern.
 5. Use [Runbook](RUNBOOK.md) for routine checks and first response.
 6. Use [Recovery](RECOVERY.md) for failures and data restoration.
 
-## Duplicate guides
+## Keeping documentation current
 
-`UPDATE.md` is a deprecated pointer to `UPDATES.md`.
-`secrets.md` is a deprecated duplicate of `SECRETS.md`.
-
-They are retained only until inbound references are cleaned up.
+Update the document that owns an affected topic in the same pull request.
+At minimum, review this map and the relevant operational, security,
+networking, recovery, or secrets guide.

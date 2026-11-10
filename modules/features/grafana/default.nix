@@ -55,6 +55,8 @@ in
         "auth.anonymous".enabled = false;
 
         users.allow_sign_up = false;
+
+        log.filters = "search-manifest-watcher:error";
       };
 
       provision.datasources.settings = {

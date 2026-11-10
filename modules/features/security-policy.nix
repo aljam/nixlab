@@ -1,8 +1,6 @@
 { lib, config, ... }:
 
 let
-  sopsSecrets = lib.attrValues config.sops.secrets;
-
   grafanaPort = config.services.grafana.settings.server.http_port or 3000;
   grafanaExposed = lib.elem grafanaPort config.networking.proxyBackendPorts;
   grafanaAnonymous = config.services.grafana.settings.auth.anonymous.enabled or false;
@@ -41,6 +39,8 @@ let
   gamingEnabled =
     (config.programs.steam.enable or false) || (config.programs.gamescope.enable or false);
 
+  sopsSecrets = lib.attrValues config.sops.secrets;
+
   rootOwnedSecrets = lib.filter (secret: secret.owner == "root") sopsSecrets;
 
   unauthorizedRootOwnedSecrets = lib.filter (
@@ -48,18 +48,32 @@ let
   ) rootOwnedSecrets;
 
   unauthorizedSecretNames = map (secret: secret.name) unauthorizedRootOwnedSecrets;
+
+  # Map a secret to the service identity that is intended to consume it.
+  # A mapping is checked only when that secret is declared on the evaluated
+  # host, allowing host-specific secret sets to remain explicit.
+  expectedOwners = config.roles.security.sopsExpectedOwners;
+
+  mismatchedSecretOwners = lib.filter (
+    secret:
+    let
+      expectedOwner = expectedOwners.${secret.name} or null;
+    in
+    expectedOwner != null && secret.owner != expectedOwner
+  ) sopsSecrets;
+
+  mismatchedSecretNames = map (secret: secret.name) mismatchedSecretOwners;
 in
 {
   options.roles.server.enable = lib.mkEnableOption "server role policies";
 
-  options.roles.security.sopsAllowedRootSecrets = lib.mkOption {
-    type = lib.types.listOf lib.types.str;
-    default = [ ];
+  options.roles.security.sopsExpectedOwners = lib.mkOption {
+    type = lib.types.attrsOf lib.types.str;
+    default = { };
     description = ''
-      Names of SOPS secrets that are explicitly allowed to be owned by root.
-      This is intended for system-level credentials such as mount credentials,
-      mail relay configuration, and services that do not yet have a
-      dedicated unprivileged identity.
+      Maps SOPS secret names to the service identity expected to own and
+      consume them. A mapping is enforced only when the named secret is
+      declared on the evaluated host.
     '';
   };
 
@@ -93,6 +107,18 @@ in
         SOPS secrets owned by root must be listed in
         roles.security.sopsAllowedRootSecrets. Unauthorized secrets:
         ${lib.concatStringsSep ", " unauthorizedSecretNames}
+      '';
+    }
+
+    # Ensure that a mapped secret is owned by the service intended to
+    # consume it. This prevents accidental credential sharing across
+    # service identities.
+    {
+      assertion = mismatchedSecretOwners == [ ];
+      message = ''
+        SOPS secrets must be owned by their expected consuming service.
+        Mismatched secrets:
+        ${lib.concatStringsSep ", " mismatchedSecretNames}
       '';
     }
 
@@ -181,4 +207,14 @@ in
     # SSH policy, including key-only authentication, is owned by
     # modules/features/ssh.nix.
   ];
+
+  config.roles.security.sopsExpectedOwners = {
+    "grafana-admin-password" = "grafana";
+    "grafana-secret-key" = "grafana";
+    "peertube-secrets" = "peertube";
+    "vaultwarden-admin-token" = "vaultwarden";
+    "nfty-url" = "alertmanager";
+    "pfsense-root-ca-matrix" = "matrix-synapse";
+    "radarr_api_key" = "recyclarr";
+  };
 }

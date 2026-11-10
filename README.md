@@ -53,24 +53,22 @@ nix flake check
 
 ```text
 nixlab/
-├── flake.nix              # Entry point: mkHost helper, inputs, outputs
-├── flake.lock             # Pinned dependencies
-├── hosts/                 # Per-host configurations
-├── modules/
-│   ├── features/          # Reusable feature and service modules
-│   ├── hardware/          # Hardware-specific modules
-│   └── roles/             # Shared host roles
-├── secrets/               # SOPS-encrypted secrets, split by service or trust boundary
-├── tests/                 # NixOS tests
-└── users/                 # User configurations
+|-- flake.nix              # Entry point: mkHost helper, inputs, outputs
+|-- flake.lock             # Pinned dependencies
+|-- hosts/                 # Per-host configurations
+|-- modules/
+|   |-- features/          # Reusable feature and service modules
+|   |-- hardware/          # Hardware-specific modules
+|   `-- roles/             # Shared host roles
+|-- secrets/               # SOPS-encrypted secrets, split by service or trust boundary
+|-- tests/                 # NixOS tests
+`-- users/                 # User configurations
 ```
 
 ## Documentation
 
-- [Architecture](docs/ARCHITECTURE.md) - Flake structure, mkHost, module organization
-- [Secrets](docs/SECRETS.md) - Service-scoped SOPS files, SSH Ed25519 keys, host-key recovery
-- [Runbook](docs/RUNBOOK.md) - Common operations, rollback, host-key recovery
-- [Networking](docs/NETWORKING.md) - 192.168.1.x topology, HAProxy on pfSense, firewall rules
+See [docs/README.md](docs/README.md) for the complete documentation map,
+reading order, and ownership boundaries.
 
 ## Security model
 

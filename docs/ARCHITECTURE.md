@@ -4,22 +4,23 @@ This document describes the high-level architecture of the NixLab flake.
 
 ## Directory Structure
 
-```
+```text
 .
-├── flake.nix                 # Main entry point, defines mkHost helper
-├── hosts/                    # Host-specific configurations
-│   ├── navi/                 # Desktop workstation
-│   ├── oryx/                 # Laptop
-│   ├── r730/                 # Server (Dell R730)
-│   ├── r730xd/               # Server (Dell R730 with different role)
-│   └── r820/                 # Server (Dell R820)
-├── modules/
-│   ├── roles/                # Role profiles (common, server-core, media-node, etc.)
-│   ├── features/             # Optional feature modules (servarr, vaultwarden, grafana, etc.)
-│   └── hardware/             # Hardware-specific modules (Dell fans, etc.)
-├── users/                    # User configurations (Home Manager + NixOS)
-├── secrets/                  # SOPS-encrypted secrets
-└── tests/                    # NixOS integration tests
+|-- flake.nix                 # Main entry point, defines mkHost helper
+|-- flake.lock                # Pinned dependencies
+|-- hosts/                    # Host-specific configurations
+|   |-- navi/                 # Desktop workstation
+|   |-- oryx/                 # Laptop
+|   |-- r730/                 # Server (Dell R730)
+|   |-- r730xd/               # Server (Dell R730 with different role)
+|   `-- r820/                 # Server (Dell R820)
+|-- modules/
+|   |-- roles/                # Role profiles (common, server-core, media-node, etc.)
+|   |-- features/             # Optional feature modules (servarr, vaultwarden, grafana, etc.)
+|   `-- hardware/             # Hardware-specific modules (Dell fans, etc.)
+|-- users/                    # User configurations (Home Manager + NixOS)
+|-- secrets/                  # SOPS-encrypted secrets
+`-- tests/                    # NixOS integration tests
 ```
 
 ## The mkHost Helper
@@ -29,12 +30,13 @@ The `flake.nix` defines a `mkHost` helper that reduces boilerplate for creating 
 ```nix
 mkHost = { name, roles ? [], extraModules ? [] }:
   nixosLib.evalConfig {
-    modules = [
-      ./modules/roles/common.nix
-      (map (role: ./modules/roles/${role}.nix) roles)
-      extraModules
-      { networking.hostName = name; }
-    ];
+    modules =
+      [
+        ./modules/roles/common.nix
+        { networking.hostName = name; }
+      ]
+      ++ map (role: ./modules/roles/${role}.nix) roles
+      ++ extraModules;
   };
 ```
 
@@ -56,9 +58,9 @@ mkHost = { name, roles ? [], extraModules ? [] }:
 
 ### How It Works
 
-1. **Base role**: Every host gets `modules/roles/common.nix` which sets up SSH, SOPS, fail2ban, locales, Cachix, and other fleet-wide defaults.
+1. **Base role**: Every host gets `modules/roles/common.nix`, which sets up SSH, SOPS, fail2ban, locales, Cachix, and other fleet-wide defaults.
 
-2. **Role composition**: The `roles` list imports role profiles from `modules/roles/`. For example, `server-core` adds node-exporter and reverse-proxy-backends; `media-node` adds the *arr stack, vaultwarden, and grafana.
+2. **Role composition**: The `roles` list imports role profiles from `modules/roles/`. For example, `server-core` adds node-exporter, Prometheus alerts, and reverse-proxy backends; `media-node` adds the *arr stack, Vaultwarden, Grafana, Homepage, Autobrr, and Recyclarr.
 
 3. **Extra modules**: Host-specific overrides and feature modules go in `extraModules`. This is where you add hardware configuration, user modules, and optional features.
 
@@ -70,11 +72,11 @@ Roles are composable profiles that define a machine's purpose:
 
 - **common.nix**: Base configuration applied to all hosts (SSH hardening, SOPS, fail2ban, etc.)
 - **desktop-node.nix**: Desktop workstation features (Hyprland, audio, gaming, etc.)
-- **server-core.nix**: Core server services (node-exporter, reverse-proxy-backends)
-- **media-node.nix**: Media server stack (servarr, vaultwarden, grafana, postgres)
+- **server-core.nix**: Core server services (node-exporter, Prometheus alerts, reverse-proxy backends)
+- **media-node.nix**: Media server stack (Servarr, Vaultwarden, Grafana, Homepage, Autobrr, Recyclarr)
 - **storage-node.nix**: Minimal storage server (ZFS, S.M.A.R.T. monitoring)
 - **mail-node.nix**: Mail server (smtpd, dovecot, rspamd)
-- **ai-node.nix**: AI/ML workstation (CUDA, NVIDIA drivers) - planned/future
+- **ai-node.nix**: AI/ML workstation (CUDA, NVIDIA drivers)
 
 ## Features
 
@@ -97,7 +99,20 @@ Secrets are managed with SOPS + age. Host SSH Ed25519 keys are used as age ident
 
 ## Tests
 
-The `tests/` directory contains NixOS integration tests:
+The `tests/` directory contains NixOS integration and evaluation checks:
 
-- **nftables-shape.nix**: Eval-only test checking firewall rule structure
-- **firewall-isolation.nix**: Full VM test proving only the gateway reaches backend ports and only Prometheus reaches node-exporter
+- **nftables-shape.nix**: Eval-only test checking firewall rule structure.
+- **firewall-isolation.nix**: Full VM test proving only the gateway reaches backend ports and only Prometheus reaches node-exporter.
+- **monitoring-health**: Validates monitoring health assumptions.
+- **nftables-input-rules**: Validates nftables input-rule structure.
+- **postgresql-auth**: Validates PostgreSQL authentication policy.
+- **public-endpoint-inventory**: Validates the public endpoint inventory.
+- **public-service-hardening**: Validates public-service hardening policy.
+- **service-exposure**: Validates service exposure rules.
+- **admin-isolation**: Validates administrative-service isolation.
+
+Run all checks with:
+
+```bash
+nix flake check
+```

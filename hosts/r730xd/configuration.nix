@@ -34,6 +34,8 @@
 
   networking.hostId = "d2083fdc"; # Required for ZFS
 
+  services.resolved.enable = true;
+
   modules.features.prometheus-server.postgresCaFile =
     config.sops.secrets.pfsense-root-ca-prometheus.path;
 
@@ -63,7 +65,7 @@
     jobs.vaultwarden-data = {
       repository = "/var/lib/restic-backup/repo";
       paths = [ "/var/lib/vaultwarden" ];
-      schedule = "*-*-* 03:00:00";
+      schedule = "*-*-* 02:30:00";
       randomizedDelay = "15m";
     };
   };

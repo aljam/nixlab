@@ -46,7 +46,7 @@ let
       fi
 
       exec nixos-rebuild "$action" \
-        --flake "git+${cfg.flakeRef}?rev=\${rev}#${config.networking.hostName}"
+        --flake "git+${cfg.flakeRef}?rev=''${rev}#${config.networking.hostName}"
     '';
   };
 in

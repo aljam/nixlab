@@ -46,6 +46,16 @@ def fail(message: str) -> None:
     raise SystemExit(message)
 
 
+def normalize_recipient(key: str) -> str:
+    """Ignore the human-readable SSH key comment when matching recipients."""
+    parts = key.split()
+
+    if len(parts) >= 3 and parts[0] == "ssh-ed25519":
+        return " ".join(parts[:2])
+
+    return key
+
+
 def parse_rules(config: str) -> list[tuple[str, str]]:
     rules = []
 
@@ -91,7 +101,7 @@ def encrypted_recipients(path: pathlib.Path, alias_to_key: dict[str, str]) -> se
     aliases = set()
 
     for key in keys:
-        alias = key_to_alias.get(key)
+        alias = key_to_alias.get(normalize_recipient(key))
         if alias is None:
             fail(
                 f"{path.relative_to(ROOT).as_posix()}: encrypted file contains an "
@@ -109,7 +119,10 @@ def main() -> None:
     config = SOPS_CONFIG.read_text()
     definitions = ALIAS_DEFINITION.findall(config)
     defined_aliases = [name for name, _ in definitions]
-    alias_to_key = {name: key for name, key in definitions}
+    alias_to_key = {
+        name: normalize_recipient(key)
+        for name, key in definitions
+    }
 
     duplicate_aliases = sorted(
         alias for alias in set(defined_aliases) if defined_aliases.count(alias) > 1

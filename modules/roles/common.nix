@@ -12,6 +12,7 @@
   imports = [
     # Hardware-specific imports are handled by host configurations.
     ../features/boot.nix
+    ../features/log-agent.nix
     ../features/networking-options.nix
     ../features/nix-cache.nix
     ../features/sops.nix
@@ -56,6 +57,12 @@
       "prometheus"
       "prometheus-blackbox-exporter"
     ];
+
+    # Every host ships its journal to Loki on r730xd.
+    services.nixlab.logShipping = {
+      enable = lib.mkDefault true;
+      lokiUrl = lib.mkDefault "http://${config.networking.fleet.r730xd.ip}:3100/loki/api/v1/push";
+    };
 
     nixpkgs.config.allowUnfree = true;
 

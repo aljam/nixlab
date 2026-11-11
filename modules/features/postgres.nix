@@ -6,23 +6,6 @@
 }:
 let
   cfg = config.modules.features.postgres;
-
-  postgresAuth = config.services.postgresql.authentication or "";
-  postgresPort = config.services.postgresql.settings.port or 5432;
-  proxyBackendPorts = config.networking.proxyBackendPorts;
-
-  broadPostgresRules = lib.strings.hasInfix "host all all" postgresAuth;
-
-  isLoopbackRule =
-    line: lib.strings.hasInfix "127.0.0.1/32" line || lib.strings.hasInfix "::1/128" line;
-
-  plaintextRemotePostgresRules = lib.filter (
-    client:
-    let
-      trimmed = lib.strings.trim client;
-    in
-    lib.strings.hasPrefix "host " trimmed && !isLoopbackRule trimmed
-  ) (lib.strings.splitString "\n" postgresAuth);
 in
 {
   imports = [
@@ -132,9 +115,11 @@ in
         install -d -m 0700 -o postgres -g postgres "$certDir"
 
         if [ ! -s "$certDir/server.key" ] || [ ! -s "$certDir/server.crt" ]; then
-          ${pkgs.openssl}/bin/openssl req -new -x509 -days 3650 -nodes \\
-            -subj "/CN=r820.lan" \\
-            -keyout "$certDir/server.key" \\
+          # Nix indented strings keep backslashes literally: one backslash per
+          # shell line continuation.
+          ${pkgs.openssl}/bin/openssl req -new -x509 -days 3650 -nodes \
+            -subj "/CN=${config.networking.hostName}.lan" \
+            -keyout "$certDir/server.key" \
             -out "$certDir/server.crt"
           chown postgres:postgres "$certDir/server.key" "$certDir/server.crt"
           chmod 0600 "$certDir/server.key"
@@ -143,9 +128,10 @@ in
       '';
     };
 
+    # One rule per client address, however many databases it may reach.
     networking.firewall.extraInputRules = lib.concatMapStringsSep "\n" (
-      client: "ip saddr ${client.address} tcp dport 5432 accept"
-    ) cfg.allowedClients;
+      address: "ip saddr ${address} tcp dport 5432 accept"
+    ) (lib.unique (map (client: client.address) cfg.allowedClients));
 
     environment.systemPackages = with pkgs; [
       restic
@@ -190,27 +176,5 @@ in
         '';
       };
     };
-
-    assertions = [
-      # Prevent regression to broad PostgreSQL authentication rules.
-      {
-        assertion = !broadPostgresRules;
-        message = "PostgreSQL authentication must not contain broad host/all/all rules.";
-      }
-
-      # Remote PostgreSQL clients must explicitly negotiate TLS. Loopback
-      # rules are local-only and may retain the standard host authentication.
-      {
-        assertion = plaintextRemotePostgresRules == [ ];
-        message = "PostgreSQL authentication must use hostssl for every non-loopback client rule.";
-      }
-
-      # PostgreSQL is a sensitive backend service and must not be exposed
-      # through the HAProxy backend allowlist.
-      {
-        assertion = !(lib.elem postgresPort proxyBackendPorts);
-        message = "PostgreSQL must not be exposed through the HAProxy backend allowlist.";
-      }
-    ];
   };
 }

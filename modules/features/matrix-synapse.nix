@@ -101,8 +101,8 @@ in
       enable_registration = true;
       registration_requires_token = false;
       enable_registration_captcha = true;
-      recaptcha_public_key = config.sops.secrets.matrix-recaptcha-site-key.path;
-      recaptcha_private_key = config.sops.secrets.matrix-recaptcha-secret-key.path;
+      recaptcha_public_key_path = config.sops.secrets.matrix-recaptcha-site-key.path;
+      recaptcha_private_key_path = config.sops.secrets.matrix-recaptcha-secret-key.path;
       registration_shared_secret_path =
         config.sops.secrets.matrix-synapse-registration-shared-secret.path;
 

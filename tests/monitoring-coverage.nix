@@ -19,37 +19,21 @@ let
     }
   ) hosts;
 
+  missingScrapeJobs = lib.filter (
+    report: report.prometheusEnabled && report.jobNames == [ ]
+  ) hostReports;
+
+  unscrapedNodeExporters = lib.filter (
+    report:
+    report.nodeExporterEnabled
+    && !lib.any (job: lib.hasInfix "node" job) report.jobNames
+  ) hostReports;
+
   errors =
-    lib.concatMap
-      (
-        report:
-        lib.optionals report.prometheusEnabled (
-          lib.optional (report.jobNames == [ ])
-            "${report.hostname}: Prometheus is enabled but has no scrape jobs."
-          ++ lib.optionals report.nodeExporterEnabled (
-            lib.optional
-              (!lib.any (job: lib.hasInfix "node" job) report.jobNames)
-              "${report.hostname}: node_exporter is enabled but is not scraped."
-          )
-        )
-      )
-      hostReports;
+    map (report: "${report.hostname}: Prometheus is enabled but has no scrape jobs.") missingScrapeJobs
+    ++ map (report: "${report.hostname}: node_exporter is enabled but is not scraped.") unscrapedNodeExporters;
 in
-pkgs.runCommand "monitoring-coverage"
-  {
-    passAsFile = [ "report" ];
-    report = lib.generators.toPretty { } hostReports;
-  }
-  (
-    if errors == [ ] then
-      ''
-        echo "Monitoring coverage check passed."
-        echo "$report" > "$out"
-      ''
-    else
-      ''
-        echo "Monitoring coverage check failed:" >&2
-        ${lib.concatMapStringsSep "\n" (error: ''echo "- ${error}" >&2'') errors}
-        exit 1
-      ''
-  )
+if errors == [ ] then
+  pkgs.runCommand "monitoring-coverage" { } "touch $out"
+else
+  throw (lib.concatStringsSep "\n" errors)

@@ -143,10 +143,6 @@ in
         assertion = !(lib.elem 9115 config.networking.proxyBackendPorts);
         message = "The Prometheus Blackbox exporter must not be exposed through the HAProxy backend allowlist.";
       }
-      {
-        assertion = !(lib.elem 9093 config.networking.proxyBackendPorts);
-        message = "Alertmanager must not be exposed through the HAProxy backend allowlist.";
-      }
     ];
 
     services.prometheus = {

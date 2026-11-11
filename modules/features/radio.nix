@@ -12,6 +12,9 @@ let
   icecastBind = "127.0.0.1";
 in
 {
+  # Declares the `media` group, which owns the music library.
+  imports = [ ./media-storage.nix ];
+
   options.modules.features.radio = {
     enable = lib.mkEnableOption "Internet radio streaming stack";
 
@@ -110,12 +113,12 @@ in
       admin.password = "unused-by-rendered-icecast-config";
     };
 
-    systemd.services.icecast = {
-      serviceConfig = {
-        LoadCredential = "icecast-xml:/run/secrets/rendered/icecast-xml";
-        ExecStart = lib.mkForce "${pkgs.icecast}/bin/icecast -c \${CREDENTIALS_DIRECTORY}/icecast-xml";
-      };
+    systemd.services.icecast.serviceConfig = {
+      LoadCredential = "icecast-xml:${config.sops.templates.icecast-xml.path}";
+      ExecStart = lib.mkForce "${pkgs.icecast}/bin/icecast -c \${CREDENTIALS_DIRECTORY}/icecast-xml";
     };
+
+    roles.security.systemdHardenedServices = [ "liquidsoap-radio" ];
 
     systemd.services.liquidsoap-radio = {
       description = "Liquidsoap radio stream";
@@ -129,7 +132,14 @@ in
         Type = "simple";
         Restart = "always";
         ExecStart = "${pkgs.liquidsoap}/bin/liquidsoap ${liquidsoapScript}";
-        SupplementaryGroups = [ "radio" ];
+        # Liquidsoap decodes every file in the library, so it must not be
+        # root. It reads the rendered script (`radio`) and the music
+        # (`media`) and sends the stream to Icecast on loopback.
+        DynamicUser = true;
+        SupplementaryGroups = [
+          "radio"
+          "media"
+        ];
       };
     };
   };

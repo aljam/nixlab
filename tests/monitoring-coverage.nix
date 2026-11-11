@@ -29,7 +29,10 @@ let
   ) hostReports;
 
   unscrapedNodeExporters = lib.filter (
-    report: report.prometheusServerEnabled && report.nodeExporterEnabled && !lib.any (job: lib.hasInfix "node" job) report.jobNames
+    report:
+    report.prometheusServerEnabled
+    && report.nodeExporterEnabled
+    && !lib.any (job: lib.hasInfix "node" job) report.jobNames
   ) hostReports;
 
   errors =

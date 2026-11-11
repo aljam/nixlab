@@ -88,7 +88,7 @@ groups:
         annotations:
           summary: "Restic backup is stale"
           description: >-
-            Restic backup {{ $labels.job }} on {{ $labels.instance }} has not
+            Restic backup {{ $labels.exported_job }} on {{ $labels.instance }} has not
             recorded a successful completion in more than 26 hours.
 
   - name: disk-health
@@ -223,7 +223,7 @@ groups:
 
       - alert: DeploymentRevisionUnknown
         expr: >-
-          nixlab_system_revision{revision=~"^$|dirty.*"} == 1
+          nixlab_system_revision{revision=~"|.*-dirty"} == 1
         for: 15m
         labels:
           severity: critical

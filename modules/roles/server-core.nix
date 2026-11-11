@@ -16,7 +16,6 @@ in
 {
   imports = [
     ../features/node-exporter.nix
-    ../features/prometheus-alerts.nix
     ../features/reverse-proxy-backends.nix
   ];
 

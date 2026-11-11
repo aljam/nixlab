@@ -14,6 +14,7 @@
     ../../modules/roles/media-node.nix
     ../../modules/roles/storage-node.nix
     ../../modules/features/prometheus-server.nix
+    ../../modules/features/prometheus-alerts.nix
     ../../modules/features/drift-monitoring.nix
     ../../modules/features/loki.nix
     ../../modules/features/restic-backup.nix

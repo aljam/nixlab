@@ -1,7 +1,6 @@
 {
   config,
   pkgs,
-  lib,
   ...
 }:
 
@@ -18,8 +17,6 @@
     ../../modules/features/prometheus-alerts.nix
     ../../modules/features/drift-monitoring.nix
     ../../modules/features/loki.nix
-    ../../modules/features/log-agent.nix
-    ../../modules/features/nix-cache.nix
     ../../modules/features/restic-backup.nix
     ../../modules/features/matrix-synapse.nix
     ../../modules/features/matrix-rtc.nix
@@ -74,11 +71,6 @@
   services.nixlab.loki = {
     enable = true;
     listenAddress = config.networking.fleet.r730xd.ip;
-  };
-
-  services.nixlab.logShipping = {
-    enable = true;
-    lokiUrl = "http://${config.networking.fleet.r730xd.ip}:3100/loki/api/v1/push";
   };
 
   services.nixlab.grafana.lokiUrl = "http://${config.networking.fleet.r730xd.ip}:3100";

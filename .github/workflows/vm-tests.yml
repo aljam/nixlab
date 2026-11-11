@@ -1,5 +1,9 @@
 name: VM integration tests
 
+# Nightly VM tests. firewall-isolation and admin-isolation are left out of
+# `nix flake check` because they are slow (flake output `packages`), so this
+# workflow is the only place that runs them. monitoring-health is a flake check
+# and also runs on each pull request in security.yml.
 on:
   workflow_dispatch:
   schedule:
@@ -13,9 +17,17 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  monitoring-health:
+  vm-test:
+    name: ${{ matrix.attr }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        attr:
+          - checks.x86_64-linux.monitoring-health
+          - packages.x86_64-linux.firewall-isolation
+          - packages.x86_64-linux.admin-isolation
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -32,10 +44,12 @@ jobs:
           extraPullNames: nix-community,nix-gaming,hyprland
           useDaemon: false
 
-      - name: Run monitoring health VM test
+      - name: Run VM test
+        env:
+          ATTR: ${{ matrix.attr }}
         run: |
           nix build \
             --no-link \
             --print-out-paths \
             --print-build-logs \
-            .#checks.x86_64-linux.monitoring-health
+            ".#${ATTR}"

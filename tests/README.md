@@ -17,4 +17,5 @@ services, the HAProxy gateway, and untrusted LAN hosts.
 
 The former service-health, service-isolation, backup, and standalone security
 assertion tests were removed because they were unused or invalid. Their useful
-sudo and SSH checks are now enforced by `modules/features/security-policy.nix`.
+sudo and SSH checks are now enforced by `modules/features/security-policy.nix`
+and `modules/features/ssh.nix`.

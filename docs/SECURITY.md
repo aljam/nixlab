@@ -100,16 +100,18 @@ Store exports only in an access-controlled administrative location.
 
 ## Alertmanager
 
+Alertmanager and its Ntfy relay run only on the Prometheus host (r730xd).
 Alertmanager listens only on loopback and is intentionally excluded from
 `networking.proxyBackendPorts`. Prometheus reaches it locally at
-`127.0.0.1:9093`.
+`127.0.0.1:9093`. Clustering is disabled, so the gossip port (`9094`) is not
+opened.
 
 Critical and warning alerts are relayed to the Ntfy topic configured by the
 SOPS-managed `nfty-url` secret. A dedicated loopback relay service receives
 Alertmanager webhooks on `127.0.0.1:9095`, formats the notification, and
 forwards it to Ntfy.
 
-Alerts are grouped by alert name and instance; unresolved alerts repeat every
+Alerts are grouped by alert name and host; unresolved alerts repeat every
 four hours, and recovery notifications are sent.
 
 The Ntfy URL is never committed to the repository. To change the destination,

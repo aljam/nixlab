@@ -156,6 +156,8 @@ in
 
       ruleFiles = [ ./prometheus/rules/prometheus-rules.yml ];
 
+      # Alertmanager comes from ./prometheus-alerts.nix, which must be imported
+      # on the same host.
       alertmanagers = [
         {
           static_configs = [
@@ -318,19 +320,6 @@ in
 
     systemd.services.prometheus.serviceConfig = {
       ReadWritePaths = [ "/var/lib/prometheus2" ];
-      ProtectKernelTunables = true;
-      ProtectKernelModules = true;
-      ProtectControlGroups = true;
-      RestrictSUIDSGID = true;
-      LockPersonality = true;
-    };
-
-    systemd.services.prometheus-alertmanager.serviceConfig = {
-      NoNewPrivileges = true;
-      PrivateTmp = true;
-      ProtectSystem = "strict";
-      ProtectHome = true;
-      ReadWritePaths = [ "/var/lib/alertmanager" ];
       ProtectKernelTunables = true;
       ProtectKernelModules = true;
       ProtectControlGroups = true;

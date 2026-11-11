@@ -90,16 +90,16 @@ Verify login, unlock behavior, and attachment access before declaring recovery c
 PostgreSQL expects the server certificate and unencrypted key at:
 
 ```text
-/var/lib/postgresql/ssl/server.crt
-/var/lib/postgresql/ssl/server.key
+/var/lib/postgresql/tls/server.crt
+/var/lib/postgresql/tls/server.key
 ```
 
 Use the repository renewal script or install the files manually:
 
 ```bash
-sudo install -d -o postgres -g postgres -m 700 /var/lib/postgresql/ssl
-sudo install -o postgres -g postgres -m 644 server.crt /var/lib/postgresql/ssl/server.crt
-sudo install -o postgres -g postgres -m 600 server.key /var/lib/postgresql/ssl/server.key
+sudo install -d -o postgres -g postgres -m 700 /var/lib/postgresql/tls
+sudo install -o postgres -g postgres -m 640 server.crt /var/lib/postgresql/tls/server.crt
+sudo install -o postgres -g postgres -m 600 server.key /var/lib/postgresql/tls/server.key
 sudo systemctl reload postgresql
 ```
 

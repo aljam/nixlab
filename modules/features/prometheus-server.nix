@@ -143,10 +143,6 @@ in
         assertion = !(lib.elem 9115 config.networking.proxyBackendPorts);
         message = "The Prometheus Blackbox exporter must not be exposed through the HAProxy backend allowlist.";
       }
-      {
-        assertion = !(lib.elem 9093 config.networking.proxyBackendPorts);
-        message = "Alertmanager must not be exposed through the HAProxy backend allowlist.";
-      }
     ];
 
     services.prometheus = {
@@ -156,6 +152,8 @@ in
 
       ruleFiles = [ ./prometheus/rules/prometheus-rules.yml ];
 
+      # Alertmanager comes from ./prometheus-alerts.nix, which must be imported
+      # on the same host.
       alertmanagers = [
         {
           static_configs = [
@@ -318,19 +316,6 @@ in
 
     systemd.services.prometheus.serviceConfig = {
       ReadWritePaths = [ "/var/lib/prometheus2" ];
-      ProtectKernelTunables = true;
-      ProtectKernelModules = true;
-      ProtectControlGroups = true;
-      RestrictSUIDSGID = true;
-      LockPersonality = true;
-    };
-
-    systemd.services.prometheus-alertmanager.serviceConfig = {
-      NoNewPrivileges = true;
-      PrivateTmp = true;
-      ProtectSystem = "strict";
-      ProtectHome = true;
-      ReadWritePaths = [ "/var/lib/alertmanager" ];
       ProtectKernelTunables = true;
       ProtectKernelModules = true;
       ProtectControlGroups = true;

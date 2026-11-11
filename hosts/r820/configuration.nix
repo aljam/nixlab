@@ -1,7 +1,6 @@
 {
   config,
   pkgs,
-  lib,
   ...
 }:
 {
@@ -12,13 +11,9 @@
     ../../modules/features/libvirt.nix
     ../../modules/features/postgres.nix
     ../../modules/features/nix-builder.nix
-    ../../modules/features/log-agent.nix
-    ../../modules/features/nix-cache.nix
     #../../modules/features/mail-server.nix
     #../../modules/roles/mail-node.nix
   ];
-
-  roles.server.enable = true;
 
   modules.features.postgres = {
     enable = true;
@@ -90,9 +85,4 @@
   # root is a trusted user: daemon trust is equivalent to root, and remote
   # builds use the dedicated account in modules/features/nix-builder.nix.
   nix.settings.allowed-users = [ "@users" ];
-
-  services.nixlab.logShipping = {
-    enable = true;
-    lokiUrl = "http://${config.networking.fleet.r730xd.ip}:3100/loki/api/v1/push";
-  };
 }

@@ -16,7 +16,6 @@ in
 {
   imports = [
     ../features/node-exporter.nix
-    ../features/prometheus-alerts.nix
     ../features/reverse-proxy-backends.nix
   ];
 
@@ -28,7 +27,7 @@ in
   ];
 
   # Every host importing this role is a server; this drives the
-  # server-vs-gaming exclusivity assertion in modules/roles/common.nix.
+  # server-vs-gaming exclusivity assertion in modules/features/security-policy.nix.
   roles.server.enable = true;
 
   networking.interfaces.eno1.ipv4.addresses = [
@@ -59,12 +58,6 @@ in
     enable = true;
     dockerCompat = false;
     dockerSocket.enable = false;
-  };
-
-  # Hardware monitoring
-  services.smartd = {
-    enable = true;
-    autodetect = true;
   };
 
   # System packages for servers

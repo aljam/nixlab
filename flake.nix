@@ -277,6 +277,11 @@
           pkgs = nixpkgs.legacyPackages.${system};
           test = "postgresql-auth";
         };
+
+        # TEMPORARY, verification only: lets the pull-request CI job that has
+        # KVM run the two VM tests that are excluded from `nix flake check`.
+        firewall-isolation = self.packages.${system}.firewall-isolation;
+        admin-isolation = self.packages.${system}.admin-isolation;
       };
 
       nixosConfigurations = hostConfigurations;

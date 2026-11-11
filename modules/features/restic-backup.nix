@@ -17,7 +17,7 @@ let
   passwordFile = config.sops.secrets.restic-backup-password.path;
   lockFile = "/run/restic-backup.lock";
   cacheDirectory = "/var/lib/restic-backup/cache";
-  metricsDirectory = "/var/lib/node-exporter/textfile";
+  metricsDirectory = config.modules.features.node-exporter.textfileDirectory;
 
   jobModule = {
     options = {
@@ -35,6 +35,17 @@ let
         type = lib.types.lines;
         default = "";
         description = "Commands run before `restic backup`. Use this to create consistent application dumps.";
+      };
+
+      prune = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = ''
+          Whether to prune removed snapshots after applying retention.
+          Pruning can be expensive; disabling it lets `restic forget` mark
+          snapshots for later removal without rewriting repository data on
+          every backup.
+        '';
       };
 
       runtimePackages = lib.mkOption {
@@ -116,9 +127,6 @@ let
       text = ''
         set -euo pipefail
 
-        install -d -o node-exporter -g node-exporter -m 0750 \
-          ${lib.escapeShellArg metricsDirectory}
-
         metric_file=${lib.escapeShellArg metricFile}
         metric_tmp="${metricFile}.tmp"
 
@@ -149,8 +157,7 @@ let
           ${resticCommonArgs} \
           --keep-daily ${toString job.retention.keepDaily} \
           --keep-weekly ${toString job.retention.keepWeekly} \
-          --keep-monthly ${toString job.retention.keepMonthly} \
-          --prune
+          --keep-monthly ${toString job.retention.keepMonthly}${lib.optionalString job.prune " --prune"}
 
         cat > "$metric_tmp" <<EOF
         # HELP nixlab_restic_backup_last_success_timestamp_seconds Unix time of the last successful Restic backup.
@@ -197,6 +204,10 @@ in
       "d /var/lib/restic-backup/cache 0700 restic-backup restic-backup - -"
       "d /var/lib/restic-backup/postgresql 0730 postgres restic-backup - -"
       "d /var/lib/restic-backup/repo 0700 restic-backup restic-backup - -"
+      # The units list the lock in ReadWritePaths, and systemd refuses to start
+      # a unit whose ReadWritePaths entry is missing. /run is empty after a
+      # reboot, so the lock must exist before the first job runs.
+      "f ${lockFile} 0600 root root - -"
     ];
 
     systemd.services = lib.mapAttrs' (
@@ -205,7 +216,9 @@ in
         description = "Restic backup: ${name}";
         requires = job.requires;
         after = [ "sops-nix.service" ] ++ job.after;
-        wantedBy = [ "multi-user.target" ];
+        # Deliberately no `wantedBy`: the timer below is the only trigger.
+        # A oneshot unit wanted by multi-user.target reruns on every boot and
+        # on every `nixos-rebuild switch`.
 
         environment = {
           RESTIC_CACHE_DIR = cacheDirectory;
@@ -222,7 +235,7 @@ in
           ReadWritePaths = [
             "/var/lib/restic-backup"
             "/run/restic-backup.lock"
-            "/var/lib/node-exporter/textfile"
+            metricsDirectory
           ];
           ProtectKernelTunables = true;
           ProtectKernelModules = true;

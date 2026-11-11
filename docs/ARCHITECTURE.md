@@ -99,20 +99,26 @@ Secrets are managed with SOPS + age. Host SSH Ed25519 keys are used as age ident
 
 ## Tests
 
-The `tests/` directory contains NixOS integration and evaluation checks:
+The `tests/` directory contains NixOS integration and evaluation checks. `tests/README.md` lists what each one covers.
 
-- **nftables-shape.nix**: Eval-only test checking firewall rule structure.
-- **firewall-isolation.nix**: Full VM test proving only the gateway reaches backend ports and only Prometheus reaches node-exporter.
-- **monitoring-health**: Validates monitoring health assumptions.
-- **nftables-input-rules**: Validates nftables input-rule structure.
-- **postgresql-auth**: Validates PostgreSQL authentication policy.
-- **public-endpoint-inventory**: Validates the public endpoint inventory.
-- **public-service-hardening**: Validates public-service hardening policy.
+Flake checks, run by `nix flake check` on every pull request:
+
+- **nftables-input-rules**: Eval-only check of nftables input-rule structure.
 - **service-exposure**: Validates service exposure rules.
-- **admin-isolation**: Validates administrative-service isolation.
-
-Run all checks with:
+- **public-service-hardening**: Validates public-service hardening policy.
+- **public-endpoint-inventory**: Validates the public endpoint inventory.
+- **monitoring-health**: VM test of the monitoring stack.
+- **postgresql-auth**: VM test of PostgreSQL authentication policy.
 
 ```bash
 nix flake check
+```
+
+Slower VM tests, exposed as flake packages and run nightly by `.github/workflows/vm-tests.yml`:
+
+- **firewall-isolation**: Proves only the gateway reaches backend ports and only Prometheus reaches node-exporter.
+- **admin-isolation**: Validates administrative-service isolation.
+
+```bash
+nix build --print-build-logs .#firewall-isolation .#admin-isolation
 ```

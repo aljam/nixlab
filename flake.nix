@@ -195,12 +195,10 @@
     {
       formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt-tree;
 
+      # VM tests that are too slow for `nix flake check`. They are built by
+      # .github/workflows/vm-tests.yml; see tests/README.md.
       packages.${system} = {
         firewall-isolation = nixpkgs.legacyPackages.${system}.testers.runNixOSTest ./tests/firewall.nix;
-
-        runtime-security = import ./tests/runtime-isolation.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
-        };
 
         admin-isolation = import ./tests/runtime-isolation.nix {
           pkgs = nixpkgs.legacyPackages.${system};

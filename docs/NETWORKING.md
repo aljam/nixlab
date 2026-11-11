@@ -85,17 +85,19 @@ Grafana runs on `r730xd` and uses its local SQLite database at `/var/lib/grafana
 
 ### Security Properties
 
-The `tests/firewall.nix` test enforces:
+The `tests/firewall.nix` VM test enforces, with a stand-in service on a backend port:
 
-1. **qBittorrent WebUI** (port 8080) is not reachable from LAN hosts
-2. **Vaultwarden** (port 8222) is not reachable from LAN hosts
-3. **node-exporter** (port 9100) is only reachable from r730xd (Prometheus host)
+1. A **backend port** listed in `networking.proxyBackendPorts` is reachable from the HAProxy gateway only, not from other LAN hosts
+2. **node-exporter** (port 9100) is reachable from the Prometheus host only
+3. The `input-allow` chain contains no rule that is a bare verdict
 
-Run the test with:
+Run the test with (needs KVM):
 
 ```bash
-nix build .#checks.x86_64-linux.firewall
+nix build --print-build-logs .#firewall-isolation
 ```
+
+It is not part of `nix flake check`; see `tests/README.md`.
 
 ## Monitoring Network Flow
 

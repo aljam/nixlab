@@ -25,6 +25,18 @@
 
   boot.kernelPackages = pkgs.cachyosKernels."linuxPackages-cachyos-latest";
 
+  # Binary caches for desktop-only software, in addition to the fleet-wide
+  # ones in modules/features/nix-cache.nix.
+  nix.settings.substituters = [
+    "https://nix-gaming.cachix.org"
+    "https://hyprland.cachix.org"
+  ];
+
+  nix.settings.trusted-public-keys = [
+    "nix-gaming.cachix.org-1:nbjlureqMbRAxR1gJ/f3hxemL9svXaZF/Ees8vCUUs4="
+    "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
+  ];
+
   networking.networkmanager.enable = true;
 
   services.scx-loader = {

@@ -23,7 +23,6 @@
 {
   config,
   pkgs,
-  lib,
   ...
 }:
 
@@ -36,8 +35,6 @@
     ../../modules/roles/storage-node.nix
     # ../../modules/roles/ai-node.nix
     ../../modules/features/nvidia-headless.nix
-    ../../modules/features/log-agent.nix
-    ../../modules/features/nix-cache.nix
   ];
 
   networking.hostId = "acccc16e"; # Required for ZFS
@@ -58,9 +55,4 @@
     # Must match the running kernel, not the default linuxPackages set.
     config.boot.kernelPackages.nvidia_x11
   ];
-
-  services.nixlab.logShipping = {
-    enable = true;
-    lokiUrl = "http://${config.networking.fleet.r730xd.ip}:3100/loki/api/v1/push";
-  };
 }

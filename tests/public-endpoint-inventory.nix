@@ -49,9 +49,11 @@ let
     ]
   ) endpoints;
 
-  duplicateNames = lib.lists.subtractLists (lib.unique (
-    map (endpoint: endpoint.name or "") endpoints
-  )) (map (endpoint: endpoint.name or "") endpoints);
+  endpointNames = map (endpoint: endpoint.name or "") endpoints;
+
+  duplicateNames = lib.unique (
+    lib.filter (name: lib.count (other: other == name) endpointNames > 1) endpointNames
+  );
 
   failures =
     lib.optionals (endpoints == [ ]) [ "Public endpoint inventory must contain at least one endpoint" ]

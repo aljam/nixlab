@@ -3,13 +3,17 @@
 let
   grafanaPort = config.services.grafana.settings.server.http_port or 3000;
   grafanaExposed = lib.elem grafanaPort config.networking.proxyBackendPorts;
-  grafanaAnonymous = config.services.grafana.settings.auth.anonymous.enabled or false;
+  # Grafana's section name is the single attribute "auth.anonymous", not the
+  # nested path auth.anonymous.
+  grafanaAnonymous = config.services.grafana.settings."auth.anonymous".enabled or false;
   grafanaSignup = config.services.grafana.settings.users.allow_sign_up or false;
 
   postgresAuth = config.services.postgresql.authentication or "";
   postgresPort = config.services.postgresql.settings.port or 5432;
   proxyBackendPorts = config.networking.proxyBackendPorts;
-  duplicateProxyPorts = lib.lists.subtractLists (lib.unique proxyBackendPorts) proxyBackendPorts;
+  duplicateProxyPorts = lib.unique (
+    lib.filter (port: lib.count (other: other == port) proxyBackendPorts > 1) proxyBackendPorts
+  );
 
   # Sensitive or internal-only services that must not be exposed
   # through the HAProxy backend allowlist.
@@ -41,14 +45,6 @@ let
 
   sopsSecrets = lib.attrValues config.sops.secrets;
 
-  rootOwnedSecrets = lib.filter (secret: secret.owner == "root") sopsSecrets;
-
-  unauthorizedRootOwnedSecrets = lib.filter (
-    secret: !lib.elem secret.name config.roles.security.sopsAllowedRootSecrets
-  ) rootOwnedSecrets;
-
-  unauthorizedSecretNames = map (secret: secret.name) unauthorizedRootOwnedSecrets;
-
   # Map a secret to the service identity that is intended to consume it.
   # A mapping is checked only when that secret is declared on the evaluated
   # host, allowing host-specific secret sets to remain explicit.
@@ -78,37 +74,8 @@ in
   };
 
   config.assertions = [
-    # Preserve the service-scoped SOPS model. A missing `sopsFile` would
-    # otherwise depend on a global default, which this repository intentionally
-    # does not define.
-    {
-      assertion = lib.all (secret: secret.sopsFile != null) sopsSecrets;
-      message = "Every sops secret must declare an explicit sopsFile.";
-    }
-
-    # Make the effective identity of every decrypted secret explicit.
-    {
-      assertion = lib.all (secret: secret.owner != null) sopsSecrets;
-      message = "Every sops secret must declare an explicit owner.";
-    }
-
-    # Make permissions explicit and restrict every secret to its owning
-    # service identity.
-    {
-      assertion = lib.all (secret: secret.mode == "0400") sopsSecrets;
-      message = "SOPS secrets must use owner-only mode 0400.";
-    }
-
-    # Root ownership is sometimes necessary for system-level credentials,
-    # but it must be explicit and auditable.
-    {
-      assertion = unauthorizedRootOwnedSecrets == [ ];
-      message = ''
-        SOPS secrets owned by root must be listed in
-        roles.security.sopsAllowedRootSecrets. Unauthorized secrets:
-        ${lib.concatStringsSep ", " unauthorizedSecretNames}
-      '';
-    }
+    # The SOPS file, owner, mode and root-ownership assertions are owned by
+    # modules/features/sops.nix.
 
     # Ensure that a mapped secret is owned by the service intended to
     # consume it. This prevents accidental credential sharing across
@@ -175,7 +142,9 @@ in
     # usually a configuration mistake.
     {
       assertion = duplicateProxyPorts == [ ];
-      message = "HAProxy backend ports must not contain duplicates.";
+      message =
+        "HAProxy backend ports must not contain duplicates: "
+        + lib.concatMapStringsSep ", " toString duplicateProxyPorts;
     }
 
     # Autobrr should use the host's service address rather than every interface.

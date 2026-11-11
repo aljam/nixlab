@@ -38,6 +38,13 @@ in
       message = "Every sops secret must declare an explicit owner.";
     }
 
+    # Make the effective group identity explicit. This prevents a secret from
+    # inheriting an unintended group or relying on an implicit default.
+    {
+      assertion = lib.all (secret: secret.group != null) sopsSecrets;
+      message = "Every sops secret must declare an explicit group.";
+    }
+
     # Make permissions explicit and restrict every secret to its owning
     # service identity.
     {

@@ -11,16 +11,14 @@
     };
 
     nixos-hardware = {
-      url = "github:NixOS/nixos-hardware/master";
+      url = "github:nixos/nixos-hardware/master";
       inputs.nixpkgs.follows = "nixpkgs";
 
     };
-
     artcraft = {
       url = "github:Hy4ri/artcraft-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -266,6 +264,11 @@
 
         public-endpoint-inventory = import ./tests/public-endpoint-inventory.nix {
           pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        monitoring-coverage = import ./tests/monitoring-coverage.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+          hosts = self.nixosConfigurations;
         };
 
         monitoring-health = import ./tests/runtime-isolation.nix {

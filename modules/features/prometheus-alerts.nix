@@ -111,8 +111,8 @@ in
     group = "alertmanager";
   };
 
-  # Alertmanager remains loopback-only. The ntfy URL, including its private
-  # topic and access token if used, is supplied at runtime from SOPS.
+  # The ntfy URL, including its private topic and access token if used, is
+  # supplied at runtime from SOPS.
   sops.secrets.nfty-url = {
     sopsFile = ../../secrets/monitoring.yaml;
     owner = "alertmanager";
@@ -124,6 +124,9 @@ in
   services.prometheus.alertmanager = {
     enable = true;
     listenAddress = "127.0.0.1";
+    # A single instance has no peers. Without this flag Alertmanager also
+    # opens its gossip listener on 0.0.0.0:9094 (TCP and UDP).
+    extraFlags = [ "--cluster.listen-address=" ];
 
     configuration = {
       route = {

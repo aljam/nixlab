@@ -15,7 +15,12 @@ let
       nodeExporterEnabled = cfg.services.prometheus.exporters.node.enable or false;
     in
     {
-      inherit hostname prometheusEnabled jobNames nodeExporterEnabled;
+      inherit
+        hostname
+        prometheusEnabled
+        jobNames
+        nodeExporterEnabled
+        ;
     }
   ) hosts;
 
@@ -24,14 +29,14 @@ let
   ) hostReports;
 
   unscrapedNodeExporters = lib.filter (
-    report:
-    report.nodeExporterEnabled
-    && !lib.any (job: lib.hasInfix "node" job) report.jobNames
+    report: report.nodeExporterEnabled && !lib.any (job: lib.hasInfix "node" job) report.jobNames
   ) hostReports;
 
   errors =
     map (report: "${report.hostname}: Prometheus is enabled but has no scrape jobs.") missingScrapeJobs
-    ++ map (report: "${report.hostname}: node_exporter is enabled but is not scraped.") unscrapedNodeExporters;
+    ++ map (
+      report: "${report.hostname}: node_exporter is enabled but is not scraped."
+    ) unscrapedNodeExporters;
 in
 if errors == [ ] then
   pkgs.runCommand "monitoring-coverage" { } "touch $out"

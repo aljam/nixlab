@@ -110,7 +110,6 @@
           ./modules/features/deploy-user.nix
 
           sops-nix.nixosModules.sops
-          nur.modules.nixos.default
 
           home-manager.nixosModules.home-manager
           {
@@ -125,12 +124,6 @@
 
           {
             roles.security.deployUser.enable = true;
-          }
-
-          {
-            nixpkgs.overlays = [
-              nix-cachyos-kernel.overlays.default
-            ];
           }
         ];
 
@@ -151,6 +144,7 @@
           };
 
           nixpkgs.overlays = [
+            nix-cachyos-kernel.overlays.default
             artcraft.overlays.default
           ];
 
@@ -160,6 +154,7 @@
         }
 
         nix-flatpak.nixosModules.nix-flatpak
+        nur.modules.nixos.default
       ];
 
       diskoModule = disko.nixosModules.disko;

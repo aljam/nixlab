@@ -1,8 +1,8 @@
 # Dedicated, unprivileged deployment identity.
 #
 # Deployment is pull-based: the deploy user may run exactly one sudo command,
-# `deploy-rebuild`, which rebuilds this host from a pinned revision of the
-# repository flake. The deploy user cannot run arbitrary commands as root, has
+# `deploy-rebuild`, which rebuilds this host from the current tip of the
+# repository's main branch. The deploy user cannot run arbitrary commands as root, has
 # no interactive shell session (the authorized key is `restrict`ed), and is the
 # only non-wheel identity allowed through sshd.
 #
@@ -17,15 +17,22 @@
 let
   cfg = config.roles.security.deployUser;
 
+  # The only ref hosts will deploy from. `nix run .#deploy` enforces the same
+  # rule locally before it connects.
+  deployRef = "refs/heads/main";
+
   rebuildWrapper = pkgs.writeShellApplication {
     name = "deploy-rebuild";
     runtimeInputs = [
       pkgs.nixos-rebuild
       pkgs.git
+      pkgs.gnugrep
     ];
     text = ''
       action="''${1:-}"
       rev="''${2:-}"
+      remote=${lib.escapeShellArg cfg.flakeRef}
+      ref=${lib.escapeShellArg deployRef}
 
       case "$action" in
         switch) ;;
@@ -40,13 +47,23 @@ let
         exit 2
       fi
 
-      if ! git ls-remote "${lib.escapeShellArg cfg.flakeRef}" | grep -E "^''${rev}[[:space:]]" >/dev/null; then
-        echo "deploy-rebuild: revision is not reachable from ${lib.escapeShellArg cfg.flakeRef}" >&2
+      # Ask only for the deployment branch. An unfiltered `git ls-remote` also
+      # lists refs/pull/*/head, which anyone can create on a public repository
+      # by opening a pull request.
+      if ! advertised="$(git ls-remote "$remote" "$ref")"; then
+        echo "deploy-rebuild: cannot read $ref from $remote" >&2
+        exit 1
+      fi
+
+      # ls-remote patterns match trailing path components, so compare the
+      # whole "<rev><TAB><ref>" line instead of trusting the filter.
+      if ! grep --quiet --fixed-strings --line-regexp -- "$rev"$'\t'"$ref" <<<"$advertised"; then
+        echo "deploy-rebuild: $rev is not the tip of $ref on $remote" >&2
         exit 1
       fi
 
       exec nixos-rebuild "$action" \
-        --flake "git+${cfg.flakeRef}?rev=''${rev}#${config.networking.hostName}"
+        --flake "git+$remote?rev=$rev#${config.networking.hostName}"
     '';
   };
 in
@@ -58,8 +75,9 @@ in
       type = lib.types.str;
       default = "https://github.com/Aljam/nixlab.git";
       description = ''
-        Flake reference (without revision) the deployment user is permitted
-        to rebuild from. The revision is supplied per deployment.
+        Git remote (without revision) the deployment user is permitted to
+        rebuild from. The revision is supplied per deployment and must be
+        the current tip of the remote's main branch.
       '';
     };
 

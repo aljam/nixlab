@@ -5,7 +5,7 @@
   ...
 }:
 let
-  textfileDirectory = "/var/lib/node-exporter/textfile";
+  textfileDirectory = config.modules.features.node-exporter.textfileDirectory;
 
   driftScript = pkgs.writers.writeBash "nixlab-drift-metrics" ''
     set -euo pipefail
@@ -13,13 +13,12 @@ let
     output="${textfileDirectory}/nixlab-drift.prom"
     tmp="$output.tmp"
 
-    mkdir -p "$(dirname "$tmp")"
-    chmod 0750 "$(dirname "$tmp")"
-
     tcp_listeners="$(${lib.getExe' pkgs.iproute2 "ss"} -Hltn | wc -l)"
     udp_listeners="$(${lib.getExe' pkgs.iproute2 "ss"} -Hlun | wc -l)"
     ruleset_hash="$(${lib.getExe' pkgs.nftables "nft"} list ruleset | sha256sum | cut -d' ' -f1)"
-    revision="$(nixos-version --configuration-revision 2>/dev/null || true)"
+    # nixos-version is not on a unit's default PATH. An unresolved lookup
+    # leaves the revision empty, which DeploymentRevisionUnknown alerts on.
+    revision="$(/run/current-system/sw/bin/nixos-version --configuration-revision || true)"
 
     cat > "$tmp" <<EOF
     # HELP nixlab_listening_tcp_sockets Number of listening TCP sockets.
@@ -43,13 +42,6 @@ let
   '';
 in
 {
-  services.prometheus.exporters.node = {
-    enabledCollectors = [ "textfile" ];
-    extraFlags = [
-      "--collector.textfile.directory=${textfileDirectory}"
-    ];
-  };
-
   systemd.services.nixlab-drift-metrics = {
     description = "Collect NixOS runtime drift metrics";
     after = [
@@ -64,7 +56,6 @@ in
       User = "node-exporter";
       Group = "node-exporter";
 
-      StateDirectory = "nixlab-drift";
       NoNewPrivileges = true;
       PrivateTmp = true;
       ProtectSystem = "strict";

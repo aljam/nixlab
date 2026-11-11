@@ -132,9 +132,11 @@ in
         install -d -m 0700 -o postgres -g postgres "$certDir"
 
         if [ ! -s "$certDir/server.key" ] || [ ! -s "$certDir/server.crt" ]; then
-          ${pkgs.openssl}/bin/openssl req -new -x509 -days 3650 -nodes \\
-            -subj "/CN=r820.lan" \\
-            -keyout "$certDir/server.key" \\
+          # Nix indented strings keep backslashes literally: one backslash per
+          # shell line continuation.
+          ${pkgs.openssl}/bin/openssl req -new -x509 -days 3650 -nodes \
+            -subj "/CN=${config.networking.hostName}.lan" \
+            -keyout "$certDir/server.key" \
             -out "$certDir/server.crt"
           chown postgres:postgres "$certDir/server.key" "$certDir/server.crt"
           chmod 0600 "$certDir/server.key"
@@ -143,9 +145,10 @@ in
       '';
     };
 
+    # One rule per client address, however many databases it may reach.
     networking.firewall.extraInputRules = lib.concatMapStringsSep "\n" (
-      client: "ip saddr ${client.address} tcp dport 5432 accept"
-    ) cfg.allowedClients;
+      address: "ip saddr ${address} tcp dport 5432 accept"
+    ) (lib.unique (map (client: client.address) cfg.allowedClients));
 
     environment.systemPackages = with pkgs; [
       restic

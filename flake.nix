@@ -135,7 +135,7 @@
             package = nixpkgs.legacyPackages.${system}.appimage-run.override {
               extraPkgs = pkgs: [
                 pkgs.libxcrypt-legacy
-                pkgs.libffi-legacy
+                pkgs.libffi
                 pkgs.libyaml
               ];
             };

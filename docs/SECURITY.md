@@ -106,7 +106,7 @@ Alertmanager listens only on loopback and is intentionally excluded from
 
 Critical and warning alerts are relayed to the Ntfy topic configured by the
 SOPS-managed `nfty-url` secret. A dedicated loopback relay service receives
-Alertmanager webhooks on `127.0.0.1:9094`, formats the notification, and
+Alertmanager webhooks on `127.0.0.1:9095`, formats the notification, and
 forwards it to Ntfy.
 
 Alerts are grouped by alert name and instance; unresolved alerts repeat every

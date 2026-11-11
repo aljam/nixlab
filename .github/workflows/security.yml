@@ -10,9 +10,13 @@ on:
 permissions:
   contents: read
 
+# One group per pull request (or per ref for pushes and the schedule). A single
+# repository-wide group makes GitHub cancel the pending run of one pull request
+# as soon as another pull request queues a run, which leaves the required
+# "Evaluate Nix checks" status unreported.
 concurrency:
-  group: ${{ github.workflow }}
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true

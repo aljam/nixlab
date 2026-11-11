@@ -81,10 +81,8 @@
     '';
   };
 
-  # Remote builder configuration
-  nix.settings.trusted-users = [
-    "root"
-    "aljam"
-  ];
+  # Only members of `users` may connect to the Nix daemon. Nobody besides
+  # root is a trusted user: daemon trust is equivalent to root, and remote
+  # builds use the dedicated account in modules/features/nix-builder.nix.
   nix.settings.allowed-users = [ "@users" ];
 }

@@ -225,15 +225,17 @@
             if [[ -n "$(git status --porcelain)" ]]; then
               echo "Refusing to deploy: Git working tree is dirty." >&2
               echo "Commit or stash changes, then retry." >&2
+              exit 1
             fi
 
             rev="$(git rev-parse HEAD)"
 
-            # Hosts pull the flake from the remote, so HEAD must be pushed.
+            # Hosts pull the flake from the remote and accept only the tip of
+            # main (modules/features/deploy-user.nix), so HEAD must match it.
             git fetch --quiet origin
-            if ! git merge-base --is-ancestor "$rev" origin/main; then
-              echo "Refusing to deploy: $rev is not on origin/main." >&2
-              echo "Deploying a revision that is not on origin/main would deploy stale configuration."
+            if [[ "$rev" != "$(git rev-parse origin/main)" ]]; then
+              echo "Refusing to deploy: HEAD ($rev) is not the tip of origin/main." >&2
+              echo "Push or pull until HEAD matches origin/main, then retry." >&2
               exit 1
             fi
 

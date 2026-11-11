@@ -19,15 +19,21 @@ let
     }
   ) hosts;
 
-  errors = lib.concatMap (
-    report:
-    lib.optionals report.prometheusEnabled (
-      lib.optional (report.jobNames == [ ]) "${report.hostname}: Prometheus is enabled but has no scrape jobs."
-      ++ lib.optionals report.nodeExporterEnabled (
-        lib.optional (!lib.any (job: lib.hasInfix "node" job) report.jobNames) "${report.hostname}: node_exporter is enabled but is not scraped."
+  errors =
+    lib.concatMap
+      (
+        report:
+        lib.optionals report.prometheusEnabled (
+          lib.optional (report.jobNames == [ ])
+            "${report.hostname}: Prometheus is enabled but has no scrape jobs."
+          ++ lib.optionals report.nodeExporterEnabled (
+            lib.optional
+              (!lib.any (job: lib.hasInfix "node" job) report.jobNames)
+              "${report.hostname}: node_exporter is enabled but is not scraped."
+          )
+        )
       )
-    )
-  ) hostReports;
+      hostReports;
 in
 pkgs.runCommand "monitoring-coverage"
   {

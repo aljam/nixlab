@@ -17,7 +17,7 @@ let
   passwordFile = config.sops.secrets.restic-backup-password.path;
   lockFile = "/run/restic-backup.lock";
   cacheDirectory = "/var/lib/restic-backup/cache";
-  metricsDirectory = "/var/lib/node-exporter/textfile";
+  metricsDirectory = config.modules.features.node-exporter.textfileDirectory;
 
   jobModule = {
     options = {
@@ -127,9 +127,6 @@ let
       text = ''
         set -euo pipefail
 
-        install -d -o node-exporter -g node-exporter -m 0750 \
-          ${lib.escapeShellArg metricsDirectory}
-
         metric_file=${lib.escapeShellArg metricFile}
         metric_tmp="${metricFile}.tmp"
 
@@ -238,7 +235,7 @@ in
           ReadWritePaths = [
             "/var/lib/restic-backup"
             "/run/restic-backup.lock"
-            "/var/lib/node-exporter/textfile"
+            metricsDirectory
           ];
           ProtectKernelTunables = true;
           ProtectKernelModules = true;

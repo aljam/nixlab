@@ -114,11 +114,18 @@ in
       default = [ ];
       description = "TCP ports reachable from the pfSense HAProxy backend. Feature modules append their own ports.";
     };
+
+    internalOnlyPorts = lib.mkOption {
+      type = lib.types.listOf lib.types.port;
+      readOnly = true;
+      description = "Ports that must never be exposed through the HAProxy backend allowlist.";
+    };
   };
 
   config.networking = {
     inherit fleet subnets domains;
     myDomain = domains.primary;
+    internalOnlyPorts = internalOnlyPorts;
   };
 
   config.assertions = [

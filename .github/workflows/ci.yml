@@ -34,7 +34,30 @@ jobs:
           useDaemon: false
 
       - name: Check formatting (nixfmt)
-        run: nix fmt -- --ci
+        run: |
+          set -euo pipefail
+
+          worktree="$(mktemp -d)"
+          cleanup() {
+            git worktree remove --force "$worktree" >/dev/null 2>&1 || true
+            rm -rf "$worktree"
+          }
+          trap cleanup EXIT
+
+          git worktree add --detach "$worktree" HEAD >/dev/null
+
+          (
+            cd "$worktree"
+            nix fmt
+          )
+
+          diff_output="$(git -C "$worktree" --no-pager diff)"
+
+          if [[ -n "$diff_output" ]]; then
+            echo "::error::Nix files are not formatted. Run 'nix fmt' locally. Formatting diff:"
+            printf '%s\n' "$diff_output"
+            exit 1
+          fi
 
       - name: Flake check
         run: nix flake check --no-build --print-build-logs

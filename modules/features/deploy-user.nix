@@ -2,9 +2,9 @@
 #
 # Deployment is pull-based: the deploy user may run exactly one sudo command,
 # `deploy-rebuild`, which rebuilds this host from the current tip of the
-# repository's main branch. The deploy user cannot run arbitrary commands as root, has
-# no interactive shell session (the authorized key is `restrict`ed), and is the
-# only non-wheel identity allowed through sshd.
+# repository's main branch. The deploy user cannot run arbitrary commands as root,
+# has no interactive shell session, and its SSH key is restricted to the
+# deployment command.
 #
 # Use `nix run .#deploy -- <host>` from a clean, pushed checkout to drive it.
 {
@@ -66,6 +66,27 @@ let
         --flake "git+$remote?rev=$rev#${config.networking.hostName}"
     '';
   };
+
+  # SSH can invoke only this wrapper. It validates the client-supplied command
+  # before delegating to the sudo-limited rebuild wrapper.
+  sshCommandWrapper = pkgs.writeShellApplication {
+    name = "deploy-rebuild-ssh";
+    runtimeInputs = [
+      pkgs.gnugrep
+    ];
+    text = ''
+      case "''${SSH_ORIGINAL_COMMAND:-}" in
+        "deploy-rebuild switch "[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f])
+          exec /run/current-system/sw/bin/deploy-rebuild \
+            "''${SSH_ORIGINAL_COMMAND#deploy-rebuild switch }"
+          ;;
+        *)
+          echo "deploy-rebuild-ssh: only 'deploy-rebuild switch <git-rev>' is permitted" >&2
+          exit 2
+          ;;
+      esac
+    '';
+  };
 in
 {
   options.roles.security.deployUser = {
@@ -94,18 +115,22 @@ in
     users.users.deploy = {
       isSystemUser = true;
       group = "deploy";
-      # A real shell is required for sshd to execute the forced-style command;
-      # `restrict` on the key denies PTY allocation and all forwarding.
+      # A real shell is required for sshd to execute the forced command;
+      # `restrict` denies PTY allocation and forwarding, while `command`
+      # permits only the deployment wrapper.
       shell = pkgs.bash;
       openssh.authorizedKeys.keys = [
-        "restrict ${lib.fileContents cfg.authorizedKeyFile}"
+        "command=\"${lib.getExe sshCommandWrapper}\",restrict ${lib.fileContents cfg.authorizedKeyFile}"
       ];
     };
 
     # sshd is otherwise wheel-only (modules/features/ssh.nix).
     services.openssh.settings.AllowGroups = [ "deploy" ];
 
-    environment.systemPackages = [ rebuildWrapper ];
+    environment.systemPackages = [
+      rebuildWrapper
+      sshCommandWrapper
+    ];
 
     security.sudo.extraRules = [
       {

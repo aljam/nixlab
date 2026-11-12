@@ -58,7 +58,9 @@ let
   internalOnlyPorts = [
     5432 # PostgreSQL
     9090 # Prometheus
+    9100 # Node Exporter
     9115 # Prometheus Blackbox exporter
+    9093 # Alertmanager
     3100 # Loki
   ];
 

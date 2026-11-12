@@ -2,123 +2,177 @@
 
 This document describes the high-level architecture of the NixLab flake.
 
-## Directory Structure
+## Directory structure
 
 ```text
 .
-|-- flake.nix                 # Main entry point, defines mkHost helper
+|-- flake.nix                 # Entry point: host construction, shared modules, checks
 |-- flake.lock                # Pinned dependencies
 |-- hosts/                    # Host-specific configurations
 |   |-- navi/                 # Desktop workstation
 |   |-- oryx/                 # Laptop
-|   |-- r730/                 # Server (Dell R730)
-|   |-- r730xd/               # Server (Dell R730 with different role)
-|   `-- r820/                 # Server (Dell R820)
+|   |-- r730/                 # Storage / AI server
+|   |-- r730xd/               # Media / applications server
+|   `-- r820/                 # Database / edge server
 |-- modules/
-|   |-- roles/                # Role profiles (common, server-core, media-node, etc.)
-|   |-- features/             # Optional feature modules (servarr, vaultwarden, grafana, etc.)
-|   `-- hardware/             # Hardware-specific modules (Dell fans, etc.)
-|-- users/                    # User configurations (Home Manager + NixOS)
+|   |-- roles/                # Reusable host-role profiles
+|   |-- features/             # Optional feature and service modules
+|   `-- hardware/             # Hardware-specific modules
+|-- users/                    # User and Home Manager configurations
 |-- secrets/                  # SOPS-encrypted secrets
-`-- tests/                    # NixOS integration tests
+`-- tests/                    # Evaluation checks and NixOS VM tests
 ```
 
-## The mkHost Helper
+## Host construction
 
-The `flake.nix` defines a `mkHost` helper that reduces boilerplate for creating host configurations:
+`flake.nix` defines `mkHost` to reduce boilerplate across the fleet:
 
 ```nix
-mkHost = { name, roles ? [], extraModules ? [] }:
-  nixosLib.evalConfig {
+mkHost =
+  {
+    hostname,
+    extraModules ? [ ],
+  }:
+  lib.nixosSystem {
+    inherit system;
+
+    specialArgs = {
+      inherit inputs pkgs-stable hostname;
+    };
+
     modules =
-      [
-        ./modules/roles/common.nix
-        { networking.hostName = name; }
+      commonModules { inherit hostname; }
+      ++ [
+        ./hosts/${hostname}/configuration.nix
+        ./users/aljam/nixos.nix
+        {
+          system.configurationRevision = self.rev or self.dirtyRev or "";
+        }
       ]
-      ++ map (role: ./modules/roles/${role}.nix) roles
       ++ extraModules;
   };
 ```
 
-### Usage Example
+A host is declared in `flake.nix` by its hostname and optional extra modules:
 
 ```nix
-# hosts/navi/configuration.nix
-{ mkHost, ... }: mkHost {
-  name = "navi";
-  roles = [ "desktop-node" ];
-  extraModules = [
-    ./hardware-configuration.nix
-    ../../users/aljam
-    ../../modules/features/hyprland.nix
-    ../../modules/features/audio.nix
-  ];
-}
+navi = mkHost {
+  hostname = "navi";
+  extraModules = desktopModules;
+};
 ```
 
-### How It Works
+Hosts do **not** pass a list of roles to `mkHost`. Instead, each host
+configuration imports the role modules it needs directly.
 
-1. **Base role**: Every host gets `modules/roles/common.nix`, which sets up SSH, SOPS, fail2ban, locales, Cachix, and other fleet-wide defaults.
+## Shared configuration
 
-2. **Role composition**: The `roles` list imports role profiles from `modules/roles/`. For example, `server-core` adds node-exporter, Prometheus alerts, and reverse-proxy backends; `media-node` adds the *arr stack, Vaultwarden, Grafana, Homepage, Autobrr, and Recyclarr.
+`commonModules` supplies configuration required by every host:
 
-3. **Extra modules**: Host-specific overrides and feature modules go in `extraModules`. This is where you add hardware configuration, user modules, and optional features.
+- The common role, `modules/roles/common.nix`.
+- The deployment user policy, `modules/features/deploy-user.nix`.
+- The sops-nix NixOS module.
+- Home Manager.
+- The `aljam` user configuration.
+- The deployment-user enablement option.
 
-4. **Hostname**: The `name` parameter sets `networking.hostName`.
+The flake also sets `system.configurationRevision` from the current Git
+revision, or dirty revision when working from an uncommitted tree.
+
+## Host composition
+
+Host-specific configuration lives in `hosts/<hostname>/configuration.nix`.
+Those files import the hardware, role, and feature modules appropriate for
+that machine.
+
+For example, `r730` imports:
+
+```nix
+./hardware-configuration.nix
+./disko-config.nix
+../../modules/hardware/dell-poweredge.nix
+../../modules/roles/server-core.nix
+../../modules/roles/storage-node.nix
+../../modules/features/nvidia-headless.nix
+```
+
+`r820` imports its own hardware, server-core, libvirt, PostgreSQL, and
+remote-builder configuration. Desktop hosts receive the shared
+`desktopModules` set, which includes desktop-oriented overlays and Home
+Manager GUI configuration.
 
 ## Roles
 
-Roles are composable profiles that define a machine's purpose:
+Roles are composable host profiles in `modules/roles/`:
 
-- **common.nix**: Base configuration applied to all hosts (SSH hardening, SOPS, fail2ban, etc.)
-- **desktop-node.nix**: Desktop workstation features (Hyprland, audio, gaming, etc.)
-- **server-core.nix**: Core server services (node-exporter, Prometheus alerts, reverse-proxy backends)
-- **media-node.nix**: Media server stack (Servarr, Vaultwarden, Grafana, Homepage, Autobrr, Recyclarr)
-- **storage-node.nix**: Minimal storage server (ZFS, S.M.A.R.T. monitoring)
-- **mail-node.nix**: Mail server (smtpd, dovecot, rspamd)
-- **ai-node.nix**: AI/ML workstation (CUDA, NVIDIA drivers)
+- `common.nix`: Fleet-wide baseline configuration.
+- `server-core.nix`: Core server services and monitoring integration.
+- `media-node.nix`: Media-server role.
+- `storage-node.nix`: ZFS and storage-oriented configuration.
+- `mail-node.nix`: Mail-server role.
+- `ai-node.nix`: Reserved AI/ML workstation role.
+
+A host may import multiple roles. Role modules should describe a machine
+purpose, while feature modules should provide a focused, reusable capability.
 
 ## Features
 
-Features are optional, flat modules in `modules/features/` that can be mixed into any host:
+Feature modules live in `modules/features/`. They provide discrete services
+and capabilities, such as:
 
-- **servarr.nix**: *arr stack (radarr, sonarr, prowarr, etc.)
-- **vaultwarden.nix**: Password manager
-- **grafana/** / **prometheus-server.nix**: Monitoring stack
-- **reverse-proxy-backends.nix**: HAProxy backend configuration with firewall rules
-- **networking-options.nix**: Centralized fleet networking (IPs, subnets, domains)
-- And many more (see `modules/features/`)
+- `servarr.nix`
+- `vaultwarden.nix`
+- `grafana/`
+- `prometheus-server.nix`
+- `postgres.nix`
+- `restic-backup.nix`
+- `reverse-proxy-backends.nix`
+- `networking-options.nix`
 
-## Networking Abstraction
+Feature modules are intended to be composable. Hosts explicitly import the
+features they require; shared infrastructure is centralized rather than
+implemented separately on every host.
 
-The `networking-options.nix` module defines a central source of truth for fleet IPs, subnets, and domains. All services consume `config.networking.fleet`, `servicesBindAddress`, etc. rather than hardcoding IPs.
+## Networking
+
+`modules/features/networking-options.nix` is the central source of truth for
+fleet hosts, subnets, and domains. Services consume `config.networking.fleet`,
+`config.networking.servicesBindAddress`, and related options rather than
+hardcoding addresses.
+
+`servicesBindAddress` is intended for services that must be reachable through
+the fleet network or HAProxy gateway. Services that do not need fleet
+reachability should bind to loopback.
 
 ## Secrets
 
-Secrets are managed with SOPS + age. Host SSH Ed25519 keys are used as age identities. See `docs/SECRETS.md` for details.
+Secrets are managed with SOPS and age. Host SSH Ed25519 keys are used as age
+identities, and `.sops.yaml` defines explicit recipient sets for each secret
+file.
+
+See [Secrets](SECRETS.md) for the recipient model, recovery procedure, and
+recipient-change workflow.
 
 ## Tests
 
-The `tests/` directory contains NixOS integration and evaluation checks. `tests/README.md` lists what each one covers.
+The `tests/` directory contains evaluation checks and NixOS VM tests.
+`tests/README.md` documents what each check covers.
 
-Flake checks, run by `nix flake check` on every pull request:
+Flake checks run through `nix flake check`:
 
-- **nftables-input-rules**: Eval-only check of nftables input-rule structure.
-- **service-exposure**: Validates service exposure rules.
-- **public-service-hardening**: Validates public-service hardening policy.
-- **public-endpoint-inventory**: Validates the public endpoint inventory.
-- **monitoring-health**: VM test of the monitoring stack.
-- **postgresql-auth**: VM test of PostgreSQL authentication policy.
+- `nftables-input-rules`
+- `service-exposure`
+- `public-service-hardening`
+- `public-endpoint-inventory`
+- `monitoring-health`
+- `postgresql-auth`
+
+Slower VM tests are exposed as flake packages and run by the VM-test workflow:
+
+- `firewall-isolation`
+- `admin-isolation`
 
 ```bash
 nix flake check
-```
-
-Slower VM tests, exposed as flake packages and run nightly by `.github/workflows/vm-tests.yml`:
-
-- **firewall-isolation**: Proves only the gateway reaches backend ports and only Prometheus reaches node-exporter.
-- **admin-isolation**: Validates administrative-service isolation.
-
-```bash
 nix build --print-build-logs .#firewall-isolation .#admin-isolation
 ```

@@ -37,6 +37,10 @@
       "-w /etc/ssh/sshd_config -p wa -k sshd-config-change"
       "-w /etc/ssh/sshd_config.d/ -p wa -k sshd-config-change"
 
+      # Authentication policy changes
+      "-w /etc/pam.d/ -p wa -k pam-config-change"
+      "-w /etc/security/ -p wa -k pam-config-change"
+
       # Audit policy changes
       "-w /etc/audit/ -p wa -k audit-config-change"
     ];

@@ -15,16 +15,10 @@ let
     lib.filter (port: lib.count (other: other == port) proxyBackendPorts > 1) proxyBackendPorts
   );
 
-  # Sensitive or internal-only services that must not be exposed
-  # through the HAProxy backend allowlist.
-  internalServicePorts = {
-    pgAdmin = 5050;
-    prometheus = 9090;
-    blackboxExporter = 9115;
-    alertmanager = 9093;
-  };
-
-  forbiddenProxyPorts = lib.attrValues internalServicePorts;
+  # Internal-only service ports are centrally defined by
+  # networking-options.nix. PostgreSQL is included there as well, but its
+  # dedicated assertion provides a clearer, service-specific error.
+  forbiddenProxyPorts = config.networking.internalOnlyPorts;
 
   forbiddenExposedPorts = lib.intersectLists forbiddenProxyPorts proxyBackendPorts;
 
@@ -115,7 +109,8 @@ in
     }
 
     # Prevent sensitive or internal-only services from being exposed
-    # through the HAProxy backend allowlist.
+    # through the HAProxy backend allowlist. The authoritative list is
+    # maintained in networking-options.nix.
     {
       assertion = forbiddenExposedPorts == [ ];
       message =

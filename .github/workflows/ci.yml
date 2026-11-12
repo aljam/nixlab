@@ -37,11 +37,11 @@ jobs:
         run: |
           set -euo pipefail
 
-          nix fmt
+          if ! nix fmt -- --ci; then
+            nix fmt
 
-          diff_output="$(git --no-pager diff --unified=3)"
+            diff_output="$(git --no-pager diff --unified=3 -- . ':(exclude)flake.lock')"
 
-          if [[ -n "$diff_output" ]]; then
             echo "::error::Nix files are not formatted. Run 'nix fmt' locally. Formatting diff:"
             printf '%s\n' "$diff_output"
             exit 1

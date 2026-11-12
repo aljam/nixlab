@@ -1,7 +1,11 @@
 [Desktop Entry]
+Type=Application
+Version=1.0
 Name=Gen1Recomp
+GenericName=Pokémon Recompilation
 Comment=Native LÖVE recreation of Pokémon Gen 1 and 2
 Exec=gen1recomp
 Terminal=false
-Type=Application
 Categories=Game;
+Keywords=game;pokemon;love;recomp;
+StartupWMClass=gen1recomp

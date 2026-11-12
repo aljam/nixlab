@@ -62,6 +62,7 @@ let
     5432 # PostgreSQL
     9090 # Prometheus
     9115 # Prometheus Blackbox exporter
+    9093 # Alertmanager
     3100 # Loki
   ];
 
@@ -117,11 +118,18 @@ in
       default = [ ];
       description = "TCP ports reachable from the pfSense HAProxy backend. Feature modules append their own ports.";
     };
+
+    internalOnlyPorts = lib.mkOption {
+      type = lib.types.listOf lib.types.port;
+      readOnly = true;
+      description = "Ports that must never be exposed through the HAProxy backend allowlist.";
+    };
   };
 
   config.networking = {
     inherit fleet subnets domains;
     myDomain = domains.primary;
+    internalOnlyPorts = internalOnlyPorts;
   };
 
   config.assertions = [

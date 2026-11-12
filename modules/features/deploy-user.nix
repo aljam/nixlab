@@ -138,7 +138,8 @@ in
         commands = [
           {
             # Match the system-profile path, as resolved through sudo's secure_path.
-            command = "/run/current-system/sw/bin/deploy-rebuild *";
+            # Restrict the wildcard to the sole supported deployment action.
+            command = "/run/current-system/sw/bin/deploy-rebuild switch *";
             options = [ "NOPASSWD" ];
           }
         ];

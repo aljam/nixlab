@@ -43,6 +43,18 @@
             ProtectControlGroups = lib.mkDefault true;
             RestrictSUIDSGID = lib.mkDefault true;
             LockPersonality = lib.mkDefault true;
+
+            # Restrict interfaces that most long-running network services do
+            # not need. Individual service modules may override a setting when
+            # its workload legitimately requires broader access.
+            PrivateDevices = lib.mkDefault true;
+            ProtectClock = lib.mkDefault true;
+            ProtectHostname = lib.mkDefault true;
+            ProtectKernelLogs = lib.mkDefault true;
+            ProtectProc = lib.mkDefault "invisible";
+            ProcSubset = lib.mkDefault "pid";
+            RestrictRealtime = lib.mkDefault true;
+            UMask = lib.mkDefault "0077";
           };
         }
       ) config.roles.security.systemdHardenedServices

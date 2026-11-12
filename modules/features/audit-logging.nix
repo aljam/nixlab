@@ -37,8 +37,8 @@
       "-w /etc/ssh/sshd_config -p wa -k sshd-config-change"
       "-w /etc/ssh/sshd_config.d/ -p wa -k sshd-config-change"
 
-      # Systemd unit changes
-      "-w /etc/systemd/system/ -p wa -k systemd-unit-change"
+      # Nix configuration
+      "-w /etc/nix/nix.conf -p wa -k nix-config-change"
 
       # Audit policy changes
       "-w /etc/audit/ -p wa -k audit-config-change"

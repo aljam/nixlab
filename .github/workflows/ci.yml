@@ -37,23 +37,23 @@ jobs:
         run: |
           set -euo pipefail
 
-          worktree="$(mktemp -d)"
+          formatted="$(mktemp -d)"
           cleanup() {
-            git worktree remove --force "$worktree" >/dev/null 2>&1 || true
-            rm -rf "$worktree"
+            rm -rf "$formatted"
           }
           trap cleanup EXIT
 
-          git worktree add --detach "$worktree" HEAD >/dev/null
+          # Copy the repository without its Git metadata. The CI checkout is
+          # shallow, so a temporary Git worktree can make Nix's Git input
+          # resolution fail when it tries to inspect commit ancestry.
+          tar --exclude=./.git -cf - . | tar -xf - -C "$formatted"
 
           (
-            cd "$worktree"
+            cd "$formatted"
             nix fmt
           )
 
-          diff_output="$(git -C "$worktree" --no-pager diff)"
-
-          if [[ -n "$diff_output" ]]; then
+          if ! diff_output="$(git diff --no-index -- "$GITHUB_WORKSPACE" "$formatted")"; then
             echo "::error::Nix files are not formatted. Run 'nix fmt' locally. Formatting diff:"
             printf '%s\n' "$diff_output"
             exit 1

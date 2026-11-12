@@ -37,10 +37,8 @@
       "-w /etc/ssh/sshd_config -p wa -k sshd-config-change"
       "-w /etc/ssh/sshd_config.d/ -p wa -k sshd-config-change"
 
-      # Scheduled task changes
-      "-w /etc/crontab -p wa -k cron-config-change"
-      "-w /etc/cron.d/ -p wa -k cron-config-change"
-      "-w /var/spool/cron/ -p wa -k cron-config-change"
+      # Nix configuration
+      "-w /etc/nix/nix.conf -p wa -k nix-config-change"
 
       # Audit policy changes
       "-w /etc/audit/ -p wa -k audit-config-change"

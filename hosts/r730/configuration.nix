@@ -13,8 +13,8 @@
 #   hardware.opengl.driSupport = true;
 #   hardware.opengl.driSupport32Bit = true;
 #
-#   environment.systemPackages = [
-#     pkgs.cudatoolkit
+#   environment.systemPackages = with pkgs; [
+#     cudatoolkit
 #     pkgs.cudnn
 #     pkgs.nccl
 #   ];
@@ -39,8 +39,6 @@
 
   networking.hostId = "acccc16e"; # Required for ZFS
 
-  boot.kernelPackages = pkgs.linuxPackages_6_1;
-
   # hardware.nvidia-container-toolkit.enable = true; # Passes the P40s into Docker
 
   # hardware.nvidia = {
@@ -52,7 +50,7 @@
 
   environment.systemPackages = with pkgs; [
     cudatoolkit
-    # Must match the running kernel, not the default linuxPackages set.
+    # Must match the running kernel package set.
     config.boot.kernelPackages.nvidia_x11
   ];
 }

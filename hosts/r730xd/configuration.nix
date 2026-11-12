@@ -26,8 +26,6 @@
     ../../modules/features/peertube.nix
   ];
 
-  boot.kernelPackages = pkgs.linuxPackages_6_1;
-
   boot.kernelParams = [ "zfs.zfs_arc_max=6871947636" ];
 
   networking.hostId = "d2083fdc"; # Required for ZFS

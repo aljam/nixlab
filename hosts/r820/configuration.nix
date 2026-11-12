@@ -3,6 +3,7 @@
   pkgs,
   ...
 }:
+
 {
   imports = [
     ./hardware-configuration.nix
@@ -17,6 +18,7 @@
 
   modules.features.postgres = {
     enable = true;
+    listenAddress = config.networking.fleet.r820.ip;
 
     ensureDatabases = [
       "matrix-synapse"

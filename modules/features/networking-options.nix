@@ -1,5 +1,6 @@
 {
   lib,
+  config,
   ...
 }:
 let
@@ -41,9 +42,7 @@ let
     };
   };
 
-  fleetIps = lib.filter (ip: ip != null) (
-    lib.mapAttrsToList (_: host: host.ip or null) fleet
-  );
+  fleetIps = lib.filter (ip: ip != null) (lib.mapAttrsToList (_: host: host.ip or null) fleet);
 
   duplicateIps = lib.subtractLists (lib.unique fleetIps) fleetIps;
 
@@ -52,9 +51,7 @@ let
     "${subnets.nas}."
   ];
 
-  invalidIps = lib.filter (
-    ip: !lib.any (prefix: lib.hasPrefix prefix ip) allowedIpPrefixes
-  ) fleetIps;
+  invalidIps = lib.filter (ip: !lib.any (prefix: lib.hasPrefix prefix ip) allowedIpPrefixes) fleetIps;
 
   # Ports that must remain internal-only and must never be added to the
   # HAProxy backend allowlist.
@@ -62,7 +59,6 @@ let
     5432 # PostgreSQL
     9090 # Prometheus
     9115 # Prometheus Blackbox exporter
-    9093 # Alertmanager
     3100 # Loki
   ];
 
@@ -139,13 +135,13 @@ in
     }
     {
       assertion = invalidIps == [ ];
-      message =
-        "Fleet host IPs must belong to an allowed subnet (${lib.concatStringsSep ", " allowedIpPrefixes}). Invalid: ${lib.concatStringsSep ", " invalidIps}";
+      message = "Fleet host IPs must belong to an allowed subnet (${lib.concatStringsSep ", " allowedIpPrefixes}). Invalid: ${lib.concatStringsSep ", " invalidIps}";
     }
     {
       assertion = exposedInternalPorts == [ ];
-      message =
-        "Internal-only services must not be exposed through the HAProxy backend allowlist. Exposed ports: ${lib.concatMapStringsSep ", " toString exposedInternalPorts}";
+      message = "Internal-only services must not be exposed through the HAProxy backend allowlist. Exposed ports: ${
+        lib.concatMapStringsSep ", " toString exposedInternalPorts
+      }";
     }
   ];
 }

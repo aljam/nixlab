@@ -11,9 +11,17 @@ in
   imports = [
     ./restic-backup.nix
   ];
-
   options.modules.features.postgres = {
     enable = lib.mkEnableOption "PostgreSQL server with encrypted LAN access";
+
+    listenAddress = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = ''
+        Specific address on which PostgreSQL listens. When null, PostgreSQL
+        listens on all addresses; firewall and pg_hba rules remain required.
+      '';
+    };
 
     ensureDatabases = lib.mkOption {
       type = lib.types.listOf lib.types.str;
@@ -77,7 +85,8 @@ in
       ensureUsers = map (user: { inherit (user) name ensureDBOwnership; }) cfg.ensureUsers;
 
       settings = {
-        listen_addresses = lib.mkForce "*";
+        listen_addresses =
+          if cfg.listenAddress == null then lib.mkForce "*" else lib.mkForce "${cfg.listenAddress},127.0.0.1";
         port = 5432;
         ssl = true;
         ssl_cert_file = "/var/lib/postgresql/tls/server.crt";

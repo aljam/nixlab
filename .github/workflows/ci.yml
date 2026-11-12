@@ -34,7 +34,18 @@ jobs:
           useDaemon: false
 
       - name: Check formatting (nixfmt)
-        run: nix fmt -- --ci
+        run: |
+          set -euo pipefail
+
+          if ! nix fmt -- --ci; then
+            nix fmt
+
+            diff_output="$(git --no-pager diff --unified=3 -- . ':(exclude)flake.lock')"
+
+            echo "::error::Nix files are not formatted. Run 'nix fmt' locally. Formatting diff:"
+            printf '%s\n' "$diff_output"
+            exit 1
+          fi
 
       - name: Flake check
         run: nix flake check --no-build --print-build-logs

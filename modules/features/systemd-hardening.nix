@@ -13,22 +13,39 @@
     '';
   };
 
-  config.systemd.services = lib.listToAttrs (
-    map (
-      name:
-      lib.nameValuePair name {
-        serviceConfig = {
-          NoNewPrivileges = lib.mkDefault true;
-          PrivateTmp = lib.mkDefault true;
-          ProtectHome = lib.mkDefault true;
-          ProtectSystem = lib.mkDefault "strict";
-          ProtectKernelTunables = lib.mkDefault true;
-          ProtectKernelModules = lib.mkDefault true;
-          ProtectControlGroups = lib.mkDefault true;
-          RestrictSUIDSGID = lib.mkDefault true;
-          LockPersonality = lib.mkDefault true;
-        };
+  config = {
+    assertions = [
+      {
+        assertion = lib.all (
+          name: lib.hasAttr name config.systemd.services
+        ) config.roles.security.systemdHardenedServices;
+        message =
+          let
+            unknown = lib.filter (
+              name: !lib.hasAttr name config.systemd.services
+            ) config.roles.security.systemdHardenedServices;
+          in
+          "systemdHardenedServices contains services that do not exist: ${lib.concatStringsSep ", " unknown}";
       }
-    ) config.roles.security.systemdHardenedServices
-  );
+    ];
+
+    systemd.services = lib.listToAttrs (
+      map (
+        name:
+        lib.nameValuePair name {
+          serviceConfig = {
+            NoNewPrivileges = lib.mkDefault true;
+            PrivateTmp = lib.mkDefault true;
+            ProtectHome = lib.mkDefault true;
+            ProtectSystem = lib.mkDefault "strict";
+            ProtectKernelTunables = lib.mkDefault true;
+            ProtectKernelModules = lib.mkDefault true;
+            ProtectControlGroups = lib.mkDefault true;
+            RestrictSUIDSGID = lib.mkDefault true;
+            LockPersonality = lib.mkDefault true;
+          };
+        }
+      ) config.roles.security.systemdHardenedServices
+    );
+  };
 }

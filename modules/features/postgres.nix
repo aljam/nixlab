@@ -86,10 +86,7 @@ in
 
       settings = {
         listen_addresses =
-          if cfg.listenAddress == null then
-            lib.mkForce "*"
-          else
-            lib.mkForce "${cfg.listenAddress},127.0.0.1";
+          if cfg.listenAddress == null then lib.mkForce "*" else lib.mkForce "${cfg.listenAddress},127.0.0.1";
         port = 5432;
         ssl = true;
         ssl_cert_file = "/var/lib/postgresql/tls/server.crt";

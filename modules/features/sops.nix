@@ -10,6 +10,19 @@ let
   ) rootOwnedSecrets;
 
   unauthorizedSecretNames = map (secret: secret.name) unauthorizedRootOwnedSecrets;
+
+  undeclaredAllowedRootSecrets = lib.filter (
+    name: !lib.hasAttr name config.sops.secrets
+  ) config.roles.security.sopsAllowedRootSecrets;
+
+  undeclaredSecretOwners = lib.filter (
+    secret:
+    secret.owner != "root" && !lib.hasAttr secret.owner config.users.users
+  ) sopsSecrets;
+
+  undeclaredSecretGroups = lib.filter (
+    secret: !lib.hasAttr secret.group config.users.groups
+  ) sopsSecrets;
 in
 {
   options.roles.security.sopsAllowedRootSecrets = lib.mkOption {
@@ -61,6 +74,30 @@ in
         roles.security.sopsAllowedRootSecrets. Unauthorized secrets:
         ${lib.concatStringsSep ", " unauthorizedSecretNames}
       '';
+    }
+
+    # Ensure that the root-secret allowlist does not retain stale entries.
+    {
+      assertion = undeclaredAllowedRootSecrets == [ ];
+      message =
+        "sopsAllowedRootSecrets contains undeclared secrets: "
+        + lib.concatStringsSep ", " undeclaredAllowedRootSecrets;
+    }
+
+    # Prevent typos or accidental references to undeclared service identities.
+    {
+      assertion = undeclaredSecretOwners == [ ];
+      message =
+        "SOPS secret owners must be declared system users. Undeclared owners: "
+        + lib.concatStringsSep ", " (map (secret: secret.owner) undeclaredSecretOwners);
+    }
+
+    # Prevent typos or accidental references to undeclared groups.
+    {
+      assertion = undeclaredSecretGroups == [ ];
+      message =
+        "SOPS secret groups must be declared system groups. Undeclared groups: "
+        + lib.concatStringsSep ", " (map (secret: secret.group) undeclaredSecretGroups);
     }
   ];
 }

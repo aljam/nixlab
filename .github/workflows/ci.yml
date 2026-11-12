@@ -37,23 +37,11 @@ jobs:
         run: |
           set -euo pipefail
 
-          formatted="$(mktemp -d)"
-          cleanup() {
-            rm -rf "$formatted"
-          }
-          trap cleanup EXIT
+          nix fmt
 
-          # Copy the repository without its Git metadata. The CI checkout is
-          # shallow, so a temporary Git worktree can make Nix's Git input
-          # resolution fail when it tries to inspect commit ancestry.
-          tar --exclude=./.git -cf - . | tar -xf - -C "$formatted"
+          diff_output="$(git --no-pager diff --unified=3)"
 
-          (
-            cd "$formatted"
-            nix fmt
-          )
-
-          if ! diff_output="$(git diff --no-index -- "$GITHUB_WORKSPACE" "$formatted")"; then
+          if [[ -n "$diff_output" ]]; then
             echo "::error::Nix files are not formatted. Run 'nix fmt' locally. Formatting diff:"
             printf '%s\n' "$diff_output"
             exit 1

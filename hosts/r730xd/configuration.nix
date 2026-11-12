@@ -26,16 +26,17 @@
     ../../modules/features/peertube.nix
   ];
 
-  boot.kernelPackages = pkgs.linuxPackages_6_1;
-
   boot.kernelParams = [ "zfs.zfs_arc_max=6871947636" ];
 
   networking.hostId = "d2083fdc"; # Required for ZFS
 
   services.resolved.enable = true;
 
-  modules.features.prometheus-server.postgresCaFile =
-    config.sops.secrets.pfsense-root-ca-prometheus.path;
+  # Re-enable after the PostgreSQL server certificate on r820 is issued by
+  # the CA trusted through `postgresCaFile`. The module currently generates a
+  # self-signed certificate, which cannot validate against the pfSense root CA.
+  # modules.features.prometheus-server.postgresCaFile =
+  #   config.sops.secrets.pfsense-root-ca-prometheus.path;
 
   modules.features.static-site.enable = true;
   modules.features.radio.enable = true;

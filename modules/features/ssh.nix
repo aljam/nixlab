@@ -59,6 +59,13 @@
         filter = "sshd";
         port = "ssh";
         logpath = "%(sshd_log)s";
+
+        # SSH password authentication is disabled, so these limits primarily
+        # constrain repeated key probing, connection abuse, and noisy
+        # authentication attempts rather than password brute force.
+        maxretry = 5;
+        findtime = "10m";
+        bantime = "1h";
       };
     };
   };

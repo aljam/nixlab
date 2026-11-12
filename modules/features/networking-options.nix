@@ -1,5 +1,6 @@
 {
   lib,
+  config,
   ...
 }:
 let
@@ -40,6 +41,28 @@ let
       ip = "${subnets.nas}.10";
     };
   };
+
+  fleetIps = lib.filter (ip: ip != null) (lib.mapAttrsToList (_: host: host.ip or null) fleet);
+
+  duplicateIps = lib.subtractLists (lib.unique fleetIps) fleetIps;
+
+  allowedIpPrefixes = [
+    "${subnets.lan}."
+    "${subnets.nas}."
+  ];
+
+  invalidIps = lib.filter (ip: !lib.any (prefix: lib.hasPrefix prefix ip) allowedIpPrefixes) fleetIps;
+
+  # Ports that must remain internal-only and must never be added to the
+  # HAProxy backend allowlist.
+  internalOnlyPorts = [
+    5432 # PostgreSQL
+    9090 # Prometheus
+    9115 # Prometheus Blackbox exporter
+    3100 # Loki
+  ];
+
+  exposedInternalPorts = lib.intersectLists internalOnlyPorts config.networking.proxyBackendPorts;
 in
 {
   options.networking = {
@@ -91,10 +114,34 @@ in
       default = [ ];
       description = "TCP ports reachable from the pfSense HAProxy backend. Feature modules append their own ports.";
     };
+
+    internalOnlyPorts = lib.mkOption {
+      type = lib.types.listOf lib.types.port;
+      readOnly = true;
+      description = "Ports that must never be exposed through the HAProxy backend allowlist.";
+    };
   };
 
   config.networking = {
     inherit fleet subnets domains;
     myDomain = domains.primary;
+    internalOnlyPorts = internalOnlyPorts;
   };
+
+  config.assertions = [
+    {
+      assertion = duplicateIps == [ ];
+      message = "Fleet host IPs must be unique. Duplicates: ${lib.concatStringsSep ", " duplicateIps}";
+    }
+    {
+      assertion = invalidIps == [ ];
+      message = "Fleet host IPs must belong to an allowed subnet (${lib.concatStringsSep ", " allowedIpPrefixes}). Invalid: ${lib.concatStringsSep ", " invalidIps}";
+    }
+    {
+      assertion = exposedInternalPorts == [ ];
+      message = "Internal-only services must not be exposed through the HAProxy backend allowlist. Exposed ports: ${
+        lib.concatMapStringsSep ", " toString exposedInternalPorts
+      }";
+    }
+  ];
 }

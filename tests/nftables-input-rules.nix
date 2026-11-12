@@ -52,6 +52,7 @@ let
       exporter = cfg.services.prometheus.exporters.node;
       backendPorts = cfg.networking.proxyBackendPorts;
       openTCP = cfg.networking.firewall.allowedTCPPorts;
+      lokiEnabled = cfg.services.loki.enable or false;
       fail = msg: "${name}: ${msg}";
     in
     # 1. The regression itself: a verdict with nothing to match on.
@@ -76,7 +77,15 @@ let
     )
     ++ lib.optional (exporter.enable && !(portCovered rules exporter.port)) (
       fail "node_exporter is enabled but no input rule allows the Prometheus server to scrape it"
-    );
+    )
+    # 6. Loki is not open to the whole LAN.
+    ++ lib.optionals (lokiEnabled && lib.elem 3100 openTCP) [
+      (fail "Loki port 3100 is in allowedTCPPorts, so it is open to the whole LAN")
+    ]
+    # 7. Loki needs a source-scoped input rule for approved clients.
+    ++ lib.optionals (lokiEnabled && !(portCovered rules 3100)) [
+      (fail "Loki is enabled but no input rule allows approved clients to reach it")
+    ];
 
   failures = lib.concatLists (lib.mapAttrsToList checkHost hosts);
 

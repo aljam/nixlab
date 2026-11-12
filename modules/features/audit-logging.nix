@@ -37,6 +37,11 @@
       "-w /etc/ssh/sshd_config -p wa -k sshd-config-change"
       "-w /etc/ssh/sshd_config.d/ -p wa -k sshd-config-change"
 
+      # Name resolution changes
+      "-w /etc/hosts -p wa -k dns-config-change"
+      "-w /etc/resolv.conf -p wa -k dns-config-change"
+      "-w /etc/nsswitch.conf -p wa -k dns-config-change"
+
       # Audit policy changes
       "-w /etc/audit/ -p wa -k audit-config-change"
     ];

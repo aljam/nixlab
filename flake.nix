@@ -288,6 +288,8 @@
           lib = nixpkgs.lib;
           pkgs = nixpkgs.legacyPackages.${system};
         };
+
+        drift-detection = nixpkgs.legacyPackages.${system}.testers.runNixOSTest ./tests/drift-detection.nix;
       };
 
       nixosConfigurations = hostConfigurations;

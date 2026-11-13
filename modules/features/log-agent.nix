@@ -9,12 +9,10 @@ let
   isLoopbackHttp = lib.hasPrefix "http://127.0.0.1" lokiUrl || lib.hasPrefix "http://[::1]" lokiUrl;
   isHttps = lib.hasPrefix "https://" lokiUrl;
 
-  privateHttpPrefixes =
-    [
-      "http://10."
-      "http://192.168."
-    ]
-    ++ map (n: "http://172.${toString n}.") (lib.range 16 31);
+  privateHttpPrefixes = [
+    "http://10."
+    "http://192.168."
+  ] ++ map (n: "http://172.${toString n}.") (lib.range 16 31);
 
   isPrivateHttp = lib.any (prefix: lib.hasPrefix prefix lokiUrl) privateHttpPrefixes;
 

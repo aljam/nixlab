@@ -1,0 +1,47 @@
+groups:
+  - name: nixlab-host-baseline
+    rules:
+      - alert: FailedSystemUnits
+        expr: nixlab_host_baseline_failed_system_units > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Failed systemd units"
+          description: "Host {{ $labels.instance }} has {{ $value }} failed system unit(s)."
+
+      - alert: FailedUserUnits
+        expr: nixlab_host_baseline_failed_user_units > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Failed user systemd units"
+          description: "Host {{ $labels.instance }} has {{ $value }} failed user unit(s)."
+
+      - alert: JournalUsageHigh
+        expr: nixlab_host_baseline_journal_usage_bytes > 1073741824
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Journal disk usage is high"
+          description: "Host {{ $labels.instance }} journal usage exceeds 1 GiB."
+
+      - alert: AuditRecordsStale
+        expr: nixlab_host_baseline_audit_records_recent == 0
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Audit records are stale or unavailable"
+          description: "Host {{ $labels.instance }} has no recent audit records."
+
+      - alert: SshHardeningRegression
+        expr: nixlab_host_baseline_ssh_hardening_ok == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "SSH hardening regression"
+          description: "Host {{ $labels.instance }} no longer enforces the required SSH authentication policy."

@@ -31,7 +31,7 @@ pkgs.testers.nixosTest {
               webhook_configs = [
                 {
                   url = "http://127.0.0.1:8080/test";
-                  send_resolved = true;
+                  sendResolved = true;
                 }
               ];
             }

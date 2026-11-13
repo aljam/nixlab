@@ -13,6 +13,12 @@
       default = "127.0.0.1";
       description = "Address on which Loki listens for Alloy and Grafana clients.";
     };
+
+    retentionPeriod = lib.mkOption {
+      type = lib.types.str;
+      default = "720h";
+      description = "How long Loki retains log data. The default is 30 days.";
+    };
   };
 
   config = lib.mkIf config.services.nixlab.loki.enable {
@@ -46,6 +52,8 @@
 
         compactor = {
           working_directory = "/var/lib/loki/compactor";
+          retention_enabled = true;
+          delete_request_store = "filesystem";
         };
 
         schema_config.configs = [
@@ -73,6 +81,7 @@
         limits_config = {
           reject_old_samples = true;
           reject_old_samples_max_age = "168h";
+          retention_period = config.services.nixlab.loki.retentionPeriod;
         };
       };
     };

@@ -19,7 +19,9 @@ let
       postgresAuth = cfg.services.postgresql.authentication or "";
       postgresPort = cfg.services.postgresql.settings.port or 5432;
       sopsSecrets = lib.attrValues (cfg.sops.secrets or { });
-      lokiEnabled = cfg.services.loki.enable or false;
+      lokiEnabled = cfg.services.nixlab.loki.enable or false;
+      lokiRetentionEnabled = cfg.services.loki.configuration.compactor.retention_enabled or false;
+      lokiRetentionPeriod = cfg.services.loki.configuration.limits_config.retention_period or "";
     in
     lib.optionals (lib.elem 5050 proxyPorts) [
       "${hostname}: pgAdmin port 5050 must not be exposed through HAProxy"
@@ -41,6 +43,12 @@ let
     ]
     ++ lib.optionals (lokiEnabled && lib.elem 3100 proxyPorts) [
       "${hostname}: Loki port 3100 must not be exposed through HAProxy"
+    ]
+    ++ lib.optionals (lokiEnabled && !lokiRetentionEnabled) [
+      "${hostname}: Loki retention must be enabled so security logs do not accumulate indefinitely"
+    ]
+    ++ lib.optionals (lokiEnabled && lokiRetentionPeriod == "") [
+      "${hostname}: Loki must define a retention period"
     ]
     ++
       lib.optionals

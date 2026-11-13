@@ -19,6 +19,7 @@
     ../features/ssh.nix
     ../features/security-policy.nix
     ../features/systemd-hardening.nix
+    ../features/audit-logging.nix
   ];
 
   options.networking.servicesBindAddress = lib.mkOption {

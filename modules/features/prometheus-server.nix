@@ -150,7 +150,10 @@ in
       port = 9090;
       listenAddress = config.networking.servicesBindAddress;
 
-      ruleFiles = [ ./prometheus/rules/prometheus-rules.yml ];
+      ruleFiles = [
+        ./prometheus/rules/prometheus-rules.yml
+        ./prometheus/rules/drift-rules.yml
+      ];
 
       # Alertmanager comes from ./prometheus-alerts.nix, which must be imported
       # on the same host.

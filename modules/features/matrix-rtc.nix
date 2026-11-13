@@ -44,15 +44,22 @@ let
 
       # Nix indented strings treat backslashes literally, so use one backslash
       # for each POSIX shell line continuation.
-      exec lk token create \
-        --api-key matrixrtc \
-        --api-secret "$secret" \
-        --join \
-        --room connection-test \
-        --identity tester \
+      exec lk token create \\
+        --api-key matrixrtc \\
+        --api-secret "$secret" \\
+        --join \\
+        --room connection-test \\
+        --identity tester \\
         --valid-for 1h
     '';
   };
+
+  containerRuntimeOptions = [
+    "--restart=unless-stopped"
+    "--log-driver=json-file"
+    "--log-opt=max-size=10m"
+    "--log-opt=max-file=3"
+  ];
 in
 {
   networking.proxyBackendPorts = [
@@ -90,7 +97,13 @@ in
         "/etc/livekit/livekit.yaml"
       ];
       volumes = [ "${livekitConfig}:/etc/livekit/livekit.yaml:ro" ];
-      extraOptions = [ "--security-opt=no-new-privileges" ];
+      extraOptions =
+        containerRuntimeOptions
+        ++ [
+          "--cpus=2"
+          "--memory=1g"
+          "--security-opt=no-new-privileges"
+        ];
     };
 
     lk-jwt-service = {
@@ -103,7 +116,13 @@ in
         LIVEKIT_KEY = "matrixrtc";
       };
       environmentFiles = [ config.sops.secrets.livekit-jwt-env.path ];
-      extraOptions = [ "--security-opt=no-new-privileges" ];
+      extraOptions =
+        containerRuntimeOptions
+        ++ [
+          "--cpus=0.5"
+          "--memory=256m"
+          "--security-opt=no-new-privileges"
+        ];
     };
   };
 }

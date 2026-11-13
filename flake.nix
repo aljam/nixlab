@@ -285,6 +285,7 @@
         };
 
         sops-recovery = import ./tests/sops-recovery.nix {
+          lib = nixpkgs.lib;
           pkgs = nixpkgs.legacyPackages.${system};
         };
       };

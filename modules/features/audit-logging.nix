@@ -14,12 +14,12 @@
   security.audit.enable = true;
   security.auditd.enable = true;
 
-  services.journald.storage = "persistent";
-  services.journald.extraConfig = ''
-    SystemMaxUse=2G
-    KeepFree=1G
-    MaxRetentionSec=30day
-  '';
+  services.journald.settings.Journal = {
+    Storage = "persistent";
+    SystemMaxUse = "2G";
+    KeepFree = "1G";
+    MaxRetentionSec = "30day";
+  };
 
   assertions = [
     {
@@ -27,7 +27,7 @@
       message = "Kernel audit events must remain enabled.";
     }
     {
-      assertion = config.services.journald.storage == "persistent";
+      assertion = config.services.journald.settings.Journal.Storage == "persistent";
       message = "The systemd journal must persist across reboots.";
     }
   ];

@@ -49,7 +49,6 @@ let
   };
 
   containerRuntimeOptions = [
-    "--restart=unless-stopped"
     "--log-driver=json-file"
     "--log-opt=max-size=10m"
     "--log-opt=max-file=3"

@@ -1,4 +1,9 @@
-{ lib, config, pkgs, ... }:
+{
+  lib,
+  config,
+  pkgs,
+  ...
+}:
 let
   cfg = config.modules.features.radio;
   liquidsoapScript = config.sops.templates.liquidsoap-radio.path;

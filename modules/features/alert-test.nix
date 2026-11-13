@@ -14,34 +14,18 @@ let
 
   cfg = config.modules.features.alert-test;
 
+  curl = lib.getExe pkgs.curl;
+  jq = lib.getExe pkgs.jq;
+
   alertTestScript = pkgs.writers.writeBash "nixlab-alert-test" ''
     set -euo pipefail
 
     severity="${cfg.severity}"
     fingerprint=$(printf 'nixlab-alert-test-%s' "$severity")
 
-    payload=$(jq -n \\
-      --arg severity "$severity" \\
-      --arg fingerprint "$fingerprint" \\
-      '[{
-        startsAt: (now | todate),
-        endsAt: "",
-        generatorURL: "https://nixlab.local/alert-test",
-        labels: {
-          alertname: "NixLabAlertDeliveryTest",
-          severity: $severity,
-          instance: "alert-test"
-        },
-        annotations: {
-          summary: "NixLab alert delivery test",
-          description: "Controlled test alert; safe to resolve."
-        }
-      }]')
+    payload=$(${jq} -n --arg severity "$severity" --arg fingerprint "$fingerprint" '[{"startsAt":(now|todate),"endsAt":"","generatorURL":"https://nixlab.local/alert-test","labels":{"alertname":"NixLabAlertDeliveryTest","severity":$severity,"instance":"alert-test"},"annotations":{"summary":"NixLab alert delivery test","description":"Controlled test alert; safe to resolve."}}]')
 
-    curl -fsS \\
-      -H 'Content-Type: application/json' \\
-      -d "$payload" \\
-      http://127.0.0.1:9093/api/v2/alerts
+    ${curl} -fsS -H 'Content-Type: application/json' -d "$payload" http://127.0.0.1:9093/api/v2/alerts
 
     echo "Submitted $severity alert delivery test with fingerprint $fingerprint."
   '';
@@ -52,28 +36,9 @@ let
     severity="${cfg.severity}"
     fingerprint=$(printf 'nixlab-alert-test-%s' "$severity")
 
-    payload=$(jq -n \\
-      --arg severity "$severity" \\
-      --arg fingerprint "$fingerprint" \\
-      '[{
-        startsAt: (now | todate),
-        endsAt: (now | todate),
-        generatorURL: "https://nixlab.local/alert-test",
-        labels: {
-          alertname: "NixLabAlertDeliveryTest",
-          severity: $severity,
-          instance: "alert-test"
-        },
-        annotations: {
-          summary: "NixLab alert recovery test",
-          description: "Controlled test alert resolved."
-        }
-      }]')
+    payload=$(${jq} -n --arg severity "$severity" --arg fingerprint "$fingerprint" '[{"startsAt":(now|todate),"endsAt":(now|todate),"generatorURL":"https://nixlab.local/alert-test","labels":{"alertname":"NixLabAlertDeliveryTest","severity":$severity,"instance":"alert-test"},"annotations":{"summary":"NixLab alert recovery test","description":"Controlled test alert resolved."}}]')
 
-    curl -fsS \\
-      -H 'Content-Type: application/json' \\
-      -d "$payload" \\
-      http://127.0.0.1:9093/api/v2/alerts
+    ${curl} -fsS -H 'Content-Type: application/json' -d "$payload" http://127.0.0.1:9093/api/v2/alerts
 
     echo "Resolved $severity alert delivery test with fingerprint $fingerprint."
   '';

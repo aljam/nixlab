@@ -27,22 +27,22 @@ def main() -> int:
 
     config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
     rules = config.get("creation_rules", []) or []
-    key_entries = config.get("keys", []) or []
 
     failures = []
 
+    # YAML anchors are consumed by yaml.safe_load, so recover the anchor to
+    # recipient mapping from the raw .sops.yaml text.
     anchors = {}
     declared_recipients = set()
-    for entry in key_entries:
-        if not isinstance(entry, str) or not entry.startswith("&"):
+    key_entry_pattern = re.compile(r"^\s*-\s*&([\w.-]+)\s+(.+?)\s*$")
+
+    for line in config_path.read_text(encoding="utf-8").splitlines():
+        match = key_entry_pattern.match(line)
+        if not match:
             continue
 
-        parts = entry.split(maxsplit=1)
-        if len(parts) != 2:
-            continue
-
-        anchor = parts[0][1:]
-        recipient = normalize_recipient(parts[1])
+        anchor, recipient = match.groups()
+        recipient = normalize_recipient(recipient)
         anchors[anchor] = recipient
         declared_recipients.add(recipient)
 

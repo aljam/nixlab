@@ -5,7 +5,10 @@
   nodes.machine =
     { ... }:
     {
-      imports = [ ../modules/features/drift-monitoring.nix ];
+      imports = [
+        ../modules/features/drift-monitoring.nix
+        ../modules/features/node-exporter.nix
+      ];
 
       modules.features.drift-monitoring = {
         enable = true;
@@ -19,27 +22,22 @@
     };
 
   testScript = ''
-    machine.wait_for_unit("nixlab-drift-metrics.service")
+    machine.wait_for_unit("nixlab-drift-metrics.timer")
+
+    machine.succeed("systemctl start nixlab-drift-metrics.service")
     machine.wait_for_file("/var/lib/node-exporter/textfile/nixlab-drift.prom")
 
     machine.succeed(
       "grep -q 'nixlab_drift_revision_mismatch 1' /var/lib/node-exporter/textfile/nixlab-drift.prom"
     )
 
-    machine.succeed(
-      "systemctl stop sshd.service"
-    )
-
-    machine.execute(
-      "systemctl start nixlab-drift-metrics.service"
-    )
+    machine.succeed("systemctl stop sshd.service")
+    machine.succeed("systemctl start nixlab-drift-metrics.service")
 
     machine.succeed(
       "grep -q 'nixlab_drift_failed_critical_units 1' /var/lib/node-exporter/textfile/nixlab-drift.prom"
     )
 
-    machine.succeed(
-      "systemctl start sshd.service"
-    )
+    machine.succeed("systemctl start sshd.service")
   '';
 }

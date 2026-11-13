@@ -24,6 +24,7 @@ let
   ss = lib.getExe' pkgs.iproute2 "ss";
   nft = lib.getExe' pkgs.nftables "nft";
   systemctl = lib.getExe' pkgs.systemd "systemctl";
+  awk = lib.getExe' pkgs.gawk "awk";
 
   tcpAllowList = lib.concatStringsSep "\n" (map toString allowedTcpPorts);
   udpAllowList = lib.concatStringsSep "\n" (map toString allowedUdpPorts);
@@ -37,6 +38,8 @@ let
     revision="$(/run/current-system/sw/bin/nixos-version --configuration-revision || true)"
     ruleset_hash="$(${nft} list ruleset | sha256sum | cut -d' ' -f1)"
 
+    expected_revision="${expectedRevision}"
+    expected_firewall_hash="${expectedFirewallHash}"
     tcp_allow_list="${tcpAllowList}"
     udp_allow_list="${udpAllowList}"
 
@@ -56,7 +59,7 @@ let
         unexpected_tcp=$((unexpected_tcp + 1))
         printf 'nixlab_drift_unexpected_listener{protocol="tcp",port="%s"} 1\n' "$port" >> "$tmp"
       fi
-    done < <(${ss} -Hltn | awk '{print $4}' | awk -F: '{print $NF}' | sort -u)
+    done < <(${ss} -Hltn | ${awk} '{print $4}' | ${awk} -F: '{print $NF}' | sort -u)
 
     unexpected_udp=0
     while read -r port; do
@@ -65,7 +68,7 @@ let
         unexpected_udp=$((unexpected_udp + 1))
         printf 'nixlab_drift_unexpected_listener{protocol="udp",port="%s"} 1\n' "$port" >> "$tmp"
       fi
-    done < <(${ss} -Hlun | awk '{print $4}' | awk -F: '{print $NF}' | sort -u)
+    done < <(${ss} -Hlun | ${awk} '{print $4}' | ${awk} -F: '{print $NF}' | sort -u)
 
     revision_mismatch=0
     if [ -n "$expected_revision" ] && [ "$revision" != "$expected_revision" ]; then

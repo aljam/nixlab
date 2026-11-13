@@ -6,8 +6,7 @@
 let
   lokiUrl = config.services.nixlab.logShipping.lokiUrl;
 
-  isLoopbackHttp =
-    lib.hasPrefix "http://127.0.0.1" lokiUrl || lib.hasPrefix "http://[::1]" lokiUrl;
+  isLoopbackHttp = lib.hasPrefix "http://127.0.0.1" lokiUrl || lib.hasPrefix "http://[::1]" lokiUrl;
   isHttps = lib.hasPrefix "https://" lokiUrl;
   isFleetAddress = lib.hasPrefix "http://${config.networking.servicesBindAddress}" lokiUrl;
 

@@ -12,6 +12,15 @@ def fail(message: str) -> None:
     print(f"FAIL: {message}")
 
 
+def normalize_recipient(recipient: str) -> str:
+    """Ignore SSH key comments, which may differ between configuration and secrets."""
+    recipient = recipient.strip()
+    if recipient.startswith("ssh-"):
+        parts = recipient.split()
+        return " ".join(parts[:2]) if len(parts) >= 2 else recipient
+    return recipient
+
+
 def main() -> int:
     config_path = Path(sys.argv[1])
     secrets_dir = Path(sys.argv[2])
@@ -33,13 +42,13 @@ def main() -> int:
             continue
 
         anchor = parts[0][1:]
-        recipient = parts[1].strip()
+        recipient = normalize_recipient(parts[1])
         anchors[anchor] = recipient
         declared_recipients.add(recipient)
 
     def resolve_recipient(reference: str) -> str | None:
         if not reference.startswith("*"):
-            return reference
+            return normalize_recipient(reference)
         return anchors.get(reference[1:])
 
     if not rules:
@@ -102,7 +111,7 @@ def main() -> int:
         age_entries = sops_metadata.get("age", []) or []
 
         recipients = {
-            entry.get("recipient")
+            normalize_recipient(entry.get("recipient"))
             for entry in age_entries
             if isinstance(entry, dict) and entry.get("recipient")
         }

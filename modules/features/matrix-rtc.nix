@@ -97,13 +97,11 @@ in
         "/etc/livekit/livekit.yaml"
       ];
       volumes = [ "${livekitConfig}:/etc/livekit/livekit.yaml:ro" ];
-      extraOptions =
-        containerRuntimeOptions
-        ++ [
-          "--cpus=2"
-          "--memory=1g"
-          "--security-opt=no-new-privileges"
-        ];
+      extraOptions = containerRuntimeOptions ++ [
+        "--cpus=2"
+        "--memory=1g"
+        "--security-opt=no-new-privileges"
+      ];
     };
 
     lk-jwt-service = {
@@ -116,13 +114,11 @@ in
         LIVEKIT_KEY = "matrixrtc";
       };
       environmentFiles = [ config.sops.secrets.livekit-jwt-env.path ];
-      extraOptions =
-        containerRuntimeOptions
-        ++ [
-          "--cpus=0.5"
-          "--memory=256m"
-          "--security-opt=no-new-privileges"
-        ];
+      extraOptions = containerRuntimeOptions ++ [
+        "--cpus=0.5"
+        "--memory=256m"
+        "--security-opt=no-new-privileges"
+      ];
     };
   };
 }

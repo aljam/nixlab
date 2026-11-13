@@ -40,6 +40,9 @@
       # Authentication policy changes
       "-w /etc/pam.d/ -p wa -k pam-config-change"
       "-w /etc/security/ -p wa -k pam-config-change"
+      
+      # Nix configuration
+      "-w /etc/nix/nix.conf -p wa -k nix-config-change"
 
       # Audit policy changes
       "-w /etc/audit/ -p wa -k audit-config-change"

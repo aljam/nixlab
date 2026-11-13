@@ -11,6 +11,11 @@ let
   registrationEnabled = cfg.settings.enable_registration or false;
   registrationCaptchaEnabled = cfg.settings.enable_registration_captcha or false;
   databaseSslMode = cfg.settings.database.args.sslmode or "";
+
+  synapseBindAddressAllowed =
+    synapseBindAddresses != [ ]
+    && !(lib.elem "0.0.0.0" synapseBindAddresses)
+    && !(lib.elem "::" synapseBindAddresses);
 in
 {
   imports = [ ./pfsense-root-ca.nix ];
@@ -167,7 +172,7 @@ in
     }
 
     {
-      assertion = synapseBindAddresses != [ ] && !(lib.elem "0.0.0.0" synapseBindAddresses) && !(lib.elem "::" synapseBindAddresses);
+      assertion = synapseBindAddressAllowed;
       message = "Matrix Synapse must not bind its HTTP listener to every interface.";
     }
 

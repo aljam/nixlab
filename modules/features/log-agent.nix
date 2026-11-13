@@ -8,9 +8,14 @@ let
 
   isLoopbackHttp = lib.hasPrefix "http://127.0.0.1" lokiUrl || lib.hasPrefix "http://[::1]" lokiUrl;
   isHttps = lib.hasPrefix "https://" lokiUrl;
-  isFleetAddress = lib.hasPrefix "http://${config.networking.servicesBindAddress}" lokiUrl;
 
-  lokiEndpointAllowed = isLoopbackHttp || isHttps || isFleetAddress;
+  privateHttpPrefixes =
+    [ "http://10." "http://192.168." ]
+    ++ map (n: "http://172.${toString n}.") (lib.range 16 31);
+
+  isPrivateHttp = lib.any (prefix: lib.hasPrefix prefix lokiUrl) privateHttpPrefixes;
+
+  lokiEndpointAllowed = isLoopbackHttp || isHttps || isPrivateHttp;
 in
 {
   options.services.nixlab.logShipping = {
@@ -83,8 +88,8 @@ in
       {
         assertion = lokiEndpointAllowed;
         message = ''
-          The Loki push endpoint must use loopback HTTP, HTTPS, or this host's
-          explicit fleet service address. Configured endpoint: ${lokiUrl}
+          The Loki push endpoint must use loopback HTTP, HTTPS, or a private
+          RFC 1918 address. Configured endpoint: ${lokiUrl}
         '';
       }
 

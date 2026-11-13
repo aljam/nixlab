@@ -128,7 +128,7 @@ in
 
     services.logrotate.settings.icecast = {
       enable = true;
-      path = [ "/var/log/icecast/*.log" ];
+      path = "/var/log/icecast/*.log";
       frequency = "weekly";
       rotate = 8;
       compress = true;

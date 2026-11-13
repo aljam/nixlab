@@ -18,11 +18,11 @@ let
     set -euo pipefail
 
     severity="${cfg.severity}"
-    fingerprint="nixlab-alert-test-${severity}"
+    fingerprint="nixlab-alert-test-\${severity}"
 
-    payload=$(jq -n \
-      --arg severity "$severity" \
-      --arg fingerprint "$fingerprint" \
+    payload=$(jq -n \\
+      --arg severity "$severity" \\
+      --arg fingerprint "$fingerprint" \\
       '[{
         startsAt: (now | todate),
         endsAt: "",
@@ -38,9 +38,9 @@ let
         }
       }]')
 
-    curl -fsS \
-      -H 'Content-Type: application/json' \
-      -d "$payload" \
+    curl -fsS \\
+      -H 'Content-Type: application/json' \\
+      -d "$payload" \\
       http://127.0.0.1:9093/api/v2/alerts
 
     echo "Submitted $severity alert delivery test with fingerprint $fingerprint."
@@ -50,11 +50,11 @@ let
     set -euo pipefail
 
     severity="${cfg.severity}"
-    fingerprint="nixlab-alert-test-${severity}"
+    fingerprint="nixlab-alert-test-\${severity}"
 
-    payload=$(jq -n \
-      --arg severity "$severity" \
-      --arg fingerprint "$fingerprint" \
+    payload=$(jq -n \\
+      --arg severity "$severity" \\
+      --arg fingerprint "$fingerprint" \\
       '[{
         startsAt: (now | todate),
         endsAt: (now | todate),
@@ -70,9 +70,9 @@ let
         }
       }]')
 
-    curl -fsS \
-      -H 'Content-Type: application/json' \
-      -d "$payload" \
+    curl -fsS \\
+      -H 'Content-Type: application/json' \\
+      -d "$payload" \\
       http://127.0.0.1:9093/api/v2/alerts
 
     echo "Resolved $severity alert delivery test with fingerprint $fingerprint."

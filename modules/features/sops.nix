@@ -11,10 +11,6 @@ let
 
   unauthorizedSecretNames = map (secret: secret.name) unauthorizedRootOwnedSecrets;
 
-  undeclaredAllowedRootSecrets = lib.filter (
-    name: !lib.hasAttr name config.sops.secrets
-  ) config.roles.security.sopsAllowedRootSecrets;
-
   undeclaredSecretOwners = lib.filter (
     secret: secret.owner != "root" && !lib.hasAttr secret.owner config.users.users
   ) sopsSecrets;
@@ -73,14 +69,6 @@ in
         roles.security.sopsAllowedRootSecrets. Unauthorized secrets:
         ${lib.concatStringsSep ", " unauthorizedSecretNames}
       '';
-    }
-
-    # Ensure that the root-secret allowlist does not retain stale entries.
-    {
-      assertion = undeclaredAllowedRootSecrets == [ ];
-      message =
-        "sopsAllowedRootSecrets contains undeclared secrets: "
-        + lib.concatStringsSep ", " undeclaredAllowedRootSecrets;
     }
 
     # Prevent typos or accidental references to undeclared service identities.

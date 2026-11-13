@@ -20,6 +20,7 @@
     ../features/security-policy.nix
     ../features/systemd-hardening.nix
     ../features/audit-logging.nix
+    ../features/automatic-updates.nix
   ];
 
   options.networking.servicesBindAddress = lib.mkOption {

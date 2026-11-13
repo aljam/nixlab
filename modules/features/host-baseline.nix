@@ -19,6 +19,10 @@ let
   journalctl = lib.getExe' pkgs.systemd "journalctl";
   ausearch = lib.getExe' pkgs.audit "ausearch";
   sshd = lib.getExe' pkgs.openssh "sshd";
+  awk = lib.getExe' pkgs.gawk "awk";
+  find = lib.getExe' pkgs.findutils "find";
+  grep = lib.getExe' pkgs.gnugrep "grep";
+  df = lib.getExe' pkgs.coreutils "df";
 
   baselineScript = pkgs.writers.writeBash "nixlab-host-baseline" ''
     set -euo pipefail
@@ -28,23 +32,35 @@ let
 
     failed_system_units="$(${systemctl} --failed --no-legend | wc -l)"
     failed_user_units="$(${systemctl} --user --failed --no-legend | wc -l)"
-    journal_usage_bytes="$(${journalctl} --disk-usage | awk '{print $1}')"
+    journal_usage_bytes="$(${journalctl} --disk-usage | ${awk} '{print $1}')"
+
+    root_usage_percent="$(${df} --output=pcent / | tail -n 1 | tr -d ' %')"
 
     audit_records_recent=1
-    if [ ! -d /var/lib/audit ] || [ -z "$(find /var/lib/audit -type f -mmin -1440 -print -quit)" ]; then
+    if [ ! -d /var/lib/audit ] || [ -z "$(${find} /var/lib/audit -type f -mmin -1440 -print -quit)" ]; then
       audit_records_recent=0
     fi
 
     ssh_hardening_ok=1
     ssh_config="$(${sshd} -T 2>/dev/null || true)"
-    if ! grep -q '^passwordauthentication no$' <<<"$ssh_config" \
-      || ! grep -q '^kbdinteractiveauthentication no$' <<<"$ssh_config" \
-      || ! grep -q '^permitrootlogin no$' <<<"$ssh_config"; then
+    if ! ${grep} -q '^passwordauthentication no$' <<<"$ssh_config" \\
+      || ! ${grep} -q '^kbdinteractiveauthentication no$' <<<"$ssh_config" \\
+      || ! ${grep} -q '^permitrootlogin no$' <<<"$ssh_config"; then
       ssh_hardening_ok=0
     fi
 
-    privileged_events="$(${ausearch} -k sudo-execution -ts recent 2>/dev/null | grep -c '^----' || true)"
-    identity_events="$(${ausearch} -k identity-change -ts recent 2>/dev/null | grep -c '^----' || true)"
+    privileged_events="$(${ausearch} -k sudo-execution -ts recent 2>/dev/null | ${grep} -c '^----' || true)"
+    identity_events="$(${ausearch} -k identity-change -ts recent 2>/dev/null | ${grep} -c '^----' || true)"
+
+    journal_usage_exceeded=0
+    if [ "$journal_usage_bytes" -gt "${toString cfg.journalUsageLimitBytes}" ]; then
+      journal_usage_exceeded=1
+    fi
+
+    filesystem_usage_exceeded=0
+    if [ "$root_usage_percent" -ge "${toString cfg.filesystemUsageThresholdPercent}" ]; then
+      filesystem_usage_exceeded=1
+    fi
 
     cat > "$tmp" <<EOF
     # HELP nixlab_host_baseline_failed_system_units Number of failed system units.
@@ -58,6 +74,18 @@ let
     # HELP nixlab_host_baseline_journal_usage_bytes Journal disk usage in bytes.
     # TYPE nixlab_host_baseline_journal_usage_bytes gauge
     nixlab_host_baseline_journal_usage_bytes $journal_usage_bytes
+
+    # HELP nixlab_host_baseline_journal_usage_exceeded Whether journal usage exceeds its configured limit.
+    # TYPE nixlab_host_baseline_journal_usage_exceeded gauge
+    nixlab_host_baseline_journal_usage_exceeded $journal_usage_exceeded
+
+    # HELP nixlab_host_baseline_root_filesystem_usage_percent Root filesystem usage percentage.
+    # TYPE nixlab_host_baseline_root_filesystem_usage_percent gauge
+    nixlab_host_baseline_root_filesystem_usage_percent $root_usage_percent
+
+    # HELP nixlab_host_baseline_filesystem_usage_exceeded Whether root filesystem usage exceeds its configured threshold.
+    # TYPE nixlab_host_baseline_filesystem_usage_exceeded gauge
+    nixlab_host_baseline_filesystem_usage_exceeded $filesystem_usage_exceeded
 
     # HELP nixlab_host_baseline_audit_records_recent Whether audit records are recent.
     # TYPE nixlab_host_baseline_audit_records_recent gauge

@@ -16,8 +16,7 @@ let
   ) config.roles.security.sopsAllowedRootSecrets;
 
   undeclaredSecretOwners = lib.filter (
-    secret:
-    secret.owner != "root" && !lib.hasAttr secret.owner config.users.users
+    secret: secret.owner != "root" && !lib.hasAttr secret.owner config.users.users
   ) sopsSecrets;
 
   undeclaredSecretGroups = lib.filter (

@@ -1,0 +1,38 @@
+groups:
+  - name: nixlab-drift
+    rules:
+      - alert: NixOSRevisionDrift
+        expr: nixlab_drift_revision_mismatch == 1
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "NixOS revision drift detected"
+          description: "Host {{ $labels.instance }} is not running the expected configuration revision."
+
+      - alert: CriticalServiceFailed
+        expr: nixlab_drift_failed_critical_units > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical systemd service failed"
+          description: "Host {{ $labels.instance }} has {{ $value }} failed critical systemd unit(s)."
+
+      - alert: UnexpectedListeningSocket
+        expr: nixlab_drift_unexpected_listeners > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Unexpected listening socket detected"
+          description: "Host {{ $labels.instance }} has {{ $value }} undeclared listening socket(s)."
+
+      - alert: FirewallRulesetChanged
+        expr: nixlab_drift_firewall_changed == 1
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Firewall ruleset changed"
+          description: "Host {{ $labels.instance }} has an nftables ruleset that differs from the expected ruleset."

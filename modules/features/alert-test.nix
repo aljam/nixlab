@@ -18,7 +18,7 @@ let
     set -euo pipefail
 
     severity="${cfg.severity}"
-    fingerprint="nixlab-alert-test-\${severity}"
+    fingerprint=$(printf 'nixlab-alert-test-%s' "$severity")
 
     payload=$(jq -n \\
       --arg severity "$severity" \\
@@ -50,7 +50,7 @@ let
     set -euo pipefail
 
     severity="${cfg.severity}"
-    fingerprint="nixlab-alert-test-\${severity}"
+    fingerprint=$(printf 'nixlab-alert-test-%s' "$severity")
 
     payload=$(jq -n \\
       --arg severity "$severity" \\

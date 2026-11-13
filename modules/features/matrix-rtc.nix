@@ -42,15 +42,9 @@ let
         exit 1
       fi
 
-      # Nix indented strings treat backslashes literally, so use one backslash
-      # for each POSIX shell line continuation.
-      exec lk token create \\
-        --api-key matrixrtc \\
-        --api-secret "$secret" \\
-        --join \\
-        --room connection-test \\
-        --identity tester \\
-        --valid-for 1h
+      # Keep the command on one line: Nix indented strings preserve
+      # backslashes literally, which makes multi-line continuations invalid.
+      exec lk token create --api-key matrixrtc --api-secret "$secret" --join --room connection-test --identity tester --valid-for 1h
     '';
   };
 

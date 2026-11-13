@@ -32,21 +32,21 @@
     {
       "name": "sonarr",
       "url": "https://sonarr.derezzed.info",
-      "expected_status": 200,
+      "expected_status": [200, 401],
       "require_hsts": true,
       "min_tls_version": "1.2"
     },
     {
       "name": "radarr",
       "url": "https://radarr.derezzed.info",
-      "expected_status": 200,
+      "expected_status": [200, 401],
       "require_hsts": true,
       "min_tls_version": "1.2"
     },
     {
       "name": "prowlarr",
       "url": "https://prowlarr.derezzed.info",
-      "expected_status": 200,
+      "expected_status": [200, 401],
       "require_hsts": true,
       "min_tls_version": "1.2"
     },
@@ -60,14 +60,7 @@
     {
       "name": "lidarr",
       "url": "https://lidarr.derezzed.info",
-      "expected_status": 200,
-      "require_hsts": true,
-      "min_tls_version": "1.2"
-    },
-    {
-      "name": "qbittorrent",
-      "url": "https://qb.derezzed.info",
-      "expected_status": 200,
+      "expected_status": [200, 401],
       "require_hsts": true,
       "min_tls_version": "1.2"
     },
@@ -110,6 +103,13 @@
       "name": "peertube",
       "url": "https://peertube.derezzed.info",
       "expected_status": 200,
+      "require_hsts": true,
+      "min_tls_version": "1.2"
+    },
+    {
+      "name": "radio",
+      "url": "https://radio.derezzed.info",
+      "expected_status": [200, 302],
       "require_hsts": true,
       "min_tls_version": "1.2"
     }

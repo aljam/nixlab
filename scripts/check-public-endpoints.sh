@@ -13,7 +13,7 @@ failures=0
 while IFS= read -r row; do
   name=$(jq -r '.name' <<<"$row")
   url=$(jq -r '.url' <<<"$row")
-  expected_status=$(jq -r '.expected_status' <<<"$row")
+  expected_status=$(jq -c '.expected_status' <<<"$row")
   require_hsts=$(jq -r '.require_hsts' <<<"$row")
   min_tls=$(jq -r '.min_tls_version' <<<"$row")
   host=$(jq -r '.url' <<<"$row" | sed -E 's#^https://([^/:]+).*#\1#')
@@ -23,7 +23,7 @@ while IFS= read -r row; do
   headers=$(curl -sSIL --max-time 20 "$url")
   status=$(curl -sSIL -o /dev/null -w '%{http_code}' --max-time 20 "$url")
 
-  if [[ "$status" != "$expected_status" ]]; then
+  if ! jq -e --arg status "$status" 'if type == "array" then index($status) != null else . == ($status | tonumber) end' <<<"$expected_status" >/dev/null; then
     echo "::error::$name returned HTTP $status; expected $expected_status"
     failures=$((failures + 1))
   fi

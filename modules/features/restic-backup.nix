@@ -268,102 +268,96 @@ in
     ];
 
     systemd.services = lib.mkMerge (
-      lib.mapAttrsToList (
-        name: job:
-        {
-          "restic-backup-${name}" = {
-            description = "Restic backup: ${name}";
-            requires = job.requires;
-            after = [ "sops-nix.service" ] ++ job.after;
-            # Deliberately no `wantedBy`: the timer below is the only trigger.
-            # A oneshot unit wanted by multi-user.target reruns on every boot and
-            # on every `nixos-rebuild switch`.
+      lib.mapAttrsToList (name: job: {
+        "restic-backup-${name}" = {
+          description = "Restic backup: ${name}";
+          requires = job.requires;
+          after = [ "sops-nix.service" ] ++ job.after;
+          # Deliberately no `wantedBy`: the timer below is the only trigger.
+          # A oneshot unit wanted by multi-user.target reruns on every boot and
+          # on every `nixos-rebuild switch`.
 
-            environment = {
-              RESTIC_CACHE_DIR = cacheDirectory;
-            };
-
-            serviceConfig = {
-              Type = "oneshot";
-              User = "root";
-              ExecStart = lib.getExe (backupScript name job);
-              PrivateTmp = true;
-              PrivateDevices = true;
-              ProtectSystem = "strict";
-              ProtectHome = true;
-              ReadWritePaths = [
-                "/var/lib/restic-backup"
-                "/run/restic-backup.lock"
-                metricsDirectory
-              ];
-              ProtectKernelTunables = true;
-              ProtectKernelModules = true;
-              ProtectControlGroups = true;
-              RestrictSUIDSGID = true;
-              LockPersonality = true;
-            };
+          environment = {
+            RESTIC_CACHE_DIR = cacheDirectory;
           };
 
-          "restic-verify-${name}" = {
-            description = "Verify Restic repository integrity: ${name}";
-            requires = job.requires;
-            after = [ "sops-nix.service" ] ++ job.after;
-
-            environment = {
-              RESTIC_CACHE_DIR = cacheDirectory;
-            };
-
-            serviceConfig = {
-              Type = "oneshot";
-              User = "root";
-              ExecStart = lib.getExe (verifyScript name job);
-              PrivateTmp = true;
-              PrivateDevices = true;
-              ProtectSystem = "strict";
-              ProtectHome = true;
-              ReadWritePaths = [
-                "/var/lib/restic-backup"
-                "/run/restic-backup.lock"
-                metricsDirectory
-              ];
-              ProtectKernelTunables = true;
-              ProtectKernelModules = true;
-              ProtectControlGroups = true;
-              RestrictSUIDSGID = true;
-              LockPersonality = true;
-            };
+          serviceConfig = {
+            Type = "oneshot";
+            User = "root";
+            ExecStart = lib.getExe (backupScript name job);
+            PrivateTmp = true;
+            PrivateDevices = true;
+            ProtectSystem = "strict";
+            ProtectHome = true;
+            ReadWritePaths = [
+              "/var/lib/restic-backup"
+              "/run/restic-backup.lock"
+              metricsDirectory
+            ];
+            ProtectKernelTunables = true;
+            ProtectKernelModules = true;
+            ProtectControlGroups = true;
+            RestrictSUIDSGID = true;
+            LockPersonality = true;
           };
-        }
-      ) cfg.jobs
+        };
+
+        "restic-verify-${name}" = {
+          description = "Verify Restic repository integrity: ${name}";
+          requires = job.requires;
+          after = [ "sops-nix.service" ] ++ job.after;
+
+          environment = {
+            RESTIC_CACHE_DIR = cacheDirectory;
+          };
+
+          serviceConfig = {
+            Type = "oneshot";
+            User = "root";
+            ExecStart = lib.getExe (verifyScript name job);
+            PrivateTmp = true;
+            PrivateDevices = true;
+            ProtectSystem = "strict";
+            ProtectHome = true;
+            ReadWritePaths = [
+              "/var/lib/restic-backup"
+              "/run/restic-backup.lock"
+              metricsDirectory
+            ];
+            ProtectKernelTunables = true;
+            ProtectKernelModules = true;
+            ProtectControlGroups = true;
+            RestrictSUIDSGID = true;
+            LockPersonality = true;
+          };
+        };
+      }) cfg.jobs
     );
 
     systemd.timers = lib.mkMerge (
-      lib.mapAttrsToList (
-        name: job:
-        {
-          "restic-backup-${name}" = {
-            description = "Run Restic backup: ${name}";
-            wantedBy = [ "timers.target" ];
+      lib.mapAttrsToList (name: job: {
+        "restic-backup-${name}" = {
+          description = "Run Restic backup: ${name}";
+          wantedBy = [ "timers.target" ];
 
-            timerConfig = {
-              OnCalendar = job.schedule;
-              Persistent = true;
-              RandomizedDelaySec = job.randomizedDelay;
-            };
+          timerConfig = {
+            OnCalendar = job.schedule;
+            Persistent = true;
+            RandomizedDelaySec = job.randomizedDelay;
           };
+        };
 
-          "restic-verify-${name}" = {
-            description = "Verify Restic repository integrity: ${name}";
-            wantedBy = [ "timers.target" ];
+        "restic-verify-${name}" = {
+          description = "Verify Restic repository integrity: ${name}";
+          wantedBy = [ "timers.target" ];
 
-            timerConfig = {
-              OnCalendar = job.verifySchedule;
-              Persistent = true;
-              RandomizedDelaySec = job.verifyRandomizedDelay;
-            };
+          timerConfig = {
+            OnCalendar = job.verifySchedule;
+            Persistent = true;
+            RandomizedDelaySec = job.verifyRandomizedDelay;
           };
-        }
-      ) cfg.jobs
+        };
+      }) cfg.jobs
     );
   };
 }

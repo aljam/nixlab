@@ -14,7 +14,6 @@ let
 
   redisServer = config.services.redis.servers.peertube or { };
   redisBind = redisServer.bind or "";
-  redisProtectedMode = redisServer.protectedMode or true;
 in
 {
   options.modules.features.peertube.enable = lib.mkEnableOption "PeerTube video platform";
@@ -83,7 +82,6 @@ in
       enable = true;
       port = 6379;
       bind = "127.0.0.1";
-      protectedMode = true;
     };
 
     systemd.services.peertube = {
@@ -146,8 +144,8 @@ in
       }
 
       {
-        assertion = redisBind == "127.0.0.1" && redisProtectedMode;
-        message = "PeerTube Redis must listen only on loopback with protected mode enabled.";
+        assertion = redisBind == "127.0.0.1";
+        message = "PeerTube Redis must listen only on loopback.";
       }
     ];
   };

@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 {
   # Enable Sanoid for automated snapshotting and pruning
@@ -66,7 +66,9 @@
             "mediapool/root"
           ];
         in
-        lib.all (name: lib.elem "storage" datasets.${name}.useTemplate or [ ]) protectedDatasets;
+        lib.all (
+          name: lib.elem "storage" (datasets.${name}.useTemplate or [ ])
+        ) protectedDatasets;
       message = "Protected ZFS datasets must use the Sanoid storage retention template.";
     }
   ];

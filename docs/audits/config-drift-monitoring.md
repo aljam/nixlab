@@ -19,7 +19,8 @@ Run:
 
 ```console
 nix flake check --show-trace
-nix run .#vm -- --run drift-detection
+nix build .#checks.x86_64-linux.drift-detection
+./result/bin/nixos-test-driver
 ```
 
 Confirm that the VM test detects revision drift and a failed critical service.

@@ -1,5 +1,5 @@
-{ lib, ... }:
-{
+{ pkgs, ... }:
+pkgs.testers.nixosTest {
   name = "alert-delivery";
 
   nodes.machine =
@@ -19,9 +19,9 @@
         configuration = {
           route = {
             group_by = [ "alertname" ];
-            group_wait = "30s";
-            group_interval = "5m";
-            repeat_interval = "4h";
+            group_wait = "1s";
+            group_interval = "10s";
+            repeat_interval = "1h";
             receiver = "ntfy";
           };
 
@@ -31,6 +31,7 @@
               webhook_configs = [
                 {
                   url = "http://127.0.0.1:8080/test";
+                  send_resolved = true;
                 }
               ];
             }
@@ -41,7 +42,10 @@
       services.ntfy-sh = {
         enable = true;
         settings = {
+          base-url = "http://127.0.0.1:8080";
           listen-http = "127.0.0.1:8080";
+          visitor-request-limit-burst = 100;
+          visitor-request-limit-replenish = "1s";
         };
       };
     };
@@ -54,14 +58,15 @@
     with subtest("a warning test alert reaches the local Ntfy receiver"):
         machine.succeed("nixlab-alert-test --severity warning")
         machine.wait_until_succeeds(
-            "curl -fsS http://127.0.0.1:8080/test | grep -q 'NixLabAlertDeliveryTest'",
+            "curl -fsS --max-time 10 'http://127.0.0.1:8080/test/json?poll=1' | grep -q 'NixLabAlertDeliveryTest'",
             timeout=60,
         )
 
     with subtest("resolving the test alert produces a recovery notification"):
+        machine.succeed("sleep 2")
         machine.succeed("nixlab-alert-resolve --severity warning")
         machine.wait_until_succeeds(
-            "curl -fsS http://127.0.0.1:8080/test | grep -q 'resolved'",
+            "curl -fsS --max-time 10 'http://127.0.0.1:8080/test/json?poll=1&since=1m' | grep -q 'resolved'",
             timeout=60,
         )
   '';

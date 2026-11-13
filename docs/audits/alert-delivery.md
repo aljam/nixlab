@@ -14,11 +14,11 @@ Implemented.
 
 ## Validation
 
-Run:
+Build and run the NixOS VM test:
 
 ```console
-nix flake check --show-trace
-nix run .#vm -- --run alert-delivery
+nix build .#checks.x86_64-linux.alert-delivery
+./result/bin/nixos-test-driver
 ```
 
 For a manual production test from `r730xd`:

@@ -280,6 +280,10 @@
           pkgs = nixpkgs.legacyPackages.${system};
           test = "postgresql-auth";
         };
+
+        alert-delivery = import ./tests/alert-delivery.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
       };
 
       nixosConfigurations = hostConfigurations;

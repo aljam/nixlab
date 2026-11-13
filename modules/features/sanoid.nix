@@ -10,6 +10,7 @@
     templates.storage = {
       hourly = 24;
       daily = 7;
+      weekly = 4;
       monthly = 3;
       yearly = 0;
       autosnap = true;
@@ -40,4 +41,33 @@
     RestrictSUIDSGID = true;
     LockPersonality = true;
   };
+
+  assertions = [
+    {
+      assertion = config.services.sanoid.enable;
+      message = "Sanoid must remain enabled for automated ZFS snapshots.";
+    }
+
+    {
+      assertion =
+        let
+          template = config.services.sanoid.templates.storage;
+        in
+        template.autosnap && template.autoprune;
+      message = "The Sanoid storage template must enable both snapshot creation and pruning.";
+    }
+
+    {
+      assertion =
+        let
+          datasets = config.services.sanoid.datasets;
+          protectedDatasets = [
+            "mediapool/media"
+            "mediapool/root"
+          ];
+        in
+        lib.all (name: lib.elem "storage" datasets.${name}.useTemplate or [ ]) protectedDatasets;
+      message = "Protected ZFS datasets must use the Sanoid storage retention template.";
+    }
+  ];
 }

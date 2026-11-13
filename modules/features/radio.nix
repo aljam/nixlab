@@ -77,10 +77,14 @@ in
       content = ''
         <?xml version="1.0"?>
         <icecast>
+          <!-- The public hostname is used for generated URLs; Icecast itself
+               remains bound to loopback behind the local nginx front end. -->
           <hostname>${icecastHostname}</hostname>
 
           <authentication>
             <source-password>${config.sops.placeholder.icecast_source_password}</source-password>
+            <!-- The admin interface is disabled; retain the secret only for
+                 future operational use. -->
             <admin-user>admin</admin-user>
             <admin-password>${config.sops.placeholder.icecast_admin_password}</admin-password>
           </authentication>
@@ -97,6 +101,15 @@ in
             <bind-address>${icecastBind}</bind-address>
           </listen-socket>
 
+          <mount>
+            <mount-name>/stream</mount-name>
+            <username>source</username>
+            <password>${config.sops.placeholder.icecast_source_password}</password>
+            <public>1</public>
+            <max-listeners>0</max-listeners>
+            <burst-size>65536</burst-size>
+          </mount>
+
           <security>
             <chroot>0</chroot>
           </security>
@@ -111,6 +124,19 @@ in
       # Required by the upstream module, but its generated config is never
       # used: ExecStart below points at the SOPS-rendered icecast-xml instead.
       admin.password = "unused-by-rendered-icecast-config";
+    };
+
+    services.logrotate.settings.icecast = {
+      enable = true;
+      path = "/var/log/icecast/*.log";
+      frequency = "weekly";
+      rotate = 8;
+      compress = true;
+      delaycompress = true;
+      missingok = true;
+      notifempty = true;
+      create = "0640 icecast radio";
+      postrotate = "systemctl kill --signal=USR1 icecast.service || true";
     };
 
     systemd.services.icecast.serviceConfig = {
@@ -142,5 +168,12 @@ in
         ];
       };
     };
+
+    assertions = [
+      {
+        assertion = config.services.icecast.listen.address == "127.0.0.1";
+        message = "Icecast must remain bound to loopback; public access is provided by the local nginx front end.";
+      }
+    ];
   };
 }

@@ -11,14 +11,17 @@ let
   cfg = config.modules.features.drift-monitoring;
 
   expectedRevision = cfg.expectedRevision;
+  expectedFirewallHash = cfg.expectedFirewallHash;
   criticalUnits = cfg.criticalUnits;
   allowedTcpPorts = cfg.allowedTcpPorts;
   allowedUdpPorts = cfg.allowedUdpPorts;
 
-  jq = lib.getExe pkgs.jq;
   ss = lib.getExe' pkgs.iproute2 "ss";
   nft = lib.getExe' pkgs.nftables "nft";
   systemctl = lib.getExe' pkgs.systemd "systemctl";
+
+  tcpAllowList = lib.concatStringsSep "\n" (map toString allowedTcpPorts);
+  udpAllowList = lib.concatStringsSep "\n" (map toString allowedUdpPorts);
 
   driftScript = pkgs.writers.writeBash "nixlab-drift-metrics" ''
     set -euo pipefail
@@ -42,7 +45,7 @@ let
     while read -r port; do
       [ -z "$port" ] && continue
       if ! grep -Fxq "$port" <<'EOF'
-${lib.concatStringsSep "\n" (map toString allowedTcpPorts)}
+${tcpAllowList}
 EOF
       then
         unexpected_tcp=$((unexpected_tcp + 1))
@@ -54,7 +57,7 @@ EOF
     while read -r port; do
       [ -z "$port" ] && continue
       if ! grep -Fxq "$port" <<'EOF'
-${lib.concatStringsSep "\n" (map toString allowedUdpPorts)}
+${udpAllowList}
 EOF
       then
         unexpected_udp=$((unexpected_udp + 1))
@@ -65,6 +68,11 @@ EOF
     revision_mismatch=0
     if [ -n "$expected_revision" ] && [ "$revision" != "$expected_revision" ]; then
       revision_mismatch=1
+    fi
+
+    firewall_changed=0
+    if [ -n "$expected_firewall_hash" ] && [ "$ruleset_hash" != "$expected_firewall_hash" ]; then
+      firewall_changed=1
     fi
 
     cat > "$tmp" <<EOF
@@ -114,19 +122,19 @@ in
 
     criticalUnits = mkOption {
       type = types.listOf types.str;
-      default = [];
+      default = [ ];
       description = "Systemd units that must remain active.";
     };
 
     allowedTcpPorts = mkOption {
       type = types.listOf types.port;
-      default = [];
+      default = [ ];
       description = "TCP ports permitted to have listening sockets.";
     };
 
     allowedUdpPorts = mkOption {
       type = types.listOf types.port;
-      default = [];
+      default = [ ];
       description = "UDP ports permitted to have listening sockets.";
     };
   };

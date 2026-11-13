@@ -12,7 +12,7 @@
         expectedRevision = "expected-revision";
         criticalUnits = [ "sshd.service" ];
         allowedTcpPorts = [ 22 ];
-        allowedUdpPorts = [];
+        allowedUdpPorts = [ ];
       };
 
       services.openssh.enable = true;

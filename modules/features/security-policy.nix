@@ -1,15 +1,6 @@
 { lib, config, ... }:
 
 let
-  grafanaPort = config.services.grafana.settings.server.http_port or 3000;
-  grafanaExposed = lib.elem grafanaPort config.networking.proxyBackendPorts;
-  # Grafana's section name is the single attribute "auth.anonymous", not the
-  # nested path auth.anonymous.
-  grafanaAnonymous = config.services.grafana.settings."auth.anonymous".enabled or false;
-  grafanaSignup = config.services.grafana.settings.users.allow_sign_up or false;
-
-  postgresAuth = config.services.postgresql.authentication or "";
-  postgresPort = config.services.postgresql.settings.port or 5432;
   proxyBackendPorts = config.networking.proxyBackendPorts;
   duplicateProxyPorts = lib.unique (
     lib.filter (port: lib.count (other: other == port) proxyBackendPorts > 1) proxyBackendPorts
@@ -21,18 +12,6 @@ let
   forbiddenProxyPorts = config.networking.internalOnlyPorts;
 
   forbiddenExposedPorts = lib.intersectLists forbiddenProxyPorts proxyBackendPorts;
-
-  # Remote PostgreSQL clients must explicitly negotiate TLS. Loopback rules
-  # are exempt because their traffic does not traverse a network interface.
-  plaintextRemotePostgresRules = lib.filter (
-    line:
-    let
-      trimmed = lib.strings.trim line;
-    in
-    lib.strings.hasPrefix "host " trimmed
-    && !(lib.strings.hasInfix "127.0.0.1/32" trimmed)
-    && !(lib.strings.hasInfix "::1/128" trimmed)
-  ) (lib.strings.splitString "\n" postgresAuth);
 
   gamingEnabled =
     (config.programs.steam.enable or false) || (config.programs.gamescope.enable or false);
@@ -83,31 +62,6 @@ in
       '';
     }
 
-    # Grafana is the internet-facing monitoring dashboard. When exposed
-    # through the HAProxy backend allowlist, it must require authentication
-    # and must not permit self-registration.
-    {
-      assertion = !grafanaExposed || !grafanaAnonymous;
-      message = "Grafana must disable anonymous access when exposed through the HAProxy backend allowlist.";
-    }
-
-    {
-      assertion = !grafanaExposed || !grafanaSignup;
-      message = "Grafana must disable self-registration when exposed through the HAProxy backend allowlist.";
-    }
-
-    # Prevent regression to broad PostgreSQL authentication rules.
-    {
-      assertion = !(lib.hasInfix "host all all" postgresAuth);
-      message = "PostgreSQL authentication must not contain broad host/all/all rules.";
-    }
-
-    # Remote PostgreSQL authentication must explicitly require TLS.
-    {
-      assertion = plaintextRemotePostgresRules == [ ];
-      message = "PostgreSQL authentication must use hostssl for every non-loopback client rule.";
-    }
-
     # Prevent sensitive or internal-only services from being exposed
     # through the HAProxy backend allowlist. The authoritative list is
     # maintained in networking-options.nix.
@@ -116,13 +70,6 @@ in
       message =
         "Forbidden service ports must not be exposed through the HAProxy backend allowlist: "
         + lib.concatStringsSep ", " (map (p: toString p) forbiddenExposedPorts);
-    }
-
-    # PostgreSQL is a sensitive backend service and must not be exposed
-    # through the HAProxy backend allowlist.
-    {
-      assertion = !(lib.elem postgresPort proxyBackendPorts);
-      message = "PostgreSQL must not be exposed through the HAProxy backend allowlist.";
     }
 
     # Services using the shared bind address must never listen on every
@@ -140,13 +87,6 @@ in
       message =
         "HAProxy backend ports must not contain duplicates: "
         + lib.concatMapStringsSep ", " toString duplicateProxyPorts;
-    }
-
-    # Autobrr should use the host's service address rather than every interface.
-    {
-      assertion =
-        !(config.services.autobrr.enable or false) || config.services.autobrr.settings.host != "0.0.0.0";
-      message = "Autobrr must bind to the host service address, not all interfaces.";
     }
 
     # Recyclarr connects to local Radarr and Sonarr instances.

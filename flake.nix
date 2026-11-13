@@ -284,10 +284,7 @@
           pkgs = nixpkgs.legacyPackages.${system};
         };
 
-        sops-recovery = import ./tests/sops-recovery.nix {
-          lib = nixpkgs.lib;
-          pkgs = nixpkgs.legacyPackages.${system};
-        };
+        sops-recovery = nixpkgs.legacyPackages.${system}.testers.runNixOSTest ./tests/sops-recovery.nix;
       };
 
       nixosConfigurations = hostConfigurations;

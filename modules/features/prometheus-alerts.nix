@@ -16,12 +16,11 @@ let
     import urllib.request
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-    # The SOPS secret is intentionally named `nfty-url` to match the existing
-    # encrypted monitoring secret. Its decrypted path is exposed to the relay
-    # through NFTY_URL_FILE; the URL itself is never placed in the unit
-    # environment.
-    with open(os.environ["NFTY_URL_FILE"], "r", encoding="utf-8") as handle:
-        NFTY_URL = handle.read().strip()
+    # The SOPS secret is named `ntfy-url`. Its decrypted path is exposed to
+    # the relay through NTFY_URL_FILE; the URL itself is never placed in the
+    # unit environment.
+    with open(os.environ["NTFY_URL_FILE"], "r", encoding="utf-8") as handle:
+        NTFY_URL = handle.read().strip()
 
 
     class Handler(BaseHTTPRequestHandler):
@@ -43,7 +42,7 @@ let
 
                     body = annotations.get("description", "")
                     request = urllib.request.Request(
-                        NFTY_URL,
+                        NTFY_URL,
                         data=body.encode("utf-8"),
                         headers={
                             "X-Title": title,
@@ -83,7 +82,7 @@ in
 
   # The ntfy URL, including its private topic and access token if used, is
   # supplied at runtime from SOPS.
-  sops.secrets.nfty-url = {
+  sops.secrets.ntfy-url = {
     sopsFile = ../../secrets/monitoring.yaml;
     owner = "alertmanager";
     group = "alertmanager";
@@ -123,6 +122,7 @@ in
           webhook_configs = [
             {
               url = "http://127.0.0.1:${toString relayPort}/alerts";
+              send_resolved = true;
             }
           ];
         }
@@ -132,6 +132,7 @@ in
           webhook_configs = [
             {
               url = "http://127.0.0.1:${toString relayPort}/alerts?priority=high";
+              send_resolved = true;
             }
           ];
         }
@@ -145,7 +146,7 @@ in
     wantedBy = [ "multi-user.target" ];
 
     environment = {
-      NFTY_URL_FILE = config.sops.secrets.nfty-url.path;
+      NTFY_URL_FILE = config.sops.secrets.ntfy-url.path;
     };
 
     serviceConfig = {

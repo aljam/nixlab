@@ -10,6 +10,13 @@ let
   inventory = builtins.fromJSON (builtins.readFile ../docs/public-endpoints.json);
   endpoints = inventory.endpoints or [ ];
 
+  positiveStatus =
+    status:
+    if lib.isList status then
+      status != [ ] && lib.all (item: lib.isInt item && item > 0) status
+    else
+      lib.isInt status && status > 0;
+
   endpointFailures = lib.concatMap (
     endpoint:
     let
@@ -20,7 +27,7 @@ let
       minTlsVersion = endpoint.min_tls_version or null;
 
       https = url != null && lib.hasPrefix "https://" url;
-      positiveStatus = expectedStatus != null && expectedStatus > 0;
+      statusValid = positiveStatus expectedStatus;
       hstsRequired = requireHsts == true;
       tlsVersionSupported =
         minTlsVersion != null
@@ -38,8 +45,8 @@ let
     ++ lib.optionals (!https) [
       "Public endpoint ${toString name} must use HTTPS: ${toString url}"
     ]
-    ++ lib.optionals (!positiveStatus) [
-      "Public endpoint ${toString name} must declare a positive expected_status"
+    ++ lib.optionals (!statusValid) [
+      "Public endpoint ${toString name} must declare a positive expected_status or a non-empty list of positive expected statuses"
     ]
     ++ lib.optionals (!hstsRequired) [
       "Public endpoint ${toString name} must require HSTS"

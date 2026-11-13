@@ -240,7 +240,7 @@
 
             for host in "''${hosts[@]}"; do
               echo "==> Deploying ''${host} @ ''${rev}"
-              ssh "deploy@''${host}" sudo deploy-rebuild switch "''${rev}"
+              ssh "deploy@''${host}" "deploy-rebuild switch ''${rev}"
             done
           ''}";
         };

@@ -77,7 +77,8 @@ let
     text = ''
       case "''${SSH_ORIGINAL_COMMAND:-}" in
         "deploy-rebuild switch "[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f])
-          exec /run/current-system/sw/bin/deploy-rebuild \
+          exec /run/wrappers/bin/sudo -n \
+            /run/current-system/sw/bin/deploy-rebuild switch \
             "''${SSH_ORIGINAL_COMMAND#deploy-rebuild switch }"
           ;;
         *)

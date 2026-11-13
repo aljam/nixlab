@@ -10,8 +10,6 @@
         ../modules/features/node-exporter.nix
       ];
 
-      modules.features.node-exporter.textfileDirectory = "/var/lib/node-exporter/textfile";
-
       modules.features.drift-monitoring = {
         enable = true;
         expectedRevision = "expected-revision";

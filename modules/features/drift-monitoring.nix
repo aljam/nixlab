@@ -32,6 +32,9 @@ let
     revision="$(/run/current-system/sw/bin/nixos-version --configuration-revision || true)"
     ruleset_hash="$(${nft} list ruleset | sha256sum | cut -d' ' -f1)"
 
+    tcp_allow_list="${tcpAllowList}"
+    udp_allow_list="${udpAllowList}"
+
     failed_units=0
     while IFS= read -r unit; do
       [ -z "$unit" ] && continue
@@ -44,10 +47,7 @@ let
     unexpected_tcp=0
     while read -r port; do
       [ -z "$port" ] && continue
-      if ! grep -Fxq "$port" <<'EOF'
-${tcpAllowList}
-EOF
-      then
+      if ! printf '%s\n' "$tcp_allow_list" | grep -Fxq "$port"; then
         unexpected_tcp=$((unexpected_tcp + 1))
         printf 'nixlab_drift_unexpected_listener{protocol="tcp",port="%s"} 1\n' "$port" >> "$tmp"
       fi
@@ -56,10 +56,7 @@ EOF
     unexpected_udp=0
     while read -r port; do
       [ -z "$port" ] && continue
-      if ! grep -Fxq "$port" <<'EOF'
-${udpAllowList}
-EOF
-      then
+      if ! printf '%s\n' "$udp_allow_list" | grep -Fxq "$port"; then
         unexpected_udp=$((unexpected_udp + 1))
         printf 'nixlab_drift_unexpected_listener{protocol="udp",port="%s"} 1\n' "$port" >> "$tmp"
       fi

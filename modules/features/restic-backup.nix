@@ -245,15 +245,12 @@ let
       commonArgs = resticCommonArgs job;
       metricFile = "${metricsDirectory}/restic-restore-test-${name}.prom";
 
-      pathChecks = lib.concatMapStringsSep "\n" (
-        path:
-        ''
-          if [[ ! -e "$restore_dir/${lib.escapeShellArg (lib.removePrefix "/" path)}" ]]; then
-            echo "restic-restore-test-${name}: expected restored path missing: ${lib.escapeShellArg path}" >&2
-            exit 1
-          fi
-        ''
-      ) job.paths;
+      pathChecks = lib.concatMapStringsSep "\n" (path: ''
+        if [[ ! -e "$restore_dir/${lib.escapeShellArg (lib.removePrefix "/" path)}" ]]; then
+          echo "restic-restore-test-${name}: expected restored path missing: ${lib.escapeShellArg path}" >&2
+          exit 1
+        fi
+      '') job.paths;
     in
     pkgs.writeShellApplication {
       name = "restic-restore-test-${name}";

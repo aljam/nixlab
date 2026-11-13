@@ -7,6 +7,9 @@
 }:
 
 {
+  # Mail secrets remain root-owned until the mail server is activated.
+  # They are retained for the eventual mail stack, but the server is disabled
+  # because outbound SMTP is blocked by the ISP.
   sops.secrets."smtp_relay_password" = {
     owner = "root";
     group = "root";
@@ -20,7 +23,8 @@
   };
 
   mailserver = {
-    enable = true;
+    # Eventual feature: outbound SMTP is blocked by the ISP.
+    enable = false;
 
     fqdn = "mail.${domains.primary}";
 

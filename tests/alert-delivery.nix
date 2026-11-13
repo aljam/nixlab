@@ -31,7 +31,7 @@ pkgs.testers.nixosTest {
               webhook_configs = [
                 {
                   url = "http://127.0.0.1:8080/test";
-                  sendResolved = true;
+                  send_resolved = true;
                 }
               ];
             }
@@ -63,6 +63,7 @@ pkgs.testers.nixosTest {
         )
 
     with subtest("resolving the test alert produces a recovery notification"):
+        machine.succeed("sleep 5")
         machine.succeed("nixlab-alert-resolve --severity warning")
         machine.wait_until_succeeds(
             "sleep 5; curl -fsS --max-time 10 'http://127.0.0.1:8080/test/json?poll=1&since=1m' | grep -q 'resolved'",

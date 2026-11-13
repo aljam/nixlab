@@ -12,7 +12,8 @@ let
   privateHttpPrefixes = [
     "http://10."
     "http://192.168."
-  ] ++ map (n: "http://172.${toString n}.") (lib.range 16 31);
+  ]
+  ++ map (n: "http://172.${toString n}.") (lib.range 16 31);
 
   isPrivateHttp = lib.any (prefix: lib.hasPrefix prefix lokiUrl) privateHttpPrefixes;
 

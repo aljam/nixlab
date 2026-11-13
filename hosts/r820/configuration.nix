@@ -7,11 +7,11 @@
 {
   imports = [
     ./hardware-configuration.nix
+    ./disko-config.nix
     ../../modules/hardware/dell-poweredge.nix
     ../../modules/roles/server-core.nix
     ../../modules/features/libvirt.nix
     ../../modules/features/postgres.nix
-    ../../modules/features/nix-builder.nix
     #../../modules/features/mail-server.nix
     #../../modules/roles/mail-node.nix
   ];
@@ -84,7 +84,6 @@
   };
 
   # Only members of `users` may connect to the Nix daemon. Nobody besides
-  # root is a trusted user: daemon trust is equivalent to root, and remote
-  # builds use the dedicated account in modules/features/nix-builder.nix.
+  # root is a trusted user.
   nix.settings.allowed-users = [ "@users" ];
 }

@@ -1,0 +1,92 @@
+name: Dependency triage
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  osv-scan:
+    name: Scan dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Run OSV-Scanner
+        run: |
+          docker run --rm \
+            -v "$PWD:/repo" \
+            -w /repo \
+            ghcr.io/google/osv-scanner:v2.2.3 \
+            scan \
+              --format json \
+              --output /repo/osv-report.json \
+              --recursive \
+              /repo
+
+      - name: Summarize scan result
+        if: always()
+        run: |
+          if [ ! -f osv-report.json ]; then
+            echo "### OSV-Scanner did not produce a report" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          count="$(jq '[.results[]?.vulnerabilities[]?] | length' osv-report.json)"
+          echo "### OSV-Scanner" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Reported findings: $count" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Review findings in docs/security/dependency-triage.md. A finding is actionable only when it affects deployed or reachable software." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload scan report
+        if: always() && hashFiles('osv-report.json') != ''
+        uses: actions/upload-artifact@ea165f8d65b7e23b7b7cd1cfcf1fea7d4c9bfb80 # v4.6.2
+        with:
+          name: osv-report
+          path: osv-report.json
+          retention-days: 30
+
+  triage-check:
+    name: Validate triage records
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Validate triage template
+        run: |
+          set -euo pipefail
+          test -f docs/security/dependency-triage.md
+          grep -q '^- ID:' docs/security/dependency-triage.md
+          grep -q '^- Package:' docs/security/dependency-triage.md
+          grep -q '^- Host or service:' docs/security/dependency-triage.md
+          grep -q '^- Deployed:' docs/security/dependency-triage.md
+          grep -q '^- Reachable:' docs/security/dependency-triage.md
+          grep -q '^- Decision:' docs/security/dependency-triage.md
+          grep -q '^- Owner:' docs/security/dependency-triage.md
+          grep -q '^- Follow-up date:' docs/security/dependency-triage.md
+
+  secret-scan:
+    name: Scan triage records
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Scan for credential-like content
+        run: |
+          set -euo pipefail
+          if grep -RInE --include='*.md' \
+            '(sops://|AGE_SECRET_KEY|SOPS_AGE_KEY|BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})' \
+            docs/security; then
+            echo "Credential-like content must not be committed to triage records." >&2
+            exit 1
+          fi

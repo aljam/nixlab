@@ -15,6 +15,10 @@ decision made. Do not treat every scanner finding as an incident.
 - [ ] Record the CVE/GHSA, affected host or service, decision, owner, and follow-up date.
 - [ ] Confirm that accepted risks have a compensating control or documented rationale.
 
+Use [`docs/security/dependency-triage.md`](../security/dependency-triage.md)
+for the triage template and decision policy. The scheduled
+`Dependency triage` workflow retains OSV-Scanner output as a workflow artifact.
+
 A finding is actionable only when it affects software actually deployed or
 reachable from a host. Do not automatically upgrade packages solely because a
 scanner reports a vulnerability.

@@ -33,8 +33,7 @@
   ];
 
   nix.settings.trusted-public-keys = [
-    "nix-gaming.cachix.org-1:nbjlureqMbRAxR1gJ/f3hxemL9svXaZF/Ees8vCUUs4="
-    "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
+    "nix-gaming.cachix.org-1:nbjlureqMbRAxR1gJ/f3hxemL9svX0aZb1a0a3cec5fdb"
   ];
 
   networking.networkmanager.enable = true;
@@ -61,4 +60,7 @@
     # Replace this with the hash returned by nix store prefetch-file.
     hash = "sha256-lj9oPiWmrNPvNyYb+GbEmrdfqn00jzwxQfbXVoTg+40=";
   };
+
+  # Desktops and laptops get the local libvirt GUI.
+  modules.features.libvirt.gui.enable = true;
 }

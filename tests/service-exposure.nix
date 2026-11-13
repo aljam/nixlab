@@ -22,6 +22,14 @@ let
       lokiEnabled = cfg.services.nixlab.loki.enable or false;
       lokiRetentionEnabled = cfg.services.loki.configuration.compactor.retention_enabled or false;
       lokiRetentionPeriod = cfg.services.loki.configuration.limits_config.retention_period or "";
+
+      peertubeEnabled = cfg.services.peertube.enable or false;
+      peertubeSettings = cfg.services.peertube.settings or { };
+      peertubeListener = peertubeSettings.listen or { };
+      peertubeListenerAddress = peertubeListener.hostname or "";
+
+      livekitContainer = (cfg.virtualisation.oci-containers.containers or { }).livekit or null;
+      matrixRtcEnabled = livekitContainer != null;
     in
     lib.optionals (lib.elem 5050 proxyPorts) [
       "${hostname}: pgAdmin port 5050 must not be exposed through HAProxy"
@@ -79,6 +87,37 @@ let
         ((cfg.services.autobrr.enable or false) && (cfg.services.autobrr.settings.host or "") == "0.0.0.0")
         [
           "${hostname}: Autobrr must not bind to 0.0.0.0"
+        ]
+    ++ lib.optionals (peertubeEnabled && !(lib.elem 9000 proxyPorts)) [
+      "${hostname}: PeerTube must expose its HTTP service through HAProxy port 9000"
+    ]
+    ++
+      lib.optionals
+        (
+          peertubeEnabled
+          && (
+            peertubeListenerAddress == ""
+            || peertubeListenerAddress == "0.0.0.0"
+            || peertubeListenerAddress == "::"
+          )
+        )
+        [
+          "${hostname}: PeerTube must bind its HTTP listener to an explicit service address"
+        ]
+    ++ lib.optionals (matrixRtcEnabled && !(lib.elem 7880 proxyPorts)) [
+      "${hostname}: Matrix RTC must expose the LiveKit API through HAProxy port 7880"
+    ]
+    ++ lib.optionals (matrixRtcEnabled && !(lib.elem 8081 proxyPorts)) [
+      "${hostname}: Matrix RTC must expose the JWT service through HAProxy port 8081"
+    ]
+    ++
+      lib.optionals
+        (
+          matrixRtcEnabled
+          && (lib.elem 7881 proxyPorts || lib.elem 50100 proxyPorts || lib.elem 50200 proxyPorts)
+        )
+        [
+          "${hostname}: Matrix RTC media ports must not be exposed through HAProxy"
         ]
   ) hosts;
 

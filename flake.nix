@@ -226,7 +226,6 @@
             git fetch --quiet origin
             if [[ "$rev" != "$(git rev-parse origin/main)" ]]; then
               echo "Refusing to deploy: HEAD ($rev) is not the tip of origin/main." >&2
-              echo "Push or pull until HEAD matches origin/main, then retry." >&2
               exit 1
             fi
 
@@ -282,6 +281,10 @@
         };
 
         alert-delivery = import ./tests/alert-delivery.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        sops-recovery = import ./tests/sops-recovery.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };
       };

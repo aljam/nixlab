@@ -7,7 +7,6 @@
 {
   imports = [
     ./hardware-configuration.nix
-    ./disko-config.nix
     ../../modules/hardware/dell-poweredge.nix
     ../../modules/roles/server-core.nix
     ../../modules/features/libvirt.nix

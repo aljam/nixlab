@@ -1,9 +1,4 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
+{ config, lib, pkgs, ... }:
 let
   inherit (lib)
     mkEnableOption
@@ -36,7 +31,27 @@ let
     severity="${cfg.severity}"
     fingerprint=$(printf 'nixlab-alert-test-%s' "$severity")
 
-    payload=$(${jq} -n --arg severity "$severity" --arg fingerprint "$fingerprint" '[{"startsAt":(now|todate),"endsAt":(now|todate),"generatorURL":"https://nixlab.local/alert-test","labels":{"alertname":"NixLabAlertDeliveryTest","severity":$severity,"instance":"alert-test"},"annotations":{"summary":"NixLab alert recovery test","description":"Controlled test alert resolved."}}]')
+    active_alerts=$(${curl} -fsS 'http://127.0.0.1:9093/api/v2/alerts?active=true')
+    resolved_at=$(date -u +'%Y-%m-%dT%H:%M:%S.%3NZ')
+
+    payload=$(printf '%s' "$active_alerts" | ${jq} -c --arg severity "$severity" --arg resolved_at "$resolved_at" '
+      map(
+        select(
+          .labels.alertname == "NixLabAlertDeliveryTest"
+          and .labels.severity == $severity
+        )
+        | .endsAt = $resolved_at
+        | .annotations = {
+            summary: "NixLab alert recovery test",
+            description: "Controlled test alert resolved."
+          }
+      )
+    ')
+
+    if [[ "$(printf '%s' "$payload" | ${jq} 'length')" -eq 0 ]]; then
+      echo "No active NixLabAlertDeliveryTest alert with severity $severity" >&2
+      exit 1
+    fi
 
     ${curl} -fsS -H 'Content-Type: application/json' -d "$payload" http://127.0.0.1:9093/api/v2/alerts
 

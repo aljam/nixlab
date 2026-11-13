@@ -53,7 +53,9 @@ pkgs.testers.nixosTest {
   testScript = ''
     machine.start()
     machine.wait_for_unit("alertmanager.service")
+    machine.wait_for_open_port(9093)
     machine.wait_for_unit("ntfy-sh.service")
+    machine.wait_for_open_port(8080)
 
     with subtest("a warning test alert reaches the local Ntfy receiver"):
         machine.succeed("nixlab-alert-test --severity warning")

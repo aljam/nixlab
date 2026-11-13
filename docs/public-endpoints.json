@@ -105,6 +105,13 @@
       "expected_status": 200,
       "require_hsts": true,
       "min_tls_version": "1.2"
+    },
+    {
+      "name": "peertube",
+      "url": "https://peertube.derezzed.info",
+      "expected_status": 200,
+      "require_hsts": true,
+      "min_tls_version": "1.2"
     }
   ]
 }

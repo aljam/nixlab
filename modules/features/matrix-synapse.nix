@@ -2,6 +2,15 @@
 let
   matrixDomain = "matrix.${config.networking.myDomain}";
   rtcDomain = "rtc.${config.networking.myDomain}";
+
+  cfg = config.services.matrix-synapse;
+
+  synapseListener = lib.findFirst (listener: listener.port or 0 == 8008) { } cfg.settings.listeners;
+  synapseBindAddresses = synapseListener.bind_addresses or [ ];
+
+  registrationEnabled = cfg.settings.enable_registration or false;
+  registrationCaptchaEnabled = cfg.settings.enable_registration_captcha or false;
+  databaseSslMode = cfg.settings.database.args.sslmode or "";
 in
 {
   imports = [ ./pfsense-root-ca.nix ];
@@ -98,6 +107,9 @@ in
         }
       ];
 
+      # Public registration is intentional. CAPTCHA and a conservative
+      # registration rate limit reduce automated account creation without
+      # requiring invitation tokens.
       enable_registration = true;
       registration_requires_token = false;
       enable_registration_captcha = true;
@@ -105,6 +117,11 @@ in
       recaptcha_private_key_path = config.sops.secrets.matrix-recaptcha-secret-key.path;
       registration_shared_secret_path =
         config.sops.secrets.matrix-synapse-registration-shared-secret.path;
+
+      rc_registration = {
+        per_second = 0.1;
+        burst_count = 5;
+      };
 
       experimental_features = {
         msc4140_enabled = true;
@@ -126,13 +143,37 @@ in
   systemd.services.matrix-synapse.serviceConfig = {
     NoNewPrivileges = true;
     PrivateTmp = true;
+    PrivateDevices = true;
     ProtectSystem = "strict";
     ProtectHome = true;
     ReadWritePaths = [ "/var/lib/matrix-synapse" ];
     ProtectKernelTunables = true;
     ProtectKernelModules = true;
     ProtectControlGroups = true;
+    RestrictAddressFamilies = [
+      "AF_INET"
+      "AF_INET6"
+      "AF_UNIX"
+    ];
+    CapabilityBoundingSet = [ ];
     RestrictSUIDSGID = true;
     LockPersonality = true;
   };
+
+  config.assertions = [
+    {
+      assertion = !registrationEnabled || registrationCaptchaEnabled;
+      message = "Matrix Synapse public registration must require CAPTCHA.";
+    }
+
+    {
+      assertion = synapseBindAddresses != [ ] && !(lib.elem "0.0.0.0" synapseBindAddresses) && !(lib.elem "::" synapseBindAddresses);
+      message = "Matrix Synapse must not bind its HTTP listener to every interface.";
+    }
+
+    {
+      assertion = databaseSslMode == "verify-full";
+      message = "Matrix Synapse must verify the PostgreSQL server certificate with sslmode=verify-full.";
+    }
+  ];
 }

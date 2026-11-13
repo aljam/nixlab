@@ -9,15 +9,18 @@ let
   isLoopbackHttp = lib.hasPrefix "http://127.0.0.1" lokiUrl || lib.hasPrefix "http://[::1]" lokiUrl;
   isHttps = lib.hasPrefix "https://" lokiUrl;
 
-  privateHttpPrefixes = [
-    "http://10."
-    "http://192.168."
-  ]
-  ++ map (n: "http://172.${toString n}.") (lib.range 16 31);
+  allowedHosts = config.services.nixlab.logShipping.allowedLokiHosts;
 
-  isPrivateHttp = lib.any (prefix: lib.hasPrefix prefix lokiUrl) privateHttpPrefixes;
+  urlHost =
+    let
+      withoutScheme = lib.removePrefix "http://" (lib.removePrefix "https://" lokiUrl);
+      hostPart = lib.head (lib.splitString "/" withoutScheme);
+    in
+    lib.head (lib.splitString ":" hostPart);
 
-  lokiEndpointAllowed = isLoopbackHttp || isHttps || isPrivateHttp;
+  isAllowedHost = lib.elem urlHost allowedHosts;
+
+  lokiEndpointAllowed = isLoopbackHttp || isHttps || isAllowedHost;
 in
 {
   options.services.nixlab.logShipping = {
@@ -28,9 +31,23 @@ in
       default = "http://127.0.0.1:3100/loki/api/v1/push";
       description = "Loki push API URL used by this host's Alloy agent.";
     };
+
+    allowedLokiHosts = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = ''
+        Explicit hostnames or IP addresses allowed for plaintext HTTP Loki
+        push endpoints. HTTPS and loopback HTTP endpoints are always allowed.
+      '';
+    };
   };
 
   config = lib.mkIf config.services.nixlab.logShipping.enable {
+    # The fleet monitoring server is the intended Loki endpoint.
+    services.nixlab.logShipping.allowedLokiHosts = lib.mkDefault [
+      config.networking.fleet.${config.networking.monitoringServer}.ip
+    ];
+
     users.groups.alloy = { };
 
     users.users.alloy = {
@@ -90,8 +107,8 @@ in
       {
         assertion = lokiEndpointAllowed;
         message = ''
-          The Loki push endpoint must use loopback HTTP, HTTPS, or a private
-          RFC 1918 address. Configured endpoint: ${lokiUrl}
+          The Loki push endpoint must use loopback HTTP, HTTPS, or an
+          explicitly allowed Loki host. Configured endpoint: ${lokiUrl}
         '';
       }
 

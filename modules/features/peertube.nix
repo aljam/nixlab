@@ -6,6 +6,14 @@
 }:
 let
   cfg = config.modules.features.peertube;
+
+  peertubeSettings = config.services.peertube.settings or { };
+  peertubeListener = peertubeSettings.listen or { };
+  peertubeHostname = peertubeListener.hostname or "";
+  signupEnabled = peertubeSettings.signup.enabled or false;
+
+  redisServer = config.services.redis.servers.peertube or { };
+  redisBind = redisServer.bind or "";
 in
 {
   options.modules.features.peertube.enable = lib.mkEnableOption "PeerTube video platform";
@@ -73,6 +81,7 @@ in
     services.redis.servers.peertube = {
       enable = true;
       port = 6379;
+      bind = "127.0.0.1";
     };
 
     systemd.services.peertube = {
@@ -100,12 +109,19 @@ in
       serviceConfig = {
         NoNewPrivileges = true;
         PrivateTmp = true;
+        PrivateDevices = true;
         ProtectSystem = "strict";
         ProtectHome = true;
         ReadWritePaths = [ "/var/lib/peertube" ];
         ProtectKernelTunables = true;
         ProtectKernelModules = true;
         ProtectControlGroups = true;
+        RestrictAddressFamilies = [
+          "AF_INET"
+          "AF_INET6"
+          "AF_UNIX"
+        ];
+        CapabilityBoundingSet = [ ];
         RestrictSUIDSGID = true;
         LockPersonality = true;
       };
@@ -114,6 +130,23 @@ in
     environment.systemPackages = with pkgs; [
       peertube
       ffmpeg
+    ];
+
+    assertions = [
+      {
+        assertion = !signupEnabled;
+        message = "PeerTube registration must remain disabled.";
+      }
+
+      {
+        assertion = peertubeHostname != "" && peertubeHostname != "0.0.0.0" && peertubeHostname != "::";
+        message = "PeerTube must bind its HTTP listener to an explicit service address, not every interface.";
+      }
+
+      {
+        assertion = redisBind == "127.0.0.1";
+        message = "PeerTube Redis must listen only on loopback.";
+      }
     ];
   };
 }

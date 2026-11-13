@@ -3,7 +3,22 @@
   lib,
   ...
 }:
+let
+  lokiUrl = config.services.nixlab.logShipping.lokiUrl;
 
+  isLoopbackHttp = lib.hasPrefix "http://127.0.0.1" lokiUrl || lib.hasPrefix "http://[::1]" lokiUrl;
+  isHttps = lib.hasPrefix "https://" lokiUrl;
+
+  privateHttpPrefixes = [
+    "http://10."
+    "http://192.168."
+  ]
+  ++ map (n: "http://172.${toString n}.") (lib.range 16 31);
+
+  isPrivateHttp = lib.any (prefix: lib.hasPrefix prefix lokiUrl) privateHttpPrefixes;
+
+  lokiEndpointAllowed = isLoopbackHttp || isHttps || isPrivateHttp;
+in
 {
   options.services.nixlab.logShipping = {
     enable = lib.mkEnableOption "Grafana Alloy systemd-journal log shipping to Loki";
@@ -70,5 +85,20 @@
         }
       }
     '';
+
+    assertions = [
+      {
+        assertion = lokiEndpointAllowed;
+        message = ''
+          The Loki push endpoint must use loopback HTTP, HTTPS, or a private
+          RFC 1918 address. Configured endpoint: ${lokiUrl}
+        '';
+      }
+
+      {
+        assertion = !(config.roles.server.enable or false) || config.services.nixlab.logShipping.enable;
+        message = "Server hosts must enable systemd-journal log shipping to Loki.";
+      }
+    ];
   };
 }

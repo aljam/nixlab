@@ -94,6 +94,7 @@ in
 
   config = mkIf cfg.enable {
     environment.systemPackages = [
+      pkgs.curl
       pkgs.jq
       (pkgs.writeShellScriptBin "nixlab-alert-test" "${alertTestScript}")
       (pkgs.writeShellScriptBin "nixlab-alert-resolve" "${alertResolveScript}")

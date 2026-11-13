@@ -17,6 +17,7 @@ in
   imports = [
     ../features/node-exporter.nix
     ../features/reverse-proxy-backends.nix
+    ../features/libvirt.nix
   ];
 
   assertions = [
@@ -29,6 +30,9 @@ in
   # Every host importing this role is a server; this drives the
   # server-vs-gaming exclusivity assertion in modules/features/security-policy.nix.
   roles.server.enable = true;
+
+  # Servers run libvirt headlessly and are managed from an authorized desktop.
+  modules.features.libvirt.remoteManagement.enable = true;
 
   networking.interfaces.eno1.ipv4.addresses = [
     {

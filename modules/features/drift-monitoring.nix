@@ -5,7 +5,12 @@
   ...
 }:
 let
-  inherit (lib) mkEnableOption mkIf mkOption types;
+  inherit (lib)
+    mkEnableOption
+    mkIf
+    mkOption
+    types
+    ;
   textfileDirectory = config.modules.features.node-exporter.textfileDirectory;
 
   cfg = config.modules.features.drift-monitoring;

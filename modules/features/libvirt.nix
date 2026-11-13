@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.modules.features.libvirt;
 in
@@ -18,7 +23,7 @@ in
 
     adminUsers = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [];
+      default = [ ];
       description = "Users allowed to manage libvirt VMs.";
     };
   };
@@ -42,13 +47,15 @@ in
       services.openssh.enable = true;
     })
 
-    (lib.mkIf (cfg.adminUsers != []) {
-      users.users = lib.listToAttrs (map (name: {
-        name = name;
-        value = {
-          extraGroups = [ "libvirtd" ];
-        };
-      }) cfg.adminUsers);
+    (lib.mkIf (cfg.adminUsers != [ ]) {
+      users.users = lib.listToAttrs (
+        map (name: {
+          name = name;
+          value = {
+            extraGroups = [ "libvirtd" ];
+          };
+        }) cfg.adminUsers
+      );
     })
   ];
 }

@@ -19,6 +19,7 @@ let
       postgresAuth = cfg.services.postgresql.authentication or "";
       postgresPort = cfg.services.postgresql.settings.port or 5432;
       sopsSecrets = lib.attrValues (cfg.sops.secrets or { });
+      lokiEnabled = cfg.services.loki.enable or false;
     in
     lib.optionals (lib.elem 5050 proxyPorts) [
       "${hostname}: pgAdmin port 5050 must not be exposed through HAProxy"
@@ -37,6 +38,9 @@ let
     ]
     ++ lib.optionals (lib.elem 9093 proxyPorts) [
       "${hostname}: Alertmanager port 9093 must not be exposed through HAProxy"
+    ]
+    ++ lib.optionals (lokiEnabled && lib.elem 3100 proxyPorts) [
+      "${hostname}: Loki port 3100 must not be exposed through HAProxy"
     ]
     ++
       lib.optionals

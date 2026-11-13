@@ -8,23 +8,21 @@ Implemented.
 
 - Every secret path must have exactly one explicit SOPS creation rule.
 - Fleet-wide fallback rules are prohibited.
-- Host authorization is validated against the declared host-to-secret matrix.
-- A representative host must decrypt only its assigned secret.
-- A host must not decrypt an unrelated secret.
-- Retired hosts and revoked recipients must not remain authorized.
+- Host authorization is validated against the declared creation rules.
+- Secret recipients must be declared in `.sops.yaml`.
+- Secret recipients must be authorized by the matching creation rule.
 
 ## Recovery drill
 
-Build and run the NixOS VM test:
+Run the SOPS recovery validation check:
 
 ```console
 nix flake check --show-trace
 nix build .#checks.x86_64-linux.sops-recovery
-./result/bin/nixos-test-driver
 ```
 
-The drill is non-decrypting from the operator's perspective: it validates
-authorization and isolation without exposing secret contents in CI logs.
+The check is non-decrypting: it validates creation-rule coverage and
+recipient authorization without exposing secret contents in CI logs.
 
 ## Rebuilt or replaced host
 
@@ -34,6 +32,6 @@ Before deploying a rebuilt or replaced host:
 2. Update `.sops.yaml` with the new recipient.
 3. Remove the retired host recipient.
 4. Re-encrypt every secret authorized for that host.
-5. Run the SOPS recovery drill.
+5. Run the SOPS recovery check.
 6. Confirm the host can decrypt only its authorized secrets.
-7. Deploy the host only after the drill passes.
+7. Deploy the host only after the check passes.

@@ -41,6 +41,7 @@ pkgs.testers.nixosTest {
       services.ntfy-sh = {
         enable = true;
         settings = {
+          base-url = "http://127.0.0.1:8080";
           listen-http = "127.0.0.1:8080";
         };
       };

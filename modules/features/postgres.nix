@@ -11,6 +11,7 @@ in
   imports = [
     ./restic-backup.nix
   ];
+
   options.modules.features.postgres = {
     enable = lib.mkEnableOption "PostgreSQL server with encrypted LAN access";
 
@@ -112,7 +113,7 @@ in
     };
 
     systemd.services.postgresql-tls-cert = {
-      description = "Generate self-signed PostgreSQL TLS certificate";
+      description = "Generate or rotate the PostgreSQL TLS certificate";
       before = [ "postgresql.service" ];
       requiredBy = [ "postgresql.service" ];
       serviceConfig = {
@@ -123,18 +124,54 @@ in
         certDir=/var/lib/postgresql/tls
         install -d -m 0700 -o postgres -g postgres "$certDir"
 
+        certificate_needs_rotation=false
+
         if [ ! -s "$certDir/server.key" ] || [ ! -s "$certDir/server.crt" ]; then
-          # Nix indented strings keep backslashes literally: one backslash per
-          # shell line continuation.
-          ${pkgs.openssl}/bin/openssl req -new -x509 -days 3650 -nodes \
+          certificate_needs_rotation=true
+        else
+          expiry_epoch=$(
+            ${pkgs.openssl}/bin/openssl x509 \
+              -in "$certDir/server.crt" \
+              -noout -enddate \
+              | cut -d= -f2 \
+              | xargs -0 -I{} date -d "{}" +%s
+          )
+          now_epoch=$(date +%s)
+
+          # Rotate 30 days before expiry.
+          if [ "$((expiry_epoch - now_epoch))" -lt "$((30 * 24 * 60 * 60))" ]; then
+            certificate_needs_rotation=true
+          fi
+        fi
+
+        if [ "$certificate_needs_rotation" = true ]; then
+          temporary_key="$certDir/server.key.new"
+          temporary_cert="$certDir/server.crt.new"
+
+          ${pkgs.openssl}/bin/openssl req -new -x509 -days 365 -nodes \
             -subj "/CN=${config.networking.hostName}.lan" \
-            -keyout "$certDir/server.key" \
-            -out "$certDir/server.crt"
-          chown postgres:postgres "$certDir/server.key" "$certDir/server.crt"
-          chmod 0600 "$certDir/server.key"
-          chmod 0640 "$certDir/server.crt"
+            -keyout "$temporary_key" \
+            -out "$temporary_cert"
+
+          chown postgres:postgres "$temporary_key" "$temporary_cert"
+          chmod 0600 "$temporary_key"
+          chmod 0640 "$temporary_cert"
+
+          mv "$temporary_key" "$certDir/server.key"
+          mv "$temporary_cert" "$certDir/server.crt"
         fi
       '';
+    };
+
+    systemd.timers.postgresql-tls-cert = {
+      description = "Rotate the PostgreSQL TLS certificate before expiry";
+      wantedBy = [ "timers.target" ];
+
+      timerConfig = {
+        OnCalendar = "*-*-01 03:00:00";
+        Persistent = true;
+        RandomizedDelaySec = "30m";
+      };
     };
 
     # One rule per client address, however many databases it may reach.

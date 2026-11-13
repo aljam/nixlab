@@ -14,7 +14,7 @@
   security.audit.enable = true;
   security.auditd.enable = true;
 
-  services.journald.persistent = true;
+  services.journald.storage = "persistent";
   services.journald.extraConfig = ''
     SystemMaxUse=2G
     KeepFree=1G
@@ -27,7 +27,7 @@
       message = "Kernel audit events must remain enabled.";
     }
     {
-      assertion = config.services.journald.persistent;
+      assertion = config.services.journald.storage == "persistent";
       message = "The systemd journal must persist across reboots.";
     }
   ];

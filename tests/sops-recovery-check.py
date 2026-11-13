@@ -22,16 +22,25 @@ def main() -> int:
 
     failures = []
 
+    anchors = {}
     declared_recipients = set()
     for entry in key_entries:
-        if isinstance(entry, str):
-            parts = entry.split()
-            if parts:
-                declared_recipients.add(parts[-1])
-        elif isinstance(entry, dict):
-            recipient = entry.get("age") or entry.get("recipient")
-            if recipient:
-                declared_recipients.add(recipient)
+        if not isinstance(entry, str) or not entry.startswith("&"):
+            continue
+
+        parts = entry.split(maxsplit=1)
+        if len(parts) != 2:
+            continue
+
+        anchor = parts[0][1:]
+        recipient = parts[1].strip()
+        anchors[anchor] = recipient
+        declared_recipients.add(recipient)
+
+    def resolve_recipient(reference: str) -> str | None:
+        if not reference.startswith("*"):
+            return reference
+        return anchors.get(reference[1:])
 
     if not rules:
         failures.append("No SOPS creation rules are declared.")
@@ -45,7 +54,7 @@ def main() -> int:
             )
             continue
 
-        if re.fullmatch(r"\.\*|.*", pattern):
+        if pattern in ("", ".*"):
             failures.append(
                 f"Creation rule {index} uses a catch-all path_regex; fleet-wide fallback rules are prohibited."
             )
@@ -56,33 +65,34 @@ def main() -> int:
             failures.append(f"Creation rule {index} has an invalid path_regex: {exc}")
             continue
 
-        recipients = []
+        recipients = set()
         for group in rule.get("key_groups", []) or []:
-            recipients.extend(group.get("age", []) or [])
+            for reference in group.get("age", []) or []:
+                recipient = resolve_recipient(reference)
+                if recipient is None:
+                    failures.append(
+                        f"Creation rule {index} references undeclared key anchor {reference}."
+                    )
+                else:
+                    recipients.add(recipient)
 
-        unauthorized = set(recipients) - declared_recipients
-        if unauthorized:
-            failures.append(
-                f"Creation rule {index} authorizes recipients that are not declared in .sops.yaml: "
-                + ", ".join(sorted(unauthorized))
-            )
-
-        compiled_rules.append((compiled, pattern, set(recipients)))
+        compiled_rules.append((compiled, pattern, recipients))
 
     secret_files = sorted(secrets_dir.glob("*.yaml"))
     if not secret_files:
         failures.append(f"No SOPS secret files were found under {secrets_dir}.")
 
     for secret_path in secret_files:
+        relative_path = secret_path.relative_to(secrets_dir.parent).as_posix()
         matches = [
             (compiled, pattern, recipients)
             for compiled, pattern, recipients in compiled_rules
-            if compiled.search(secret_path.name)
+            if compiled.search(relative_path)
         ]
 
         if len(matches) != 1:
             failures.append(
-                f"{secret_path.name} matches {len(matches)} creation rules; every secret path must have exactly one explicit rule."
+                f"{relative_path} matches {len(matches)} creation rules; every secret path must have exactly one explicit rule."
             )
             continue
 
@@ -100,14 +110,14 @@ def main() -> int:
         undeclared = recipients - declared_recipients
         if undeclared:
             failures.append(
-                f"{secret_path.name} is encrypted for recipients that are not declared in .sops.yaml: "
+                f"{relative_path} is encrypted for recipients that are not declared in .sops.yaml: "
                 + ", ".join(sorted(undeclared))
             )
 
         unauthorized = recipients - authorized
         if unauthorized:
             failures.append(
-                f"{secret_path.name} is encrypted for recipients outside its creation rule: "
+                f"{relative_path} is encrypted for recipients outside its creation rule: "
                 + ", ".join(sorted(unauthorized))
             )
 

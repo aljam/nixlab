@@ -84,6 +84,18 @@ let
         description = "Fraction of repository data read by each integrity verification run.";
       };
 
+      restoreSchedule = lib.mkOption {
+        type = lib.types.str;
+        default = "*-*-01 05:30:00";
+        description = "systemd timer calendar specification for the isolated restore test.";
+      };
+
+      restoreRandomizedDelay = lib.mkOption {
+        type = lib.types.str;
+        default = "30m";
+        description = "Random delay added to the scheduled restore-test start.";
+      };
+
       requires = lib.mkOption {
         type = with lib.types; listOf str;
         default = [ ];
@@ -226,6 +238,61 @@ let
         rm -f "$metric_tmp"
       '';
     };
+
+  restoreTestScript =
+    name: job:
+    let
+      commonArgs = resticCommonArgs job;
+      metricFile = "${metricsDirectory}/restic-restore-test-${name}.prom";
+
+      pathChecks = lib.concatMapStringsSep "\n" (
+        path:
+        ''
+          if [[ ! -e "$restore_dir/${lib.escapeShellArg (lib.removePrefix "/" path)}" ]]; then
+            echo "restic-restore-test-${name}: expected restored path missing: ${lib.escapeShellArg path}" >&2
+            exit 1
+          fi
+        ''
+      ) job.paths;
+    in
+    pkgs.writeShellApplication {
+      name = "restic-restore-test-${name}";
+      runtimeInputs = [
+        pkgs.restic
+        pkgs.util-linux
+        pkgs.coreutils
+      ];
+      text = ''
+        set -euo pipefail
+
+        metric_file=${lib.escapeShellArg metricFile}
+        metric_tmp="${metricFile}.tmp"
+
+        exec 9>${lib.escapeShellArg lockFile}
+        flock 9
+
+        restore_dir="$(mktemp -d "${lib.escapeShellArg cacheDirectory}/restore-test-${name}.XXXXXX")"
+        cleanup() {
+          rm -rf -- "$restore_dir"
+        }
+        trap cleanup EXIT
+
+        restic restore latest \
+          ${commonArgs} \
+          --target "$restore_dir"
+
+        ${pathChecks}
+
+        cat > "$metric_tmp" <<EOF
+        # HELP nixlab_restic_restore_test_last_success_timestamp_seconds Unix time of the last successful isolated Restic restore test.
+        # TYPE nixlab_restic_restore_test_last_success_timestamp_seconds gauge
+        nixlab_restic_restore_test_last_success_timestamp_seconds{job="${name}"} $(date +%s)
+        EOF
+        install -o node-exporter -g node-exporter -m 0644 \
+          "$metric_tmp" "$metric_file"
+        rm -f "$metric_tmp"
+      '';
+    };
 in
 {
 
@@ -331,6 +398,36 @@ in
             LockPersonality = true;
           };
         };
+
+        "restic-restore-test-${name}" = {
+          description = "Validate Restic restore readiness: ${name}";
+          requires = job.requires;
+          after = [ "sops-nix.service" ] ++ job.after;
+
+          environment = {
+            RESTIC_CACHE_DIR = cacheDirectory;
+          };
+
+          serviceConfig = {
+            Type = "oneshot";
+            User = "root";
+            ExecStart = lib.getExe (restoreTestScript name job);
+            PrivateTmp = true;
+            PrivateDevices = true;
+            ProtectSystem = "strict";
+            ProtectHome = true;
+            ReadWritePaths = [
+              "/var/lib/restic-backup"
+              "/run/restic-backup.lock"
+              metricsDirectory
+            ];
+            ProtectKernelTunables = true;
+            ProtectKernelModules = true;
+            ProtectControlGroups = true;
+            RestrictSUIDSGID = true;
+            LockPersonality = true;
+          };
+        };
       }) cfg.jobs
     );
 
@@ -355,6 +452,17 @@ in
             OnCalendar = job.verifySchedule;
             Persistent = true;
             RandomizedDelaySec = job.verifyRandomizedDelay;
+          };
+        };
+
+        "restic-restore-test-${name}" = {
+          description = "Validate Restic restore readiness: ${name}";
+          wantedBy = [ "timers.target" ];
+
+          timerConfig = {
+            OnCalendar = job.restoreSchedule;
+            Persistent = true;
+            RandomizedDelaySec = job.restoreRandomizedDelay;
           };
         };
       }) cfg.jobs

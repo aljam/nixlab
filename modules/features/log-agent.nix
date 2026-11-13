@@ -43,6 +43,11 @@ in
   };
 
   config = lib.mkIf config.services.nixlab.logShipping.enable {
+    # The fleet monitoring server is the intended Loki endpoint.
+    services.nixlab.logShipping.allowedLokiHosts = lib.mkDefault [
+      config.networking.fleet.${config.networking.monitoringServer}.ip
+    ];
+
     users.groups.alloy = { };
 
     users.users.alloy = {

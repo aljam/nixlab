@@ -41,6 +41,13 @@
       "-w /etc/hosts -p wa -k dns-config-change"
       "-w /etc/resolv.conf -p wa -k dns-config-change"
       "-w /etc/nsswitch.conf -p wa -k dns-config-change"
+      
+      # Authentication policy changes
+      "-w /etc/pam.d/ -p wa -k pam-config-change"
+      "-w /etc/security/ -p wa -k pam-config-change"
+
+      # Nix configuration
+      "-w /etc/nix/nix.conf -p wa -k nix-config-change"
 
       # Audit policy changes
       "-w /etc/audit/ -p wa -k audit-config-change"

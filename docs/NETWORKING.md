@@ -51,6 +51,25 @@ NAS: 192.168.2.10 (separate subnet, CIFS mount)
 | oryx | 192.168.1.x | Laptop |
 | NAS | 192.168.2.10 | CIFS storage |
 
+## Exposure intents
+
+Every service should have one declared exposure intent:
+
+| Intent | Meaning | Typical bind address |
+|---|---|---|
+| `loopback` | Reachable only from the host | `127.0.0.1` |
+| `lan` | Reachable from trusted LAN hosts | Fleet service address |
+| `proxy` | Reachable through the HAProxy backend allowlist | Fleet service address |
+| `public` | Directly reachable from the internet | Requires explicit justification |
+
+Firewall rules, bind addresses, and `networking.proxyBackendPorts` must agree
+with the declared intent.
+
+Prefer `loopback` for services consumed only on the same host. Use `proxy` for
+services intended to be reached through HAProxy. Use `lan` only when a trusted
+host needs direct access. Use `public` only when a service must be directly
+reachable from the internet and its exposure is explicitly justified.
+
 ## Firewall Rules
 
 ### pfSense / HAProxy

@@ -141,6 +141,19 @@ jobs:
       - name: Run non-decrypting recovery drill
         run: bash scripts/sops-recovery-drill.sh --host "${{ matrix.host }}"
 
+  security-invariants:
+    name: Check repository security invariants
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
+
+      - name: Check security invariants
+        run: python3 scripts/check-security-invariants.py
+
   nix:
     name: Evaluate Nix checks
     runs-on: ubuntu-latest

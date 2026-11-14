@@ -22,8 +22,9 @@ let
       group,
       neededForUsers ? false,
       ...
-    } @ args:
-    args // {
+    }@args:
+    args
+    // {
       inherit
         name
         sopsFile

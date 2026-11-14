@@ -1,8 +1,18 @@
 # SSH access and brute-force protection.
 #
-# SSH access is group-based: members of `wheel` may log in with public keys.
-# Adding a user to `wheel` intentionally grants that user SSH access and
-# administrative privileges.
+# SSH access is key-only and group-based. Members of `wheel` may log in with
+# public keys; when the deploy user feature is enabled, members of `deploy`
+# may also log in.
+#
+# Adding a user to `wheel` intentionally grants SSH access and administrative
+# privileges.
+#
+# Password authentication, empty passwords, direct root login, interactive
+# keyboard authentication, and X11, TCP, and agent forwarding are disabled.
+#
+# Fail2ban constrains repeated key probing, connection abuse, and noisy
+# authentication attempts. It is not a password-brute-force control because
+# password authentication is disabled.
 {
   config,
   lib,

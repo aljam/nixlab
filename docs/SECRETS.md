@@ -32,6 +32,29 @@ Maintain an inventory entry for every `sops.secrets` declaration. Record the sec
 
 NixOS policy requires every `sops.secrets` entry to declare an explicit `sopsFile`, `owner`, and `mode`; decrypted files must use owner-only mode `0400`.
 
+## Secret declarations
+
+Use the repository’s SOPS declaration helper for every secret consumed by a
+NixOS module.
+
+The helper makes the following properties explicit:
+
+- Secret name
+- SOPS file
+- Owning service user
+- Owning service group
+- Whether the secret is needed during user activation
+
+It also enforces owner-only permissions (`0400`).
+
+The helper does not encrypt, rotate, deploy, or validate the contents of a
+secret. A required secret must exist in the appropriate SOPS file before the
+host is rebuilt.
+
+Root-owned secrets require an explicit entry in
+`roles.security.sopsAllowedRootSecrets`. Secret owners and groups must be
+declared system identities.
+
 ## Adding a secret
 
 1. Create or update the service- or trust-boundary-scoped SOPS file.

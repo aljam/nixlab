@@ -55,6 +55,27 @@ Root-owned secrets require an explicit entry in
 `roles.security.sopsAllowedRootSecrets`. Secret owners and groups must be
 declared system identities.
 
+## Inventory review
+
+During a security review, compare every `sops.secrets` declaration with the
+secret inventory.
+
+For each declaration, confirm that the inventory records:
+
+- Secret name
+- SOPS file
+- Consuming host and service
+- Owner
+- Mode
+- Rotation interval
+
+A declaration without an inventory entry is a documentation gap. Update the
+inventory before merging the change, or explicitly justify why the secret is
+temporary and record its removal date.
+
+Do not treat this review as secret rotation. Rotation remains a separate,
+host-specific operational procedure.
+
 ## Adding a secret
 
 1. Create or update the service- or trust-boundary-scoped SOPS file.

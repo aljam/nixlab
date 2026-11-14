@@ -11,7 +11,7 @@
     };
 
     nixos-hardware = {
-      url = "github:nixos/nixos-hardware/master";
+      url = "github:nixos-hardware/nixos-hardware/master";
       inputs.nixpkgs.follows = "nixpkgs";
 
     };
@@ -28,7 +28,6 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
     disko = {
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -271,6 +270,8 @@
           pkgs = nixpkgs.legacyPackages.${system};
           test = "postgresql-auth";
         };
+
+        servarr-media-access = nixpkgs.legacyPackages.${system}.testers.runNixOSTest ./tests/servarr-media-access.nix;
 
         alert-delivery = import ./tests/alert-delivery.nix {
           pkgs = nixpkgs.legacyPackages.${system};

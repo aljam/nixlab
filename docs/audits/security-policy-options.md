@@ -13,7 +13,7 @@ This audit maps the repository's security assertions to the options they validat
 | SOPS permissions | `sops.nix` | `sops.secrets.<name>.mode` | Every secret must explicitly declare its mode and use owner-only `0400`. |
 | Root-owned secrets | `sops.nix` | `sops.secrets.<name>.owner`, `roles.security.sopsAllowedRootSecrets` | Root-owned secrets must be explicitly allowlisted. |
 | Expected secret owners | `security-policy.nix` | `sops.secrets.<name>.owner`, `roles.security.sopsExpectedOwners` | A mapped secret must be owned by its consuming service. |
-| Grafana access | `security-policy.nix` | `networking.proxyBackendPorts`, `services.grafana.settings."auth.anonymous".enabled`, `services.grafana.settings.users.allow_sign_up` | Exposed Grafana must disable anonymous access and self-registration. |
+| Grafana access | `grafana/default.nix` | `networking.proxyBackendPorts`, `services.grafana.settings."auth.anonymous".enabled`, `services.grafana.settings.users.allow_sign_up` | Exposed Grafana must disable anonymous access and self-registration. |
 | PostgreSQL authentication | `security-policy.nix` | `services.postgresql.authentication`, `services.postgresql.settings.port`, `networking.proxyBackendPorts` | PostgreSQL must not use broad `host all all` rules, remote rules must use TLS, and its port must not be exposed through HAProxy. |
 | Internal service exposure | `security-policy.nix` | `networking.proxyBackendPorts` | pgAdmin, Prometheus, Blackbox exporter, and Alertmanager ports must not be exposed through HAProxy. |
 | Service binding | `security-policy.nix` | `networking.servicesBindAddress` | The shared service bind address must not bind to every interface. |
@@ -27,7 +27,7 @@ This audit maps the repository's security assertions to the options they validat
 ## Findings
 
 - The SOPS assertions correctly enforce explicit source files, owners, modes, owner-only permissions, and auditable root ownership.
-- The Grafana assertions correctly apply only when port 3000 is present in the HAProxy backend allowlist. Grafana's anonymous-access section is the single attribute `"auth.anonymous"`; the nested path `auth.anonymous` does not exist, so an assertion reading it with an `or false` fallback can never fail.
+- The Grafana assertions correctly apply only when port 3000 is present in the HAProxy backend allowlist. Grafana's anonymous-access section is the single attribute `"auth.anonymous"`; the assertion correctly reads `services.grafana.settings."auth.anonymous".enabled` and fails when anonymous access is enabled on an exposed instance.
 - The PostgreSQL assertions distinguish loopback clients from remote clients and require `hostssl` for remote access.
 - The internal-service exposure list includes pgAdmin, Prometheus, Blackbox exporter, and Alertmanager.
 - The Recyclarr dependency correctly requires `servarr.enable`.

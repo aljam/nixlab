@@ -15,6 +15,7 @@ boundaries, and recovery documentation to the incident lifecycle.
 |---|---|
 | Recovery procedures | `docs/RECOVERY.md` covers SOPS host recovery, PostgreSQL recovery, and post-recovery verification. |
 | Runbooks | `docs/runbooks/` includes Loki firewall access, Matrix reCAPTCHA rotation, and PeerTube PostgreSQL password rotation. |
+| Incident severity | `docs/runbooks/incident-severity.md` defines critical, high, medium, and low incident severities and response expectations. |
 | Backup recovery | Restic repository integrity and restore-readiness work already exists. |
 | Detection | Prometheus, Alertmanager, Loki, drift monitoring, and configuration-change monitoring are present. |
 | Access containment | SSH hardening, deploy-user restrictions, fail2ban policy, and audit logging already exist. |
@@ -48,16 +49,16 @@ For every high-impact scenario, assess:
 
 ## Findings
 
-### Missing unified severity model
+### Incident severity model
 
-The repository has monitoring and alerting controls, but there is no consistent
-incident severity model that defines response expectations, ownership, and
-escalation.
+`docs/runbooks/incident-severity.md` defines critical, high, medium, and low
+incident severities, initial response expectations, and recovery verification
+requirements.
 
-**Gap type:** Missing ownership and response expectations.
+**Status:** Addressed by the incident severity model.
 
-**Follow-up:** Add an incident severity model that maps common incident types
-to critical, high, medium, and low response expectations.
+**Follow-up:** Keep the severity model synchronized with new incident scenarios
+and alert coverage.
 
 ### Missing cross-service secret-compromise playbook
 
@@ -102,8 +103,9 @@ service-specific recovery and verification runbook.
 
 ### Missing incident evidence standard
 
-Audit logs and Loki exist, but there may not be a defined set of artifacts to
-preserve during an incident.
+The incident severity runbook requires evidence preservation, but the fleet
+does not yet define a minimum, scenario-specific evidence set or retention
+expectation.
 
 **Gap type:** Missing evidence-preservation procedure.
 
@@ -116,13 +118,12 @@ service status, configuration revisions, and relevant application logs.
 Keep follow-ups small and independently testable. Prefer documentation and
 alerting changes over broad infrastructure changes.
 
-1. Add an incident severity model.
-2. Add a cross-service SOPS secret compromise response runbook.
-3. Add a host compromise containment and recovery runbook.
-4. Add a monitoring outage response runbook.
-5. Map critical alerts to incident runbooks.
-6. Inventory service-specific recovery and verification gaps.
-7. Define an incident evidence-preservation standard.
+1. Add a cross-service SOPS secret compromise response runbook.
+2. Add a host compromise containment and recovery runbook.
+3. Add a monitoring outage response runbook.
+4. Map critical alerts to incident runbooks.
+5. Inventory service-specific recovery and verification gaps.
+6. Define an incident evidence-preservation standard.
 
 ## Acceptance criteria
 
@@ -133,3 +134,11 @@ alerting changes over broad infrastructure changes.
 - No duplicated coverage of already-implemented backup, SOPS, Loki, or
   access-control work.
 - `nix flake check --show-trace` passes after any configuration change.
+
+## Related documentation
+
+- `docs/runbooks/incident-severity.md`
+- `docs/RECOVERY.md`
+- `docs/BACKUPS.md`
+- `docs/SECRETS.md`
+- `docs/runbooks/`

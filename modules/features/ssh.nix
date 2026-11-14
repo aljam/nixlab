@@ -16,7 +16,9 @@
       PasswordAuthentication = false;
       PermitRootLogin = "no";
       KbdInteractiveAuthentication = false;
-      AllowGroups = [ "wheel" ];
+      AllowGroups =
+        [ "wheel" ]
+        ++ lib.optional config.roles.security.deployUser.enable "deploy";
       X11Forwarding = false;
       MaxAuthTries = 3;
       LoginGraceTime = 20;

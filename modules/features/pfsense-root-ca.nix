@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, mkSecret, ... }:
 {
   # The repository requires SOPS secrets to be owner-only mode 0400.
   # Decrypt separate copies of the same public pfSense root CA for Matrix

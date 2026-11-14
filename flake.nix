@@ -272,6 +272,10 @@
           test = "postgresql-auth";
         };
 
+        postgresql-database-isolation = import ./tests/postgresql-database-isolation.nix {
+          inherit (nixpkgs.legacyPackages.${system}) lib;
+        };
+
         alert-delivery = import ./tests/alert-delivery.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };

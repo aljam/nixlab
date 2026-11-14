@@ -14,10 +14,13 @@
     enable = true;
     settings = {
       PasswordAuthentication = false;
+      PermitEmptyPasswords = false;
       PermitRootLogin = "no";
       KbdInteractiveAuthentication = false;
       AllowGroups = [ "wheel" ];
       X11Forwarding = false;
+      AllowTcpForwarding = false;
+      AllowAgentForwarding = false;
       MaxAuthTries = 3;
       LoginGraceTime = 20;
       MaxSessions = 10;

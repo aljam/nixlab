@@ -1,6 +1,18 @@
 # Apply a conservative systemd sandbox baseline to selected long-running
 # services. Service modules retain responsibility for service-specific
 # filesystem access, identities, and compatibility exceptions.
+#
+# Systemd hardening policy:
+#
+# - `systemdHardenedServices` supplies a conservative, service-agnostic
+#   baseline for services that can safely use it.
+# - Service modules must declare only service-specific requirements:
+#   runtime directories, sockets, devices, capabilities, users, and
+#   documented exceptions.
+# - Do not add a service to this list merely to compensate for a missing
+#   service-local hardening setting.
+# - Before adding a service, verify that it still starts, reads only its
+#   intended secrets, and does not require broad filesystem or network access.
 { lib, config, ... }:
 {
   options.roles.security.systemdHardenedServices = lib.mkOption {

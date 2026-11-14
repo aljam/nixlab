@@ -1,6 +1,15 @@
 { lib, config, ... }:
 
 let
+  # Declare every secret consumed by a module through this helper.
+  #
+  # The helper makes the secret name, SOPS file, owning user and group, and
+  # user-activation requirement explicit. It also enforces owner-only mode
+  # 0400.
+  #
+  # The helper does not encrypt, rotate, deploy, or validate secret contents.
+  # Root-owned secrets require an explicit entry in
+  # roles.security.sopsAllowedRootSecrets.
   mkSecret =
     {
       name,

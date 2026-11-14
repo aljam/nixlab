@@ -6,6 +6,18 @@
 # has no interactive shell session, and its SSH key is restricted to the
 # deployment command.
 #
+# Deployment command boundary:
+#
+# - SSH may invoke only the deployment wrapper.
+# - The wrapper accepts only `deploy-rebuild switch <full 40-character commit hash>`.
+# - The requested revision must be the current tip of the remote `main` branch.
+# - The wrapper delegates to the sudo-limited rebuild wrapper.
+#
+# Add a permitted command only when it is required by the deployment workflow,
+# its safety boundary is understood, and it cannot bypass the intended rebuild
+# or administrative policy. Do not replace the centralized validation
+# expression with scattered ad hoc checks.
+#
 # Use `nix run .#deploy -- <host>` from a clean, pushed checkout to drive it.
 {
   lib,

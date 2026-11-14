@@ -313,11 +313,11 @@ in
       createHome = true;
     };
 
-    sops.secrets.restic-backup-password = {
+    sops.secrets.restic-backup-password = mkSecret {
+      name = "restic-backup-password";
       sopsFile = ../../secrets/backups.yaml;
       owner = backupUser;
       group = backupGroup;
-      mode = "0400";
     };
 
     systemd.tmpfiles.rules = [

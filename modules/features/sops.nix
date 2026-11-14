@@ -1,6 +1,18 @@
 { lib, config, ... }:
 
 let
+  mkSecret = {
+    name,
+    sopsFile,
+    owner,
+    group,
+    neededForUsers ? false,
+    ...
+  }: {
+    inherit name sopsFile owner group neededForUsers;
+    mode = "0400";
+  };
+
   sopsSecrets = lib.attrValues config.sops.secrets;
 
   rootOwnedSecrets = lib.filter (secret: secret.owner == "root") sopsSecrets;
@@ -83,7 +95,7 @@ in
     {
       assertion = undeclaredSecretGroups == [ ];
       message =
-        "SOPS secret groups must be declared system groups. Undeclared groups: "
+        "SOPS secret owners must be declared system groups. Undeclared groups: "
         + lib.concatStringsSep ", " (map (secret: secret.group) undeclaredSecretGroups);
     }
   ];

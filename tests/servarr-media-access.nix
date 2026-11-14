@@ -55,7 +55,7 @@ in
 
     with subtest("a Servarr service user can create media"):
         media.succeed(
-            "sudo -u radarr install -m 0664 /dev/null ${mediaRoot}/radarr-created"
+            "sudo -u radarr install -m 0660 /dev/null ${mediaRoot}/radarr-created"
         )
 
     with subtest("another Servarr service user can read media created by the first"):
@@ -70,7 +70,7 @@ in
 
     with subtest("an unrelated user cannot create media"):
         media.fail(
-            "sudo -u unrelated install -m 0664 /dev/null ${mediaRoot}/unrelated-created"
+            "sudo -u unrelated install -m 0660 /dev/null ${mediaRoot}/unrelated-created"
         )
   '';
 }

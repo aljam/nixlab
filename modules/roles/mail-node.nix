@@ -11,12 +11,14 @@
     owner = "root";
     group = "root";
     mode = "0400";
+    restartUnits = [ "postfix.service" ];
   };
 
   sops.secrets."mail_password_aljam" = {
     owner = "root";
     group = "root";
     mode = "0400";
+    restartUnits = [ "dovecot2.service" ];
   };
 
   mailserver = {

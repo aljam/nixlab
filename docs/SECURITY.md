@@ -29,6 +29,32 @@ Fail2ban constrains repeated key probing, connection abuse, and noisy
 authentication attempts. It is not a password-brute-force control because
 password authentication is disabled.
 
+## Deployment access
+
+The deploy user’s SSH session may invoke only the repository’s deployment
+wrapper.
+
+The wrapper accepts only:
+
+```text
+deploy-rebuild switch <full 40-character commit hash>
+```
+
+It validates that the requested revision is the current tip of the remote
+`main` branch before delegating to the sudo-limited rebuild wrapper.
+
+The deploy user cannot run arbitrary commands as root, has no interactive
+shell session, and its SSH key is restricted to the deployment command.
+
+Add a permitted command only when:
+
+- It is required by the deployment workflow.
+- Its safety boundary is understood.
+- It cannot be used to bypass the intended rebuild or administrative policy.
+
+Do not replace the centralized validation expression with scattered ad hoc
+checks.
+
 ## Systemd hardening
 
 Services added to `roles.security.systemdHardenedServices` receive a

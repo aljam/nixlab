@@ -82,11 +82,11 @@ in
 
   # The ntfy URL, including its private topic and access token if used, is
   # supplied at runtime from SOPS.
-  sops.secrets.ntfy-url = {
+  sops.secrets.ntfy-url = mkSecret {
+    name = "ntfy-url";
     sopsFile = ../../secrets/monitoring.yaml;
     owner = "alertmanager";
     group = "alertmanager";
-    mode = "0400";
     restartUnits = [ "ntfy-alert-relay.service" ];
   };
 

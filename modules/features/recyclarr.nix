@@ -26,11 +26,11 @@ in
     lib.mkEnableOption "Recyclarr configuration synchronization";
 
   config = lib.mkIf cfg.enable {
-    sops.secrets.radarr_api_key = {
+    sops.secrets.radarr_api_key = mkSecret {
+      name = "radarr_api_key";
       sopsFile = ../../secrets/servarr.yaml;
       owner = "recyclarr";
       group = "recyclarr";
-      mode = "0400";
       restartUnits = [ "recyclarr.service" ];
     };
 

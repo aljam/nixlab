@@ -28,35 +28,35 @@ in
     networking.proxyBackendPorts = [ 8008 ];
 
     sops.secrets = {
-      matrix-synapse-registration-shared-secret = {
+      matrix-synapse-registration-shared-secret = mkSecret {
+        name = "matrix-synapse-registration-shared-secret";
         sopsFile = ../../secrets/matrix.yaml;
         owner = "matrix-synapse";
         group = "matrix-synapse";
-        mode = "0400";
         restartUnits = [ "matrix-synapse.service" ];
       };
 
-      matrix-synapse-db-config = {
+      matrix-synapse-db-config = mkSecret {
+        name = "matrix-synapse-db-config";
         sopsFile = ../../secrets/matrix.yaml;
         owner = "matrix-synapse";
         group = "matrix-synapse";
-        mode = "0400";
         restartUnits = [ "matrix-synapse.service" ];
       };
 
-      matrix-recaptcha-site-key = {
+      matrix-recaptcha-site-key = mkSecret {
+        name = "matrix-recaptcha-site-key";
         sopsFile = ../../secrets/matrix.yaml;
         owner = "matrix-synapse";
         group = "matrix-synapse";
-        mode = "0400";
         restartUnits = [ "matrix-synapse.service" ];
       };
 
-      matrix-recaptcha-secret-key = {
+      matrix-recaptcha-secret-key = mkSecret {
+        name = "matrix-recaptcha-secret-key";
         sopsFile = ../../secrets/matrix.yaml;
         owner = "matrix-synapse";
         group = "matrix-synapse";
-        mode = "0400";
         restartUnits = [ "matrix-synapse.service" ];
       };
     };

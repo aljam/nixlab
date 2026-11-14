@@ -34,23 +34,29 @@ in
       description = "Icecast streaming server";
     };
 
-    sops.secrets =
-      let
-        icecastSecret = {
-          sopsFile = ../../secrets/radio.yaml;
-          owner = "icecast";
-          group = "radio";
-          mode = "0400";
-          restartUnits = [
-            "icecast.service"
-            "liquidsoap-radio.service"
-          ];
-        };
-      in
-      {
-        icecast_source_password = icecastSecret;
-        icecast_admin_password = icecastSecret;
+    sops.secrets = {
+      icecast_source_password = mkSecret {
+        name = "icecast_source_password";
+        sopsFile = ../../secrets/radio.yaml;
+        owner = "icecast";
+        group = "radio";
+        restartUnits = [
+          "icecast.service"
+          "liquidsoap-radio.service"
+        ];
       };
+
+      icecast_admin_password = mkSecret {
+        name = "icecast_admin_password";
+        sopsFile = ../../secrets/radio.yaml;
+        owner = "icecast";
+        group = "radio";
+        restartUnits = [
+          "icecast.service"
+          "liquidsoap-radio.service"
+        ];
+      };
+    };
 
     sops.templates.liquidsoap-radio = {
       content = ''

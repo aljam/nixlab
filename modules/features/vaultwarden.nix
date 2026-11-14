@@ -13,11 +13,11 @@ in
   config = lib.mkIf cfg.enable {
     networking.proxyBackendPorts = [ 8222 ];
 
-    sops.secrets."vaultwarden-admin-token" = {
+    sops.secrets."vaultwarden-admin-token" = mkSecret {
+      name = "vaultwarden-admin-token";
       sopsFile = ../../secrets/vaultwarden.yaml;
       owner = "vaultwarden";
       group = "vaultwarden";
-      mode = "0400";
       restartUnits = [ "vaultwarden.service" ];
     };
 

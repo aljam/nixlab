@@ -7,6 +7,10 @@ let
   # user-activation requirement explicit. It also enforces owner-only mode
   # 0400.
   #
+  # Service-specific SOPS options, such as `restartUnits`, may be supplied as
+  # additional arguments. The helper preserves them, but callers cannot
+  # override the mandatory owner-only mode.
+  #
   # The helper does not encrypt, rotate, deploy, or validate secret contents.
   # Root-owned secrets require an explicit entry in
   # roles.security.sopsAllowedRootSecrets.
@@ -18,8 +22,8 @@ let
       group,
       neededForUsers ? false,
       ...
-    }:
-    {
+    } @ args:
+    args // {
       inherit
         name
         sopsFile
@@ -59,6 +63,8 @@ in
       dedicated unprivileged identity.
     '';
   };
+
+  _module.args.mkSecret = mkSecret;
 
   config.assertions = [
     # Preserve the service-scoped SOPS model. A missing `sopsFile` would

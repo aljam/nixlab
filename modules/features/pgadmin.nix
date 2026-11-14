@@ -2,6 +2,7 @@
   lib,
   config,
   pkgs,
+  mkSecret,
   ...
 }:
 let
@@ -12,11 +13,11 @@ in
     lib.mkEnableOption "loopback-only pgAdmin database administration";
 
   config = lib.mkIf cfg.enable {
-    sops.secrets."pgadmin_password" = {
+    sops.secrets."pgadmin_password" = mkSecret {
+      name = "pgadmin_password";
       sopsFile = ../../secrets/database.yaml;
       owner = "pgadmin";
       group = "pgadmin";
-      mode = "0400";
       restartUnits = [ "pgadmin.service" ];
     };
 

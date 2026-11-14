@@ -7,6 +7,7 @@
   lib,
   config,
   pkgs,
+  mkSecret,
   ...
 }:
 
@@ -43,15 +44,14 @@ let
         description = ''
           Whether to prune removed snapshots after applying retention.
           Pruning can be expensive; disabling it lets `restic forget` mark
-          snapshots for later removal without rewriting repository data on
-          every backup.
+          snapshots for later removal without rewriting repository data.
         '';
       };
 
       runtimePackages = lib.mkOption {
         type = with lib.types; listOf package;
         default = [ ];
-        description = "Additional packages required by this job pre-backup script. Keep this limited to the tools that job actually needs.";
+        description = "Additional packages required by this job pre-backup script. Keep this limited to the packages actually needed.";
       };
 
       schedule = lib.mkOption {
@@ -62,8 +62,8 @@ let
 
       randomizedDelay = lib.mkOption {
         type = lib.types.str;
-        default = "15m";
-        description = "Random delay added to the scheduled backup start.";
+        default = "*min";
+        description = "Random delay between scheduled runs.";
       };
 
       verifySchedule = lib.mkOption {
@@ -74,14 +74,14 @@ let
 
       verifyRandomizedDelay = lib.mkOption {
         type = lib.types.str;
-        default = "30m";
-        description = "Random delay added to the scheduled repository verification start.";
+        default = "*min";
+        description = "Random delay between scheduled verification runs.";
       };
 
       verifyDataSubset = lib.mkOption {
         type = lib.types.str;
-        default = "10%";
-        description = "Fraction of repository data read by each integrity verification run.";
+        default = "";
+        description = "Fraction of repository data read during each integrity verification run.";
       };
 
       restoreSchedule = lib.mkOption {
@@ -92,20 +92,20 @@ let
 
       restoreRandomizedDelay = lib.mkOption {
         type = lib.types.str;
-        default = "30m";
-        description = "Random delay added to the scheduled restore-test start.";
+        default = "*min";
+        description = "Random delay between scheduled restore-test runs.";
       };
 
       requires = lib.mkOption {
         type = with lib.types; listOf str;
         default = [ ];
-        description = "Systemd units required by this backup job.";
+        description = "systemd units required by this backup job.";
       };
 
       after = lib.mkOption {
         type = with lib.types; listOf str;
         default = [ ];
-        description = "Systemd units this backup job starts after.";
+        description = "systemd units this backup job starts after.";
       };
 
       retention = {
@@ -313,11 +313,11 @@ in
       createHome = true;
     };
 
-    sops.secrets.restic-backup-password = {
+    sops.secrets.restic-backup-password = mkSecret {
+      name = "restic-backup-password";
       sopsFile = ../../secrets/backups.yaml;
       owner = backupUser;
       group = backupGroup;
-      mode = "0400";
     };
 
     systemd.tmpfiles.rules = [

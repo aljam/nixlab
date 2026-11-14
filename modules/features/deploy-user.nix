@@ -75,17 +75,17 @@ let
       pkgs.gnugrep
     ];
     text = ''
-      case "''${SSH_ORIGINAL_COMMAND:-}" in
-        "deploy-rebuild switch "[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f])
-          exec /run/wrappers/bin/sudo -n \
-            /run/current-system/sw/bin/deploy-rebuild switch \
-            "''${SSH_ORIGINAL_COMMAND#deploy-rebuild switch }"
-          ;;
-        *)
-          echo "deploy-rebuild-ssh: only 'deploy-rebuild switch <git-rev>' is permitted" >&2
-          exit 2
-          ;;
-      esac
+      rev=""
+      if [[ "''${SSH_ORIGINAL_COMMAND:-}" =~ ^deploy-rebuild\ switch\ ([0-9a-f]{40})$ ]]; then
+        rev="''${BASH_REMATCH[1]}"
+      else
+        echo "deploy-rebuild-ssh: only 'deploy-rebuild switch <git-rev>' is permitted" >&2
+        exit 2
+      fi
+
+      exec /run/wrappers/bin/sudo -n \
+        /run/current-system/sw/bin/deploy-rebuild switch \
+        "$rev"
     '';
   };
 in
@@ -125,9 +125,6 @@ in
       ];
     };
 
-    # sshd is otherwise wheel-only (modules/features/ssh.nix).
-    services.openssh.settings.AllowGroups = [ "deploy" ];
-
     environment.systemPackages = [
       rebuildWrapper
       sshCommandWrapper
@@ -151,6 +148,10 @@ in
       {
         assertion = config.services.openssh.enable;
         message = "The deploy user requires OpenSSH.";
+      }
+      {
+        assertion = builtins.elem "deploy" config.services.openssh.settings.AllowGroups;
+        message = "SSH AllowGroups must include the deploy group.";
       }
       {
         assertion = config.services.openssh.settings.PasswordAuthentication == false;

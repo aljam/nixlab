@@ -7,10 +7,19 @@ pkgs.testers.nixosTest {
     services.postgresql = {
       enable = true;
       enableTCPIP = true;
-      ensureDatabases = [ "service_a" "service_b" ];
+      ensureDatabases = [
+        "service_a"
+        "service_b"
+      ];
       ensureUsers = [
-        { name = "service_a"; ensureDBOwnership = true; }
-        { name = "service_b"; ensureDBOwnership = true; }
+        {
+          name = "service_a";
+          ensureDBOwnership = true;
+        }
+        {
+          name = "service_b";
+          ensureDBOwnership = true;
+        }
       ];
       settings = {
         listen_addresses = lib.mkForce "127.0.0.1";

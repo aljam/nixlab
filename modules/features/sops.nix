@@ -1,17 +1,25 @@
 { lib, config, ... }:
 
 let
-  mkSecret = {
-    name,
-    sopsFile,
-    owner,
-    group,
-    neededForUsers ? false,
-    ...
-  }: {
-    inherit name sopsFile owner group neededForUsers;
-    mode = "0400";
-  };
+  mkSecret =
+    {
+      name,
+      sopsFile,
+      owner,
+      group,
+      neededForUsers ? false,
+      ...
+    }:
+    {
+      inherit
+        name
+        sopsFile
+        owner
+        group
+        neededForUsers
+        ;
+      mode = "0400";
+    };
 
   sopsSecrets = lib.attrValues config.sops.secrets;
 

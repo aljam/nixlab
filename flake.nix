@@ -25,7 +25,7 @@
     };
 
     home-manager = {
-      url = "github:nix-community/home-manager";
+      url = "github:nixos/nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -208,7 +208,6 @@
             if [[ -n "$(git status --porcelain)" ]]; then
               echo "Refusing to deploy: Git working tree is dirty." >&2
               echo "Commit or stash changes, then retry." >&2
-              exit 1
             fi
 
             rev="$(git rev-parse HEAD)"
@@ -217,7 +216,7 @@
             # main (modules/features/deploy-user.nix), so HEAD must match it.
             git fetch --quiet origin
             if [[ "$rev" != "$(git rev-parse origin/main)" ]]; then
-              echo "Refusing to deploy: HEAD ($rev) is not the tip of origin/main." >&2
+              echo "Refusing to deploy: HEAD ($rev) is not the tip of origin/main" >&2
               exit 1
             fi
 
@@ -273,7 +272,7 @@
         };
 
         postgresql-database-isolation = import ./tests/postgresql-database-isolation.nix {
-          inherit (nixpkgs.legacyPackages.${system}) lib;
+          pkgs = nixpkgs.legacyPackages.${system};
         };
 
         alert-delivery = import ./tests/alert-delivery.nix {

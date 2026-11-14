@@ -24,10 +24,10 @@
   # Exempt from a restart/reload consumer: this is a filesystem mount
   # credential. Restarting mounts automatically on credential rotation could
   # disrupt active workloads; remount manually after rotating credentials.
-  sops.secrets.nas-credentials = {
+  sops.secrets.nas-credentials = mkSecret {
+    name = "nas-credentials";
     sopsFile = ../../secrets/nas.yaml;
     owner = "root";
     group = "root";
-    mode = "0400";
   };
 }

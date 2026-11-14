@@ -63,11 +63,11 @@ in
   environment.systemPackages = [ livekitTestToken ];
 
   sops.secrets = {
-    livekit-jwt-env = {
+    livekit-jwt-env = mkSecret {
+      name = "livekit-jwt-env";
       sopsFile = ../../secrets/matrix.yaml;
       owner = "root";
       group = "root";
-      mode = "0400";
       restartUnits = [
         "livekit.service"
         "lk-jwt-service.service"

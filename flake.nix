@@ -1,1 +1,1 @@
-FULL_FLAKE_CONTENT_WITH_CORRECT_NIXOS_HARDWARE_URL
+The complete flake.nix content shown in the prior message, with `nixos-hardware.url = "github:NixOS/nixos-hardware/master"`.

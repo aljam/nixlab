@@ -3,7 +3,6 @@
 # Verifies that Servarr service users can create and read files through the
 # shared `media` group, while an unrelated user cannot access the media tree.
 {
-  pkgs,
   lib,
   ...
 }:
@@ -20,7 +19,7 @@ let
     isNormalUser = true;
   };
 in
-pkgs.testers.nixosTest {
+{
   name = "servarr-media-access";
 
   nodes = {

@@ -81,7 +81,7 @@ def check_deploy_command_boundary():
     deploy_module = (REPO_ROOT / "modules/features/deploy-user.nix").read_text()
 
     permitted_pattern = re.compile(
-        r"\^deploy-rebuild\\\\ switch\\\\ \(\[0-9a-f\]\{40\}\)\$"
+        r"\^deploy-rebuild\\ switch\\ \(\[0-9a-f\]\{40\}\)\$"
     )
 
     if not permitted_pattern.search(deploy_module):

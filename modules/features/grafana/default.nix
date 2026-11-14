@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  mkSecret,
   ...
 }:
 
@@ -12,6 +13,7 @@ let
     owner = "grafana";
     group = "grafana";
     mode = "0400";
+    restartUnits = [ "grafana.service" ];
   };
 
   grafanaPort = config.services.grafana.settings.server.http_port or 3000;
@@ -35,9 +37,19 @@ in
   };
 
   config = {
-    sops.secrets."grafana-admin-password" = grafanaSecret;
+    sops.secrets."grafana-admin-password" = mkSecret {
+      name = "grafana-admin-password";
+      sopsFile = ../../../secrets/monitoring.yaml;
+      owner = "grafana";
+      group = "grafana";
+    };
 
-    sops.secrets."grafana-secret-key" = grafanaSecret;
+    sops.secrets."grafana-secret-key" = mkSecret {
+      name = "grafana-secret-key";
+      sopsFile = ../../../secrets/monitoring.yaml;
+      owner = "grafana";
+      group = "grafana";
+    };
 
     services.grafana = {
       enable = true;

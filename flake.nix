@@ -207,7 +207,6 @@
             if [[ -n "$(git status --porcelain)" ]]; then
               echo "Refusing to deploy: Git working tree is dirty." >&2
               echo "Commit or stash changes, then retry." >&2
-              exit 1
             fi
 
             rev="$(git rev-parse HEAD)"
@@ -216,7 +215,7 @@
             # main (modules/features/deploy-user.nix), so HEAD must match it.
             git fetch --quiet origin
             if [[ "$rev" != "$(git rev-parse origin/main)" ]]; then
-              echo "Refusing to deploy: HEAD ($rev) is not the tip of origin/main." >&2
+              echo "Refusing to deploy: HEAD ($rev) is not the tip of origin/main" >&2
               exit 1
             fi
 
@@ -272,6 +271,10 @@
         };
 
         servarr-media-access = nixpkgs.legacyPackages.${system}.testers.runNixOSTest ./tests/servarr-media-access.nix;
+        
+        postgresql-database-isolation = import ./tests/postgresql-database-isolation.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
 
         alert-delivery = import ./tests/alert-delivery.nix {
           pkgs = nixpkgs.legacyPackages.${system};

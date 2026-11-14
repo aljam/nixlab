@@ -125,9 +125,6 @@ in
       ];
     };
 
-    # sshd is otherwise wheel-only (modules/features/ssh.nix).
-    services.openssh.settings.AllowGroups = [ "deploy" ];
-
     environment.systemPackages = [
       rebuildWrapper
       sshCommandWrapper
@@ -151,6 +148,10 @@ in
       {
         assertion = config.services.openssh.enable;
         message = "The deploy user requires OpenSSH.";
+      }
+      {
+        assertion = builtins.elem "deploy" config.services.openssh.settings.AllowGroups;
+        message = "SSH AllowGroups must include the deploy group.";
       }
       {
         assertion = config.services.openssh.settings.PasswordAuthentication == false;

@@ -18,9 +18,7 @@ let
     builtins.readFile ./assets/security-posture.json
   );
 
-  lokiDashboard = pkgs.writeTextDir "loki.json" (
-    builtins.readFile ./assets/loki.json
-  );
+  lokiDashboard = pkgs.writeTextDir "loki.json" (builtins.readFile ./assets/loki.json);
 in
 {
   options.services.nixlab.grafana.lokiUrl = lib.mkOption {

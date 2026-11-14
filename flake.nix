@@ -11,7 +11,7 @@
     };
 
     nixos-hardware = {
-      url = "github:nixos/nixos-hardware/master";
+      url = "github:NixOS/nixos-hardware/master";
       inputs.nixpkgs.follows = "nixpkgs";
 
     };
@@ -28,7 +28,6 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
     disko = {
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -270,6 +269,10 @@
           pkgs = nixpkgs.legacyPackages.${system};
           test = "postgresql-auth";
         };
+
+        servarr-media-access =
+          nixpkgs.legacyPackages.${system}.testers.runNixOSTest
+            ./tests/servarr-media-access.nix;
 
         postgresql-database-isolation = import ./tests/postgresql-database-isolation.nix {
           pkgs = nixpkgs.legacyPackages.${system};

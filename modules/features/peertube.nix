@@ -2,6 +2,7 @@
   lib,
   config,
   pkgs,
+  mkSecret,
   ...
 }:
 let
@@ -21,19 +22,19 @@ in
   config = lib.mkIf cfg.enable {
     networking.proxyBackendPorts = [ 9000 ];
 
-    sops.secrets."peertube-secrets" = {
+    sops.secrets."peertube-secrets" = mkSecret {
+      name = "peertube-secrets";
       sopsFile = ../../secrets/peertube.yaml;
       owner = "peertube";
       group = "peertube";
-      mode = "0400";
       restartUnits = [ "peertube.service" ];
     };
 
-    sops.secrets."peertube-db-password" = {
+    sops.secrets."peertube-db-password" = mkSecret {
+      name = "peertube-db-password";
       sopsFile = ../../secrets/peertube.yaml;
       owner = "peertube";
       group = "peertube";
-      mode = "0400";
       restartUnits = [ "peertube.service" ];
     };
 

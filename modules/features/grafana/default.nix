@@ -6,14 +6,6 @@
 }:
 
 let
-  # Grafana secrets share the same SOPS source and service identity.
-  grafanaSecret = {
-    sopsFile = ../../../secrets/monitoring.yaml;
-    owner = "grafana";
-    group = "grafana";
-    mode = "0400";
-  };
-
   grafanaPort = config.services.grafana.settings.server.http_port or 3000;
   grafanaExposed = lib.elem grafanaPort config.networking.proxyBackendPorts;
   # Grafana's section name is the single attribute "auth.anonymous", not the
@@ -35,9 +27,19 @@ in
   };
 
   config = {
-    sops.secrets."grafana-admin-password" = grafanaSecret;
+    sops.secrets."grafana-admin-password" = mkSecret {
+      name = "grafana-admin-password";
+      sopsFile = ../../../secrets/monitoring.yaml;
+      owner = "grafana";
+      group = "grafana";
+    };
 
-    sops.secrets."grafana-secret-key" = grafanaSecret;
+    sops.secrets."grafana-secret-key" = mkSecret {
+      name = "grafana-secret-key";
+      sopsFile = ../../../secrets/monitoring.yaml;
+      owner = "grafana";
+      group = "grafana";
+    };
 
     services.grafana = {
       enable = true;

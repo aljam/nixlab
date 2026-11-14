@@ -1,3 +1,33 @@
+# Cross-cutting security policy.
+#
+# This module enforces repository-wide invariants that apply across hosts,
+# features, or deployment paths. It is intentionally not a dumping ground for
+# every service-specific security check.
+#
+# Put a policy here when it:
+#
+# - Applies to more than one feature or host role.
+# - Enforces a repository-wide invariant, such as SOPS secret ownership,
+#   reverse-proxy exposure, shared service bind addresses, or sudo policy.
+# - Prevents an unsafe configuration combination across features, such as
+#   enabling gaming software on a server role.
+#
+# Put a policy in the owning feature module when it is intrinsic to that
+# service. For example:
+#
+# - Grafana owns its authentication and self-registration requirements.
+# - PostgreSQL owns its remote-access, TLS, and HAProxy exposure rules.
+# - Autobrr owns its bind-address requirement.
+# - SSH owns its authentication and forwarding policy.
+# - SOPS owns secret file, owner, mode, and root-ownership assertions.
+#
+# A feature module may retain a narrower duplicate of a cross-cutting rule
+# when its service-specific error message is materially clearer. Do not
+# duplicate a cross-cutting assertion otherwise.
+#
+# Keep assertions narrowly scoped and actionable. Prefer a message that
+# identifies the violating setting and states the required correction.
+
 { lib, config, ... }:
 
 let

@@ -10,6 +10,7 @@ nixlab repository.
 - [Authentication](AUTHENTICATION.md)
 - [Deployment authorization boundary](security/deploy-authorization.md)
 - [Public service exposure](security/public-service-exposure.md)
+- [SSH key audit](security/ssh-key-audit.md)
 
 ## Operations
 

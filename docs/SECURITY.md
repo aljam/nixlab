@@ -29,6 +29,29 @@ Fail2ban constrains repeated key probing, connection abuse, and noisy
 authentication attempts. It is not a password-brute-force control because
 password authentication is disabled.
 
+## Systemd hardening
+
+Services added to `roles.security.systemdHardenedServices` receive a
+conservative, service-agnostic sandbox baseline.
+
+Service modules remain responsible for service-specific requirements:
+runtime directories, sockets, devices, capabilities, users, and documented
+compatibility exceptions.
+
+Before adding a service to the hardened list:
+
+- Verify that it starts successfully.
+- Verify that it reads only its intended secrets.
+- Verify that it does not require broad filesystem or network access.
+- Prefer the most restrictive configuration that preserves required behavior.
+
+Override a baseline setting only when the service has a documented
+compatibility requirement. Add a brief comment explaining why the default is
+incompatible and what narrower alternative was insufficient.
+
+Do not add a service to the hardened list merely to compensate for a missing
+service-local hardening setting.
+
 ## Alertmanager
 
 Alertmanager and its Ntfy relay run only on the Prometheus host (r730xd).

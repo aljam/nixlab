@@ -7,6 +7,19 @@ replace them.
 Keep the review simple: record what was checked, what was found, and the
 decision made. Do not treat every scanner finding as an incident.
 
+## Service review checklist
+
+For every new or modified service:
+
+- [ ] Declare its exposure intent: loopback, LAN, proxy, or public.
+- [ ] Bind it to the narrowest viable address.
+- [ ] Add its port to the correct exposure list.
+- [ ] Declare required SOPS secrets with `mkSecret`.
+- [ ] Assign each secret to the intended service identity.
+- [ ] Apply the systemd hardening baseline or document an exception.
+- [ ] Add a service-specific assertion only when it improves the error message.
+- [ ] Update the relevant runbook or inventory documentation.
+
 ## 5. Monitoring and alerting
 
 - [ ] Review active and pending Prometheus alerts.

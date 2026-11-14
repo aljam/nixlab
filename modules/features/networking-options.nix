@@ -53,8 +53,12 @@ let
 
   invalidIps = lib.filter (ip: !lib.any (prefix: lib.hasPrefix prefix ip) allowedIpPrefixes) fleetIps;
 
-  # Ports that must remain internal-only and must never be added to the
+  # Authoritative list of TCP ports that must never be exposed through the
   # HAProxy backend allowlist.
+  #
+  # A feature module may retain a service-specific assertion when its error
+  # message is materially clearer, but it must not introduce a second,
+  # divergent definition of “internal-only.”
   internalOnlyPorts = [
     5432 # PostgreSQL
     9090 # Prometheus

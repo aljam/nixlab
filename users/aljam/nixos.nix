@@ -16,5 +16,7 @@
     sopsFile = ../../secrets/common.yaml;
     neededForUsers = true;
     owner = "aljam";
+    group = "users";
+    mode = "0400";
   };
 }

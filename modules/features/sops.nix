@@ -65,7 +65,7 @@ in
     '';
   };
 
-  _module.args.mkSecret = mkSecret;
+  config._module.args.mkSecret = mkSecret;
 
   config.assertions = [
     # Preserve the service-scoped SOPS model. A missing `sopsFile` would

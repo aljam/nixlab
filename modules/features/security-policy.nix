@@ -27,6 +27,17 @@
 #
 # Keep assertions narrowly scoped and actionable. Prefer a message that
 # identifies the violating setting and states the required correction.
+#
+# When adding a new security rule, place it in the narrowest module that
+# owns the behavior:
+#
+# 1. Add service-specific requirements to the feature module that owns the
+#    service.
+# 2. Add a cross-host or cross-feature invariant to this module.
+# 3. Share a constant, such as an internal-only port list, through the
+#    appropriate shared options module rather than duplicating it.
+# 4. Keep error messages specific: identify the violating setting and state
+#    the required correction.
 
 { lib, config, ... }:
 

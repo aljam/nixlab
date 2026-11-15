@@ -69,6 +69,7 @@ let
     in
     !(lib.elem config.networking.hostName approvedHosts)
   ) secretRelativePaths;
+
   # The operator identity, `aljam`, is intentionally excluded: it is not a
   # NixOS host. These mappings must match the age recipients declared for each
   # file in `.sops.yaml`.
@@ -132,78 +133,11 @@ in
 
   options.roles.security.sopsApprovedFiles = lib.mkOption {
     type = lib.types.attrsOf (lib.types.listOf lib.types.str);
-    default = { };
-    description = ''
-      Maps SOPS secret files, identified as `secrets/<file>.yaml`, to the
-      NixOS hosts permitted to decrypt them. The operator identity is not a
-      host and must not appear in these lists.
-    description = ''
-      Maps each encrypted SOPS file to the NixOS hosts approved to decrypt it.
-      The operator identity is excluded because it is not a host.
-    '';
+    description = "Maps each encrypted SOPS file to the NixOS hosts approved to decrypt it. The operator identity is excluded because it is not a host.";
   };
 
   config._module.args.mkSecret = mkSecret;
 
-  config.roles.security.sopsApprovedFiles = {
-    "secrets/common.yaml" = [
-      "navi"
-      "oryx"
-      "r730"
-      "r730xd"
-      "r820"
-    ];
-
-    "secrets/nas.yaml" = [
-      "navi"
-      "oryx"
-    ];
-
-    "secrets/database.yaml" = [
-      "r820"
-    ];
-
-    "secrets/matrix.yaml" = [
-      "r730xd"
-      "r820"
-    ];
-
-    "secrets/vaultwarden.yaml" = [
-      "r730xd"
-      "r820"
-    ];
-
-    "secrets/monitoring.yaml" = [
-      "r730"
-      "r730xd"
-      "r820"
-    ];
-
-    "secrets/media.yaml" = [
-      "r730xd"
-    ];
-
-    "secrets/mail.yaml" = [
-      "r820"
-    ];
-
-    "secrets/acme.yaml" = [
-      "r820"
-    ];
-
-    "secrets/radio.yaml" = [
-      "r730xd"
-    ];
-
-    "secrets/backups.yaml" = [
-      "r730xd"
-      "r820"
-    ];
-
-    "secrets/peertube.yaml" = [
-      "r730xd"
-    ];
-  };
   config.roles.security.sopsApprovedFiles = sopsApprovedFiles;
 
   config.assertions = [

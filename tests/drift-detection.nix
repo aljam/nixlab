@@ -7,6 +7,7 @@
     {
       imports = [
         ../modules/features/drift-monitoring.nix
+        ../modules/features/systemd-hardening.nix
         ../modules/features/node-exporter.nix
       ];
 

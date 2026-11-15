@@ -20,6 +20,8 @@ in
   options.modules.features.peertube.enable = lib.mkEnableOption "PeerTube video platform";
 
   config = lib.mkIf cfg.enable {
+    roles.security.systemdHardenedServices = [ "peertube" ];
+
     networking.proxyBackendPorts = [ 9000 ];
 
     sops.secrets."peertube-secrets" = mkSecret {
@@ -108,23 +110,13 @@ in
       ];
 
       serviceConfig = {
-        NoNewPrivileges = true;
-        PrivateTmp = true;
-        PrivateDevices = true;
-        ProtectSystem = "strict";
-        ProtectHome = true;
         ReadWritePaths = [ "/var/lib/peertube" ];
-        ProtectKernelTunables = true;
-        ProtectKernelModules = true;
-        ProtectControlGroups = true;
         RestrictAddressFamilies = [
           "AF_INET"
           "AF_INET6"
           "AF_UNIX"
         ];
         CapabilityBoundingSet = [ ];
-        RestrictSUIDSGID = true;
-        LockPersonality = true;
       };
     };
 

@@ -64,7 +64,6 @@ in
         }
       );
       default = [ ];
-      description = "PostgreSQL roles to ensure exist.";
     };
 
     allowedClients = lib.mkOption {
@@ -94,6 +93,8 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    roles.security.systemdHardenedServices = [ "postgresql" ];
+
     services.postgresql = {
       enable = true;
 
@@ -116,16 +117,7 @@ in
     };
 
     systemd.services.postgresql.serviceConfig = {
-      NoNewPrivileges = true;
-      PrivateTmp = true;
-      ProtectSystem = "strict";
-      ProtectHome = true;
       ReadWritePaths = [ "/var/lib/postgresql" ];
-      ProtectKernelTunables = true;
-      ProtectKernelModules = true;
-      ProtectControlGroups = true;
-      RestrictSUIDSGID = true;
-      LockPersonality = true;
     };
 
     systemd.services.postgresql-tls-cert = {

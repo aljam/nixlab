@@ -176,6 +176,11 @@ in
         AmbientCapabilities = [ "CAP_NET_ADMIN" ];
         CapabilityBoundingSet = [ "CAP_NET_ADMIN" ];
         LockPersonality = true;
+
+        ProtectClock = true;
+        ProtectHostname = true;
+        ProtectKernelLogs = true;
+        RestrictRealtime = true;
       };
     };
 

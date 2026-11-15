@@ -18,12 +18,6 @@
     ../../modules/features/drift-monitoring.nix
     ../../modules/features/loki.nix
     ../../modules/features/restic-backup.nix
-    ../../modules/features/matrix-synapse.nix
-    ../../modules/features/matrix-rtc.nix
-    ../../modules/features/static-site.nix
-    ../../modules/features/radio.nix
-    ../../modules/features/radio-visualizer.nix
-    ../../modules/features/peertube.nix
   ];
 
   boot.kernelParams = [ "zfs.zfs_arc_max=6871947636" ];

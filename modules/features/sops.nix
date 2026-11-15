@@ -56,21 +56,18 @@ let
   # Normalize each secret file to its repository-relative location beneath
   # `secrets/`. Secret files are intentionally flat, so the basename is
   # sufficient and avoids depending on the absolute checkout path.
-  secretRelativePaths = map (
-    secret: "secrets/${builtins.baseNameOf secret.sopsFile}"
-  ) sopsSecrets;
+  secretRelativePaths = map (secret: "secrets/${builtins.baseNameOf secret.sopsFile}") sopsSecrets;
 
   unapprovedSecretFiles = lib.filter (
-    relativePath:
-      !(lib.hasAttr relativePath config.roles.security.sopsApprovedFiles)
+    relativePath: !(lib.hasAttr relativePath config.roles.security.sopsApprovedFiles)
   ) secretRelativePaths;
 
   unauthorizedHostSecretFiles = lib.filter (
     relativePath:
-      let
-        approvedHosts = config.roles.security.sopsApprovedFiles.${relativePath} or [ ];
-      in
-        !(lib.elem config.networking.hostName approvedHosts)
+    let
+      approvedHosts = config.roles.security.sopsApprovedFiles.${relativePath} or [ ];
+    in
+    !(lib.elem config.networking.hostName approvedHosts)
   ) secretRelativePaths;
 in
 {
@@ -217,8 +214,8 @@ in
     {
       assertion = lib.all (
         secret:
-          lib.hasInfix "/secrets/" (toString secret.sopsFile)
-          && lib.hasSuffix ".yaml" (toString secret.sopsFile)
+        lib.hasInfix "/secrets/" (toString secret.sopsFile)
+        && lib.hasSuffix ".yaml" (toString secret.sopsFile)
       ) sopsSecrets;
       message = "Every SOPS secret file must reside beneath secrets/ and use a YAML file.";
     }

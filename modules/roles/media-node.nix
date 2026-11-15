@@ -9,6 +9,12 @@
     ../features/grafana
     #../features/youtube.nix
     ../features/servarr.nix
+    ../features/matrix-synapse.nix
+    ../features/matrix-rtc.nix
+    ../features/static-site.nix
+    ../features/radio.nix
+    ../features/radio-visualizer.nix
+    ../features/peertube.nix
   ];
 
   # Media user and group

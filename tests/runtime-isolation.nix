@@ -170,7 +170,10 @@ let
         };
 
         exporter = { lib, ... }: {
-          imports = [ ../modules/features/node-exporter.nix ];
+          imports = [
+            ../modules/features/systemd-hardening.nix
+            ../modules/features/node-exporter.nix
+          ];
 
           networking.firewall.enable = true;
           networking.nftables.enable = true;

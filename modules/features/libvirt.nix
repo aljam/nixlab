@@ -36,6 +36,18 @@ in
         qemu.package = pkgs.qemu_kvm;
         allowedBridges = [ "virbr0" ];
       };
+
+      assertions = [
+        {
+          assertion = !cfg.remoteManagement.enable || config.services.openssh.enable;
+          message = "Libvirt remote management requires OpenSSH.";
+        }
+
+        {
+          assertion = !cfg.remoteManagement.enable || cfg.adminUsers != [ ];
+          message = "Libvirt remote management requires at least one authorized administrator.";
+        }
+      ];
     }
 
     (lib.mkIf cfg.gui.enable {

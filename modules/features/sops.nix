@@ -90,8 +90,6 @@ let
 
     "secrets/media.yaml" = [ "r730xd" ];
 
-    "secrets/mail.yaml" = [ "r820" ];
-
     "secrets/acme.yaml" = [ "r820" ];
 
     "secrets/radio.yaml" = [ "r730xd" ];

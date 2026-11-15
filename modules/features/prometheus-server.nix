@@ -300,6 +300,8 @@ in
       };
     };
 
+    roles.security.systemdHardenedServices = [ "prometheus-blackbox-exporter" ];
+
     # NixOS exporter services use DynamicUser by default. Disable it so the
     # Blackbox exporter runs as the fixed prometheus user and can read the
     # owner-only SOPS-managed PostgreSQL CA file.
@@ -307,15 +309,6 @@ in
       DynamicUser = lib.mkForce false;
       User = lib.mkForce "prometheus";
       Group = lib.mkForce "prometheus";
-      NoNewPrivileges = true;
-      PrivateTmp = true;
-      ProtectSystem = "strict";
-      ProtectHome = true;
-      ProtectKernelTunables = true;
-      ProtectKernelModules = true;
-      ProtectControlGroups = true;
-      RestrictSUIDSGID = true;
-      LockPersonality = true;
     };
 
     systemd.services.prometheus.serviceConfig = {

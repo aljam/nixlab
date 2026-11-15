@@ -45,5 +45,26 @@ in
         locations."= /health".return = "200 'ok'";
       };
     };
+
+    # The static site is served from an immutable Nix-store path. Apply
+    # conservative nginx sandboxing without ProtectSystem, ProtectProc, or
+    # ProcSubset, which can interfere with nginx logging, caching, PID, and
+    # worker-process behavior.
+    systemd.services.nginx.serviceConfig = {
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      PrivateDevices = true;
+      ProtectHome = true;
+      ProtectKernelTunables = true;
+      ProtectKernelModules = true;
+      ProtectControlGroups = true;
+      RestrictSUIDSGID = true;
+      LockPersonality = true;
+
+      ProtectClock = true;
+      ProtectHostname = true;
+      ProtectKernelLogs = true;
+      RestrictRealtime = true;
+    };
   };
 }

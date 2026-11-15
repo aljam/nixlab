@@ -52,6 +52,26 @@ let
   undeclaredSecretGroups = lib.filter (
     secret: !lib.hasAttr secret.group config.users.groups
   ) sopsSecrets;
+
+  # Normalize each secret file to its repository-relative location beneath
+  # `secrets/`. Secret files are intentionally flat, so the basename is
+  # sufficient and avoids depending on the absolute checkout path.
+  secretRelativePaths = map (
+    secret: "secrets/${builtins.baseNameOf secret.sopsFile}"
+  ) sopsSecrets;
+
+  unapprovedSecretFiles = lib.filter (
+    relativePath:
+      !(lib.hasAttr relativePath config.roles.security.sopsApprovedFiles)
+  ) secretRelativePaths;
+
+  unauthorizedHostSecretFiles = lib.filter (
+    relativePath:
+      let
+        approvedHosts = config.roles.security.sopsApprovedFiles.${relativePath} or [ ];
+      in
+        !(lib.elem config.networking.hostName approvedHosts)
+  ) secretRelativePaths;
 in
 {
   options.roles.security.sopsAllowedRootSecrets = lib.mkOption {
@@ -65,7 +85,77 @@ in
     '';
   };
 
+  options.roles.security.sopsApprovedFiles = lib.mkOption {
+    type = lib.types.attrsOf (lib.types.listOf lib.types.str);
+    default = { };
+    description = ''
+      Maps SOPS secret files, identified as `secrets/<file>.yaml`, to the
+      NixOS hosts permitted to decrypt them. The operator identity is not a
+      host and must not appear in these lists.
+    '';
+  };
+
   config._module.args.mkSecret = mkSecret;
+
+  config.roles.security.sopsApprovedFiles = {
+    "secrets/common.yaml" = [
+      "navi"
+      "oryx"
+      "r730"
+      "r730xd"
+      "r820"
+    ];
+
+    "secrets/nas.yaml" = [
+      "navi"
+      "oryx"
+    ];
+
+    "secrets/database.yaml" = [
+      "r820"
+    ];
+
+    "secrets/matrix.yaml" = [
+      "r730xd"
+      "r820"
+    ];
+
+    "secrets/vaultwarden.yaml" = [
+      "r730xd"
+      "r820"
+    ];
+
+    "secrets/monitoring.yaml" = [
+      "r730"
+      "r730xd"
+      "r820"
+    ];
+
+    "secrets/media.yaml" = [
+      "r730xd"
+    ];
+
+    "secrets/mail.yaml" = [
+      "r820"
+    ];
+
+    "secrets/acme.yaml" = [
+      "r820"
+    ];
+
+    "secrets/radio.yaml" = [
+      "r730xd"
+    ];
+
+    "secrets/backups.yaml" = [
+      "r730xd"
+      "r820"
+    ];
+
+    "secrets/peertube.yaml" = [
+      "r730xd"
+    ];
+  };
 
   config.assertions = [
     # Preserve the service-scoped SOPS model. A missing `sopsFile` would
@@ -121,6 +211,33 @@ in
       message =
         "SOPS secret owners must be declared system groups. Undeclared groups: "
         + lib.concatStringsSep ", " (map (secret: secret.group) undeclaredSecretGroups);
+    }
+
+    # Keep encrypted secrets within the dedicated repository secrets tree.
+    {
+      assertion = lib.all (
+        secret:
+          lib.hasInfix "/secrets/" (toString secret.sopsFile)
+          && lib.hasSuffix ".yaml" (toString secret.sopsFile)
+      ) sopsSecrets;
+      message = "Every SOPS secret file must reside beneath secrets/ and use a YAML file.";
+    }
+
+    # Every secret file must be explicitly approved in the repository policy.
+    {
+      assertion = unapprovedSecretFiles == [ ];
+      message =
+        "SOPS secret files must be listed in roles.security.sopsApprovedFiles: "
+        + lib.concatStringsSep ", " unapprovedSecretFiles;
+    }
+
+    # Prevent a host from decrypting a secret file intended for another trust
+    # boundary.
+    {
+      assertion = unauthorizedHostSecretFiles == [ ];
+      message =
+        "This host is not approved to decrypt one or more SOPS secret files: "
+        + lib.concatStringsSep ", " unauthorizedHostSecretFiles;
     }
   ];
 }

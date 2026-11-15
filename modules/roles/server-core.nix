@@ -33,6 +33,7 @@ in
 
   # Servers run libvirt headlessly and are managed from an authorized desktop.
   modules.features.libvirt.remoteManagement.enable = true;
+  modules.features.libvirt.adminUsers = [ "aljam" ];
 
   networking.interfaces.eno1.ipv4.addresses = [
     {

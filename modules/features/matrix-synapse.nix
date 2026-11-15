@@ -26,6 +26,8 @@ in
   imports = [ ./pfsense-root-ca.nix ];
 
   config = {
+    roles.security.systemdHardenedServices = [ "matrix-synapse" ];
+
     networking.proxyBackendPorts = [ 8008 ];
 
     sops.secrets = {
@@ -152,23 +154,13 @@ in
     };
 
     systemd.services.matrix-synapse.serviceConfig = {
-      NoNewPrivileges = true;
-      PrivateTmp = true;
-      PrivateDevices = true;
-      ProtectSystem = "strict";
-      ProtectHome = true;
       ReadWritePaths = [ "/var/lib/matrix-synapse" ];
-      ProtectKernelTunables = true;
-      ProtectKernelModules = true;
-      ProtectControlGroups = true;
       RestrictAddressFamilies = [
         "AF_INET"
         "AF_INET6"
         "AF_UNIX"
       ];
       CapabilityBoundingSet = [ ];
-      RestrictSUIDSGID = true;
-      LockPersonality = true;
     };
 
     assertions = [

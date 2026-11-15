@@ -138,6 +138,7 @@ let
         monitor = { lib, ... }: {
           imports = [
             ../modules/features/networking-options.nix
+            ../modules/features/systemd-hardening.nix
             ../modules/features/node-exporter.nix
             ../modules/features/prometheus-server.nix
           ];

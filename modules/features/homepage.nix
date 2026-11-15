@@ -10,6 +10,8 @@ let
   };
 in
 {
+  roles.security.systemdHardenedServices = [ "homepage-dashboard" ];
+
   networking.proxyBackendPorts = [ 8082 ];
 
   services.homepage-dashboard = {
@@ -33,7 +35,7 @@ in
         "Automation & Downloads" = [
           (mkLink "Sonarr" "sonarr" "TV Shows" "sonarr.png")
           (mkLink "Radarr" "radarr" "Movies" "radarr.png")
-          (mkLink "Prowlarr" "prowlarr" "Indexers" "prowlarr.png")
+          (mkLink "Prowlarr" "prowlarr" "Indexers Automation" "prowlarr.png")
           (mkLink "Bazarr" "bazarr" "Subtitles Automation" "bazarr.png")
           (mkLink "Lidarr" "lidarr" "Music Automation" "lidarr.png")
           (mkLink "qBittorrent" "qb" "Torrents" "qbittorrent.png")
@@ -57,17 +59,5 @@ in
         ];
       }
     ];
-  };
-
-  systemd.services.homepage-dashboard.serviceConfig = {
-    NoNewPrivileges = true;
-    PrivateTmp = true;
-    ProtectSystem = "strict";
-    ProtectHome = true;
-    ProtectKernelTunables = true;
-    ProtectKernelModules = true;
-    ProtectControlGroups = true;
-    RestrictSUIDSGID = true;
-    LockPersonality = true;
   };
 }

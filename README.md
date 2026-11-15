@@ -79,6 +79,18 @@ reading order, and ownership boundaries.
 - SSH is key-only; sudo requires a password.
 - Remote PostgreSQL clients must use TLS.
 
+## Security invariants
+
+The repository enforces these invariants through NixOS assertions and CI:
+
+- Secrets must declare an explicit `sopsFile`, owner, group, and `0400` mode.
+- Services must bind to loopback or an explicit fleet service address.
+- Reverse-proxied backend ports may permit only the HAProxy gateway address.
+- Internal-only services must not appear in the HAProxy allowlist.
+- SSH must use key authentication and disable password, interactive, and forwarding access.
+- Remote PostgreSQL access must use TLS and SCRAM-SHA-256 authentication.
+- CI scans for leaked secrets and validates the SOPS recipient and creation-rule policy.
+
 ## Development
 
 ### Prerequisites

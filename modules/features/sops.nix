@@ -69,6 +69,54 @@ let
     in
     !(lib.elem config.networking.hostName approvedHosts)
   ) secretRelativePaths;
+  # The operator identity, `aljam`, is intentionally excluded: it is not a
+  # NixOS host. These mappings must match the age recipients declared for each
+  # file in `.sops.yaml`.
+  sopsApprovedFiles = {
+    "secrets/common.yaml" = [
+      "navi"
+      "oryx"
+      "r730"
+      "r730xd"
+      "r820"
+    ];
+
+    "secrets/nas.yaml" = [
+      "navi"
+      "oryx"
+    ];
+
+    "secrets/database.yaml" = [ "r820" ];
+
+    "secrets/matrix.yaml" = [
+      "r730xd"
+      "r820"
+    ];
+
+    "secrets/vaultwarden.yaml" = [
+      "r730xd"
+      "r820"
+    ];
+
+    "secrets/monitoring.yaml" = [
+      "r730"
+      "r730xd"
+      "r820"
+    ];
+
+    "secrets/media.yaml" = [ "r730xd" ];
+
+    "secrets/acme.yaml" = [ "r820" ];
+
+    "secrets/radio.yaml" = [ "r730xd" ];
+
+    "secrets/backups.yaml" = [
+      "r730xd"
+      "r820"
+    ];
+
+    "secrets/peertube.yaml" = [ "r730xd" ];
+  };
 in
 {
   options.roles.security.sopsAllowedRootSecrets = lib.mkOption {
@@ -89,6 +137,9 @@ in
       Maps SOPS secret files, identified as `secrets/<file>.yaml`, to the
       NixOS hosts permitted to decrypt them. The operator identity is not a
       host and must not appear in these lists.
+    description = ''
+      Maps each encrypted SOPS file to the NixOS hosts approved to decrypt it.
+      The operator identity is excluded because it is not a host.
     '';
   };
 
@@ -153,6 +204,7 @@ in
       "r730xd"
     ];
   };
+  config.roles.security.sopsApprovedFiles = sopsApprovedFiles;
 
   config.assertions = [
     # Preserve the service-scoped SOPS model. A missing `sopsFile` would

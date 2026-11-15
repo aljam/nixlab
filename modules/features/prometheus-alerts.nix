@@ -141,6 +141,8 @@ in
     };
   };
 
+  roles.security.systemdHardenedServices = [ "ntfy-alert-relay" ];
+
   systemd.services.ntfy-alert-relay = {
     description = "Alertmanager to ntfy notification relay";
     after = [ "network.target" ];
@@ -156,20 +158,10 @@ in
       Group = "alertmanager";
       Restart = "on-failure";
       RestartSec = "5s";
-
-      NoNewPrivileges = true;
-      PrivateTmp = true;
-      ProtectSystem = "strict";
-      ProtectHome = true;
-      PrivateDevices = true;
-      ProtectKernelTunables = true;
-      ProtectKernelModules = true;
-      ProtectControlGroups = true;
       RestrictAddressFamilies = [
         "AF_INET"
         "AF_INET6"
       ];
-      LockPersonality = true;
     };
   };
 

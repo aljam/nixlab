@@ -304,13 +304,11 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    roles.security.systemdHardenedServices = lib.concatMap (
-      name: [
-        "restic-backup-${name}"
-        "restic-verify-${name}"
-        "restic-restore-test-${name}"
-      ]
-    ) (lib.attrNames cfg.jobs);
+    roles.security.systemdHardenedServices = lib.concatMap (name: [
+      "restic-backup-${name}"
+      "restic-verify-${name}"
+      "restic-restore-test-${name}"
+    ]) (lib.attrNames cfg.jobs);
 
     users.groups.${backupGroup} = { };
 

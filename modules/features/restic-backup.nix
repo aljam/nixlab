@@ -304,6 +304,12 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    roles.security.systemdHardenedServices = lib.concatMap (name: [
+      "restic-backup-${name}"
+      "restic-verify-${name}"
+      "restic-restore-test-${name}"
+    ]) (lib.attrNames cfg.jobs);
+
     users.groups.${backupGroup} = { };
 
     users.users.${backupUser} = {
@@ -349,20 +355,11 @@ in
             Type = "oneshot";
             User = "root";
             ExecStart = lib.getExe (backupScript name job);
-            PrivateTmp = true;
-            PrivateDevices = true;
-            ProtectSystem = "strict";
-            ProtectHome = true;
             ReadWritePaths = [
               "/var/lib/restic-backup"
               "/run/restic-backup.lock"
               metricsDirectory
             ];
-            ProtectKernelTunables = true;
-            ProtectKernelModules = true;
-            ProtectControlGroups = true;
-            RestrictSUIDSGID = true;
-            LockPersonality = true;
           };
         };
 
@@ -379,20 +376,11 @@ in
             Type = "oneshot";
             User = "root";
             ExecStart = lib.getExe (verifyScript name job);
-            PrivateTmp = true;
-            PrivateDevices = true;
-            ProtectSystem = "strict";
-            ProtectHome = true;
             ReadWritePaths = [
               "/var/lib/restic-backup"
               "/run/restic-backup.lock"
               metricsDirectory
             ];
-            ProtectKernelTunables = true;
-            ProtectKernelModules = true;
-            ProtectControlGroups = true;
-            RestrictSUIDSGID = true;
-            LockPersonality = true;
           };
         };
 
@@ -409,20 +397,11 @@ in
             Type = "oneshot";
             User = "root";
             ExecStart = lib.getExe (restoreTestScript name job);
-            PrivateTmp = true;
-            PrivateDevices = true;
-            ProtectSystem = "strict";
-            ProtectHome = true;
             ReadWritePaths = [
               "/var/lib/restic-backup"
               "/run/restic-backup.lock"
               metricsDirectory
             ];
-            ProtectKernelTunables = true;
-            ProtectKernelModules = true;
-            ProtectControlGroups = true;
-            RestrictSUIDSGID = true;
-            LockPersonality = true;
           };
         };
       }) cfg.jobs

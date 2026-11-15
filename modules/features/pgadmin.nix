@@ -13,6 +13,8 @@ in
     lib.mkEnableOption "loopback-only pgAdmin database administration";
 
   config = lib.mkIf cfg.enable {
+    roles.security.systemdHardenedServices = [ "pgadmin" ];
+
     sops.secrets."pgadmin_password" = mkSecret {
       name = "pgadmin_password";
       sopsFile = ../../secrets/database.yaml;
@@ -43,15 +45,6 @@ in
 
     systemd.services.pgadmin = {
       serviceConfig = {
-        NoNewPrivileges = true;
-        PrivateTmp = true;
-        ProtectSystem = "strict";
-        ProtectHome = true;
-        ProtectKernelTunables = true;
-        ProtectKernelModules = true;
-        ProtectControlGroups = true;
-        RestrictSUIDSGID = true;
-        LockPersonality = true;
         ReadWritePaths = [ "/var/lib/pgadmin" ];
       };
     };

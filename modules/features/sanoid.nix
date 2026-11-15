@@ -45,6 +45,11 @@
     ProtectControlGroups = true;
     RestrictSUIDSGID = true;
     LockPersonality = true;
+
+    ProtectClock = true;
+    ProtectHostname = true;
+    ProtectKernelLogs = true;
+    RestrictRealtime = true;
   };
 
   assertions = [

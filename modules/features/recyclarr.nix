@@ -27,6 +27,8 @@ in
     lib.mkEnableOption "Recyclarr configuration synchronization";
 
   config = lib.mkIf cfg.enable {
+    roles.security.systemdHardenedServices = [ "recyclarr" ];
+
     sops.secrets.radarr_api_key = mkSecret {
       name = "radarr_api_key";
       sopsFile = ../../secrets/servarr.yaml;
@@ -45,15 +47,6 @@ in
         User = "recyclarr";
         Group = "recyclarr";
         ExecStart = "${pkgs.recyclarr}/bin/recyclarr sync --config ${recyclarrConfig}";
-        NoNewPrivileges = true;
-        PrivateTmp = true;
-        ProtectSystem = "strict";
-        ProtectHome = true;
-        ProtectKernelTunables = true;
-        ProtectKernelModules = true;
-        ProtectControlGroups = true;
-        RestrictSUIDSGID = true;
-        LockPersonality = true;
       };
     };
   };

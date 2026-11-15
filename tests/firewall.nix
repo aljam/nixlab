@@ -42,6 +42,7 @@ in
         imports = [
           ../modules/features/networking-options.nix
           ../modules/features/reverse-proxy-backends.nix
+          ../modules/features/systemd-hardening.nix
           ../modules/features/node-exporter.nix
         ];
 

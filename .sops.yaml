@@ -66,13 +66,6 @@ creation_rules:
           - *aljam
           - *r730xd
 
-  # SendPulse SMTP relay credentials for the r820 mail server.
-  - path_regex: secrets/mail\.yaml$
-    key_groups:
-      - age:
-          - *aljam
-          - *r820
-
   # Cloudflare API token used for mail certificate DNS-01 validation.
   - path_regex: secrets/acme\.yaml$
     key_groups:

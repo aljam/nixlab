@@ -311,13 +311,10 @@ in
       Group = lib.mkForce "prometheus";
     };
 
+    roles.security.systemdHardenedServices = [ "prometheus" ];
+
     systemd.services.prometheus.serviceConfig = {
       ReadWritePaths = [ "/var/lib/prometheus2" ];
-      ProtectKernelTunables = true;
-      ProtectKernelModules = true;
-      ProtectControlGroups = true;
-      RestrictSUIDSGID = true;
-      LockPersonality = true;
     };
   };
 }

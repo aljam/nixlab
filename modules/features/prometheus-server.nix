@@ -199,18 +199,6 @@ in
         }
 
         {
-          job_name = "smartctl";
-
-          static_configs = map (host: {
-            targets = [ "${config.networking.fleet.${host}.ip}:9633" ];
-            labels = {
-              instance = host;
-              host = host;
-            };
-          }) physicalHosts;
-        }
-
-        {
           job_name = "blackbox-postgres";
           metrics_path = "/probe";
           params = {
@@ -287,11 +275,11 @@ in
                 timeout = "5s";
                 tcp = {
                   preferred_ip_protocol = "ip4";
-                  tls = true;
-                  tls_config = {
-                    ca_file = cfg.postgresCaFile;
-                    server_name = "r820.lan";
-                  };
+                };
+                tls = true;
+                tls_config = {
+                  ca_file = cfg.postgresCaFile;
+                  server_name = "r820.lan";
                 };
               };
             };

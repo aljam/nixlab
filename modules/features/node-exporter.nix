@@ -47,11 +47,6 @@ in
       autodetect = true;
     };
 
-    services.prometheus.exporters.smartctl = {
-      enable = true;
-      port = 9633;
-    };
-
     roles.security.systemdHardenedServices = [ "prometheus-node-exporter" ];
 
     # Keep host visibility for system, ZFS, filesystem, and hardware collectors.
@@ -60,6 +55,11 @@ in
     # restriction while retaining the rest of the baseline.
     systemd.services.prometheus-node-exporter.serviceConfig = {
       ProtectSystem = "no";
+
+      # Node exporter requires host-wide /proc visibility for CPU, memory,
+      # load, file-descriptor, networking, and entropy metrics.
+      ProtectProc = "no";
+      ProcSubset = "all";
     };
   };
 }

@@ -182,7 +182,6 @@ let
 
           networking.firewall.extraInputRules = ''
             ip saddr ${monitoringIps.monitor} tcp dport 9100 accept
-            ip saddr ${monitoringIps.monitor} tcp dport 9633 accept
           '';
         };
       };
@@ -208,7 +207,6 @@ let
 
         exporter.wait_for_unit("nftables.service", timeout=120)
         exporter.wait_for_unit("prometheus-node-exporter.service", timeout=120)
-        exporter.wait_for_unit("prometheus-smartctl-exporter.service", timeout=120)
 
         prometheus_url = "http://${monitoringIps.monitor}:9090"
 
@@ -232,15 +230,6 @@ let
                 "curl -fsS --max-time 10 "
                 f"'{prometheus_url}/api/v1/targets?state=active' "
                 "| grep -A5 '\"scrapeUrl\":\"http://${monitoringIps.exporter}:9100/metrics\"' "
-                "| grep -q '\"health\":\"up\"'",
-                timeout=120,
-            )
-
-        with subtest("Prometheus scrapes the smartctl exporter"):
-            monitor.wait_until_succeeds(
-                "curl -fsS --max-time 10 "
-                f"'{prometheus_url}/api/v1/targets?state=active' "
-                "| grep -A5 '\"scrapeUrl\":\"http://${monitoringIps.exporter}:9633/metrics\"' "
                 "| grep -q '\"health\":\"up\"'",
                 timeout=120,
             )

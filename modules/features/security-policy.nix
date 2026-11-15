@@ -58,7 +58,7 @@ let
     let
       expectedOwner = expectedOwners.${secret.name} or null;
     in
-      expectedOwner != null && secret.owner != expectedOwner
+    expectedOwner != null && secret.owner != expectedOwner
   ) sopsSecrets;
 
   mismatchedSecretNames = map (secret: secret.name) mismatchedSecretOwners;

@@ -300,7 +300,10 @@ in
       };
     };
 
-    roles.security.systemdHardenedServices = [ "prometheus-blackbox-exporter" ];
+    roles.security.systemdHardenedServices = [
+      "prometheus-blackbox-exporter"
+      "prometheus"
+    ];
 
     # NixOS exporter services use DynamicUser by default. Disable it so the
     # Blackbox exporter runs as the fixed prometheus user and can read the
@@ -310,8 +313,6 @@ in
       User = lib.mkForce "prometheus";
       Group = lib.mkForce "prometheus";
     };
-
-    roles.security.systemdHardenedServices = [ "prometheus" ];
 
     systemd.services.prometheus.serviceConfig = {
       ReadWritePaths = [ "/var/lib/prometheus2" ];

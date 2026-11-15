@@ -48,6 +48,8 @@ in
       config.networking.fleet.${config.networking.monitoringServer}.ip
     ];
 
+    roles.security.systemdHardenedServices = [ "alloy" ];
+
     users.groups.alloy = { };
 
     users.users.alloy = {
@@ -57,18 +59,6 @@ in
     };
 
     services.alloy.enable = true;
-
-    systemd.services.alloy.serviceConfig = {
-      NoNewPrivileges = true;
-      PrivateTmp = true;
-      ProtectSystem = "strict";
-      ProtectHome = true;
-      ProtectKernelTunables = true;
-      ProtectKernelModules = true;
-      ProtectControlGroups = true;
-      RestrictSUIDSGID = true;
-      LockPersonality = true;
-    };
 
     environment.etc."alloy/config.alloy".text = ''
       loki.source.journal "journal" {

@@ -22,6 +22,8 @@
   };
 
   config = lib.mkIf config.services.nixlab.loki.enable {
+    roles.security.systemdHardenedServices = [ "loki" ];
+
     services.loki = {
       enable = true;
 

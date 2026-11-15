@@ -1,2 +1,29 @@
+# Python
 __pycache__/
 *.py[cod]
+
+# Nix build outputs
+/result
+/result-*
+/.direnv/
+
+# Local environment overrides
+.env
+.env.*
+!.env.example
+
+# Private keys and certificates
+*.key
+*.pem
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+id_ecdsa
+*.age
+*.agekey
+
+# Editor and OS artifacts
+.DS_Store
+*.swp
+*~

@@ -24,7 +24,7 @@ in
   users.users.nix-builder = {
     isNormalUser = true;
     description = "Remote Nix builder";
-    shell = pkgs.bashInteractive;
+    shell = pkgs.nologin;
     openssh.authorizedKeys.keys = [
       # Add dedicated build-client public keys here, wrapped with
       # `restrictedKey`:

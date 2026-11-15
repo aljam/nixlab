@@ -94,6 +94,8 @@ in
       extraOptions = containerRuntimeOptions ++ [
         "--cpus=2"
         "--memory=1g"
+        "--pids-limit=256"
+        "--stop-timeout=30"
         "--security-opt=no-new-privileges"
       ];
     };
@@ -111,6 +113,8 @@ in
       extraOptions = containerRuntimeOptions ++ [
         "--cpus=0.5"
         "--memory=256m"
+        "--pids-limit=64"
+        "--stop-timeout=30"
         "--security-opt=no-new-privileges"
       ];
     };

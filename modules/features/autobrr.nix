@@ -15,10 +15,16 @@
     group = "autobrr";
   };
 
+  roles.security.systemdHardenedServices = [ "autobrr" ];
+
   services.autobrr = {
     enable = true;
     openFirewall = false;
     settings.host = config.networking.servicesBindAddress;
+  };
+
+  systemd.services.autobrr.serviceConfig = {
+    ReadWritePaths = [ "/var/lib/autobrr" ];
   };
 
   assertions = [

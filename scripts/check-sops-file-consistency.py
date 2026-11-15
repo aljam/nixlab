@@ -70,7 +70,7 @@ def load_identity_aliases(config: dict) -> dict[str, str]:
     aliases: dict[str, str] = {}
 
     for match in re.finditer(
-        r"^\s*-\s*&([A-Za-z0-9_-]+)\s+(\S+)\s*$",
+        r"^\s*-\s*&([A-Za-z0-9_-]+)\s+(.+?)\s*$",
         text,
         re.MULTILINE,
     ):

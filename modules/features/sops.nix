@@ -53,6 +53,23 @@ let
     secret: !lib.hasAttr secret.group config.users.groups
   ) sopsSecrets;
 
+  # Normalize each secret file to its repository-relative location beneath
+  # `secrets/`. Secret files are intentionally flat, so the basename is
+  # sufficient and avoids depending on the absolute checkout path.
+  secretRelativePaths = map (secret: "secrets/${builtins.baseNameOf secret.sopsFile}") sopsSecrets;
+
+  unapprovedSecretFiles = lib.filter (
+    relativePath: !(lib.hasAttr relativePath config.roles.security.sopsApprovedFiles)
+  ) secretRelativePaths;
+
+  unauthorizedHostSecretFiles = lib.filter (
+    relativePath:
+    let
+      approvedHosts = config.roles.security.sopsApprovedFiles.${relativePath} or [ ];
+    in
+    !(lib.elem config.networking.hostName approvedHosts)
+  ) secretRelativePaths;
+
   # The operator identity, `aljam`, is intentionally excluded: it is not a
   # NixOS host. These mappings must match the age recipients declared for each
   # file in `.sops.yaml`.
@@ -116,10 +133,7 @@ in
 
   options.roles.security.sopsApprovedFiles = lib.mkOption {
     type = lib.types.attrsOf (lib.types.listOf lib.types.str);
-    description = ''
-      Maps each encrypted SOPS file to the NixOS hosts approved to decrypt it.
-      The operator identity is excluded because it is not a host.
-    '';
+    description = "Maps each encrypted SOPS file to the NixOS hosts approved to decrypt it. The operator identity is excluded because it is not a host.";
   };
 
   config._module.args.mkSecret = mkSecret;
@@ -180,6 +194,33 @@ in
       message =
         "SOPS secret owners must be declared system groups. Undeclared groups: "
         + lib.concatStringsSep ", " (map (secret: secret.group) undeclaredSecretGroups);
+    }
+
+    # Keep encrypted secrets within the dedicated repository secrets tree.
+    {
+      assertion = lib.all (
+        secret:
+        lib.hasInfix "/secrets/" (toString secret.sopsFile)
+        && lib.hasSuffix ".yaml" (toString secret.sopsFile)
+      ) sopsSecrets;
+      message = "Every SOPS secret file must reside beneath secrets/ and use a YAML file.";
+    }
+
+    # Every secret file must be explicitly approved in the repository policy.
+    {
+      assertion = unapprovedSecretFiles == [ ];
+      message =
+        "SOPS secret files must be listed in roles.security.sopsApprovedFiles: "
+        + lib.concatStringsSep ", " unapprovedSecretFiles;
+    }
+
+    # Prevent a host from decrypting a secret file intended for another trust
+    # boundary.
+    {
+      assertion = unauthorizedHostSecretFiles == [ ];
+      message =
+        "This host is not approved to decrypt one or more SOPS secret files: "
+        + lib.concatStringsSep ", " unauthorizedHostSecretFiles;
     }
   ];
 }

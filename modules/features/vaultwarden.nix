@@ -12,6 +12,8 @@ in
   options.modules.features.vaultwarden.enable = lib.mkEnableOption "Vaultwarden password manager";
 
   config = lib.mkIf cfg.enable {
+    roles.security.systemdHardenedServices = [ "vaultwarden" ];
+
     networking.proxyBackendPorts = [ 8222 ];
 
     sops.secrets."vaultwarden-admin-token" = mkSecret {
@@ -38,18 +40,8 @@ in
 
     systemd.services.vaultwarden = {
       serviceConfig = {
-        NoNewPrivileges = true;
-        PrivateTmp = true;
-        ProtectSystem = "strict";
-        ProtectHome = true;
-        ProtectKernelTunables = true;
-        ProtectKernelModules = true;
-        ProtectControlGroups = true;
-        RestrictSUIDSGID = true;
-        LockPersonality = true;
         MemoryDenyWriteExecute = true;
         RestrictNamespaces = true;
-        RestrictRealtime = true;
         RestrictAddressFamilies = [
           "AF_UNIX"
           "AF_INET"

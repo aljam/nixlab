@@ -52,17 +52,14 @@ in
       port = 9633;
     };
 
-    # Keep host visibility for system, ZFS, filesystem, and hardware collectors;
-    # do not apply ProtectSystem=strict here.
+    roles.security.systemdHardenedServices = [ "prometheus-node-exporter" ];
+
+    # Keep host visibility for system, ZFS, filesystem, and hardware collectors.
+    # The shared baseline defaults ProtectSystem to "strict"; node-exporter
+    # requires broader host filesystem visibility, so disable that specific
+    # restriction while retaining the rest of the baseline.
     systemd.services.prometheus-node-exporter.serviceConfig = {
-      NoNewPrivileges = true;
-      PrivateTmp = true;
-      ProtectHome = true;
-      ProtectKernelTunables = true;
-      ProtectKernelModules = true;
-      ProtectControlGroups = true;
-      RestrictSUIDSGID = true;
-      LockPersonality = true;
+      ProtectSystem = "no";
     };
   };
 }

@@ -1,5 +1,4 @@
-{
-  description = "Aljam's Unified Homelab Flake";
+description = "Aljam's Unified Homelab Flake";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -293,6 +292,11 @@
           pkgs = nixpkgs.legacyPackages.${system};
         };
 
+        deploy-guard = import ./tests/deploy-guard.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+          deployScript = self.apps.${system}.deploy.program;
+        };
+
         sops-recovery = import ./tests/sops-recovery.nix {
           lib = nixpkgs.lib;
           pkgs = nixpkgs.legacyPackages.${system};
@@ -303,4 +307,3 @@
 
       nixosConfigurations = hostConfigurations;
     };
-}

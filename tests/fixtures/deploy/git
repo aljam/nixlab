@@ -1,9 +1,9 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/sh
+set -eu
 
 case "$1 $2" in
   "status --porcelain")
-    if [[ -n "${TEST_DIRTY:-}" ]]; then
+    if [ -n "${TEST_DIRTY:-}" ]; then
       printf '%s\n' "M flake.nix"
     fi
     ;;

@@ -1,2 +1,2 @@
-#!/usr/bin/env bash
+#!/bin/sh
 printf '%s\n' "$*" >> "${TEST_SSH_LOG:?}"

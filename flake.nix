@@ -13,12 +13,13 @@
     nixos-hardware = {
       url = "github:NixOS/nixos-hardware/master";
       inputs.nixpkgs.follows = "nixpkgs";
-
     };
+
     artcraft = {
       url = "github:Hy4ri/artcraft-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -28,6 +29,7 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
     disko = {
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -179,8 +181,6 @@
         };
       };
 
-      # Deployment targets are explicit so adding a NixOS configuration does
-      # not automatically make it a default deployment target.
       deployHosts = [
         "r820"
         "r730"
@@ -190,8 +190,6 @@
     {
       formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt-tree;
 
-      # VM tests that are too slow for `nix flake check`. They are built by
-      # .github/workflows/vm-tests.yml; see tests/README.md.
       packages.${system} = {
         firewall-isolation = nixpkgs.legacyPackages.${system}.testers.runNixOSTest ./tests/firewall.nix;
 
@@ -223,8 +221,6 @@
               exit 1
             fi
 
-            # Hosts pull the flake from the remote and accept only the tip of
-            # main (modules/features/deploy-user.nix), so HEAD must match it.
             git fetch --quiet origin
             if [[ "$rev" != "$(git rev-parse origin/main)" ]]; then
               echo "Refusing to deploy: HEAD ($rev) is not the tip of origin/main" >&2
@@ -241,7 +237,7 @@
 
             for host in "''${hosts[@]}"; do
               echo "==> Deploying ''${host} @ ''${rev}"
-              ssh "deploy@''${host}" "deploy-rebuild switch ''${rev}"
+              ssh -o BatchMode=yes -o ConnectTimeout=10 "deploy@''${host}" "deploy-rebuild switch ''${rev}"
             done
           ''}";
         };

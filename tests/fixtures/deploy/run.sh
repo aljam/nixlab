@@ -116,9 +116,9 @@ fi
 
 assert_ssh_hardening
 
-grep -F "-o BatchMode=yes -o ConnectTimeout=10 deploy@r820 deploy-rebuild switch $VALID_REV" \
+grep -F -- "-o BatchMode=yes -o ConnectTimeout=10 deploy@r820 deploy-rebuild switch $VALID_REV" \
   "$workdir/ssh.log" >/dev/null
-grep -F "-o BatchMode=yes -o ConnectTimeout=10 deploy@r730 deploy-rebuild switch $VALID_REV" \
+grep -F -- "-o BatchMode=yes -o ConnectTimeout=10 deploy@r730 deploy-rebuild switch $VALID_REV" \
   "$workdir/ssh.log" >/dev/null
 
 # With no arguments, deploy exactly the configured default hosts.
@@ -136,6 +136,6 @@ fi
 assert_ssh_hardening
 
 for host in $DEPLOY_HOSTS; do
-  grep -F "-o BatchMode=yes -o ConnectTimeout=10 deploy@$host deploy-rebuild switch $VALID_REV" \
+  grep -F -- "-o BatchMode=yes -o ConnectTimeout=10 deploy@$host deploy-rebuild switch $VALID_REV" \
     "$workdir/ssh.log" >/dev/null
 done

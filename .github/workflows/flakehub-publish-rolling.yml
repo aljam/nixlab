@@ -1,20 +1,25 @@
 name: "Publish every Git push to main to FlakeHub"
+
 on:
   push:
     branches:
       - "main"
+
 jobs:
   flakehub-publish:
     runs-on: "ubuntu-latest"
     permissions:
       id-token: "write"
       contents: "read"
+
     steps:
-      - uses: "actions/checkout@v6"
+      - uses: "actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10"
         with:
           persist-credentials: false
-      - uses: "DeterminateSystems/determinate-nix-action@v3"
-      - uses: "DeterminateSystems/flakehub-push@main"
+
+      - uses: "DeterminateSystems/determinate-nix-action@16f94ba7aae399b9f9077c254b6719ec6de7e3e3"
+
+      - uses: "DeterminateSystems/flakehub-push@2769db2f8d26fe4fa21b37428901bc2b6a54e012"
         with:
           name: "aljam/nixlab"
           rolling: true

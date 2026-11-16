@@ -355,6 +355,12 @@ in
             Type = "oneshot";
             User = "root";
             ExecStart = lib.getExe (backupScript name job);
+            # Pre-backup scripts may use `runuser` to execute application dumps
+            # as another user. `runuser` requires a privileged UID transition,
+            # which `NoNewPrivileges` forbids. Override the shared hardening
+            # default only for backup jobs; verification and restore tests do
+            # not use `runuser`.
+            NoNewPrivileges = false;
             ReadWritePaths = [
               "/var/lib/restic-backup"
               "/run/restic-backup.lock"

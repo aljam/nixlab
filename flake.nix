@@ -1,4 +1,5 @@
-description = "Aljam's Unified Homelab Flake";
+{
+  description = "Aljam's Unified Homelab Flake";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -302,3 +303,4 @@ description = "Aljam's Unified Homelab Flake";
 
       nixosConfigurations = hostConfigurations;
     };
+}

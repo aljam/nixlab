@@ -43,6 +43,25 @@ run_deploy() {
   fi
 }
 
+assert_ssh_hardening() {
+  if [[ ! -s "$workdir/ssh.log" ]]; then
+    echo "expected at least one SSH invocation" >&2
+    exit 1
+  fi
+
+  while IFS= read -r invocation; do
+    if [[ "$invocation" != *"-o BatchMode=yes"* ]]; then
+      echo "SSH invocation lacks BatchMode=yes: $invocation" >&2
+      exit 1
+    fi
+
+    if [[ "$invocation" != *"-o ConnectTimeout=10"* ]]; then
+      echo "SSH invocation lacks ConnectTimeout=10: $invocation" >&2
+      exit 1
+    fi
+  done < "$workdir/ssh.log"
+}
+
 # A dirty working tree must stop before any host is contacted.
 test_head="$VALID_REV"
 test_origin_main="$VALID_REV"
@@ -95,9 +114,11 @@ if [[ "$actual_count" != "$expected_count" ]]; then
   exit 1
 fi
 
-grep -F "deploy@r820 deploy-rebuild switch $VALID_REV" \
+assert_ssh_hardening
+
+grep -F "-o BatchMode=yes -o ConnectTimeout=10 deploy@r820 deploy-rebuild switch $VALID_REV" \
   "$workdir/ssh.log" >/dev/null
-grep -F "deploy@r730 deploy-rebuild switch $VALID_REV" \
+grep -F "-o BatchMode=yes -o ConnectTimeout=10 deploy@r730 deploy-rebuild switch $VALID_REV" \
   "$workdir/ssh.log" >/dev/null
 
 # With no arguments, deploy exactly the configured default hosts.
@@ -112,7 +133,9 @@ if [[ "$actual_count" != "$expected_count" ]]; then
   exit 1
 fi
 
+assert_ssh_hardening
+
 for host in $DEPLOY_HOSTS; do
-  grep -F "deploy@$host deploy-rebuild switch $VALID_REV" \
+  grep -F "-o BatchMode=yes -o ConnectTimeout=10 deploy@$host deploy-rebuild switch $VALID_REV" \
     "$workdir/ssh.log" >/dev/null
 done

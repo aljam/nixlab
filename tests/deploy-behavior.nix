@@ -110,8 +110,7 @@ grep -F "deploy@r730 deploy-rebuild switch $validRev" \
 # With no arguments, deploy exactly the configured default hosts.
 run_deploy 0
 
-read -r -a expected_hosts <<< "${hostList}"
-expected_count="${#expected_hosts[@]}"
+expected_count="$(printf '%s\n' '${hostList}' | wc -w)"
 actual_count="$(wc -l < "$workdir/ssh.log")"
 
 if [[ "$actual_count" != "$expected_count" ]]; then
@@ -120,8 +119,8 @@ if [[ "$actual_count" != "$expected_count" ]]; then
   exit 1
 fi
 
-for host in "${expected_hosts[@]}"; do
-  grep -F "deploy@${host} deploy-rebuild switch $validRev" \
+for host in ${hostList}; do
+  grep -F "deploy@''${host} deploy-rebuild switch $validRev" \
     "$workdir/ssh.log" >/dev/null
 done
 

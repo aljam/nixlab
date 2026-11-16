@@ -213,6 +213,7 @@
             if [[ -n "$(git status --porcelain)" ]]; then
               echo "Refusing to deploy: Git working tree is dirty." >&2
               echo "Commit or stash changes, then retry." >&2
+              exit 1
             fi
 
             rev="$(git rev-parse HEAD)"
@@ -296,6 +297,12 @@
         deploy-guard = import ./tests/deploy-guard.nix {
           pkgs = nixpkgs.legacyPackages.${system};
           deployScript = self.apps.${system}.deploy.program;
+        };
+
+        deploy-behavior = import ./tests/deploy-behavior.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+          deployScript = self.apps.${system}.deploy.program;
+          inherit deployHosts;
         };
 
         sops-recovery = import ./tests/sops-recovery.nix {

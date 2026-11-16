@@ -1,0 +1,22 @@
+#!/bin/sh
+set -eu
+
+case "$1 $2" in
+  "status --porcelain")
+    if [ -n "${TEST_DIRTY:-}" ]; then
+      printf '%s\n' "M flake.nix"
+    fi
+    ;;
+  "rev-parse HEAD")
+    printf '%s\n' "${TEST_HEAD:?}"
+    ;;
+  "fetch --quiet")
+    ;;
+  "rev-parse origin/main")
+    printf '%s\n' "${TEST_ORIGIN_MAIN:?}"
+    ;;
+  *)
+    echo "unexpected git invocation: $*" >&2
+    exit 64
+    ;;
+esac

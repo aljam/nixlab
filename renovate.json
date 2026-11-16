@@ -13,15 +13,35 @@
     "enabled": true,
     "schedule": [
       "before 4am on monday"
-    ]
+    ],
+    "automerge": true,
+    "automergeType": "pr"
   },
   "pinDigests": true,
   "packageRules": [
     {
-      "description": "Group Nix flake lock-file maintenance",
+      "description": "Group all Nix flake input updates",
+      "matchManagers": ["nix"],
+      "groupName": "Nix flake inputs"
+    },
+    {
+      "description": "Automerge only lockfile-only maintenance",
       "matchManagers": ["nix"],
       "matchUpdateTypes": ["lockFileMaintenance"],
-      "groupName": "Nix flake lock file"
+      "automerge": true,
+      "automergeType": "pr"
+    },
+    {
+      "description": "Keep higher-risk Nix inputs manual",
+      "matchManagers": ["nix"],
+      "matchDepNames": [
+        "nixpkgs",
+        "nixpkgs-stable",
+        "nix-cachyos-kernel",
+        "hyprland",
+        "home-manager"
+      ],
+      "automerge": false
     },
     {
       "description": "Group GitHub Actions updates",

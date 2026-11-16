@@ -5,16 +5,15 @@ set -euo pipefail
 : "${DEPLOY_HOSTS:?}"
 : "${VALID_REV:?}"
 : "${OTHER_REV:?}"
+: "${FIXTURE_DIR:?}"
 
 workdir="$(mktemp -d)"
 trap 'rm -rf "$workdir"' EXIT
 mkdir -p "$workdir/bin"
 
-script_dir="$(cd "$(dirname "$0")" && pwd)"
-
-cp "$script_dir/git" "$workdir/bin/git"
-cp "$script_dir/nix" "$workdir/bin/nix"
-cp "$script_dir/ssh" "$workdir/bin/ssh"
+cp "$FIXTURE_DIR/git" "$workdir/bin/git"
+cp "$FIXTURE_DIR/nix" "$workdir/bin/nix"
+cp "$FIXTURE_DIR/ssh" "$workdir/bin/ssh"
 chmod +x "$workdir/bin/git" "$workdir/bin/nix" "$workdir/bin/ssh"
 
 test_head=""

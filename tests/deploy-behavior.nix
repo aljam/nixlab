@@ -12,6 +12,6 @@ let
   hostList = lib.concatStringsSep " " deployHosts;
 in
 pkgs.runCommand "deploy-behavior" { } ''
-  DEPLOY_SCRIPT=${deployScript} DEPLOY_HOSTS="${hostList}" VALID_REV=${validRev} OTHER_REV=${otherRev} bash ${./fixtures/deploy/run.sh}
+  FIXTURE_DIR=${./fixtures/deploy} DEPLOY_SCRIPT=${deployScript} DEPLOY_HOSTS="${hostList}" VALID_REV=${validRev} OTHER_REV=${otherRev} bash ${./fixtures/deploy/run.sh}
   touch $out
 ''

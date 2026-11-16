@@ -10,7 +10,7 @@ case "$1 $2" in
   "rev-parse HEAD")
     printf '%s\n' "${TEST_HEAD:?}"
     ;;
-  "fetch --quiet origin")
+  "fetch --quiet")
     ;;
   "rev-parse origin/main")
     printf '%s\n' "${TEST_ORIGIN_MAIN:?}"

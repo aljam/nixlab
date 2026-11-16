@@ -1,5 +1,4 @@
-{
-  description = "Aljam's Unified Homelab Flake";
+description = "Aljam's Unified Homelab Flake";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -179,7 +178,13 @@
         };
       };
 
-      deployHosts = builtins.attrNames hostConfigurations;
+      # Deployment targets are explicit so adding a NixOS configuration does
+      # not automatically make it a default deployment target.
+      deployHosts = [
+        "r820"
+        "r730"
+        "r730xd"
+      ];
     in
     {
       formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt-tree;
@@ -210,6 +215,11 @@
             fi
 
             rev="$(git rev-parse HEAD)"
+
+            if [[ ! "$rev" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "Refusing to deploy: unable to resolve a full commit SHA." >&2
+              exit 1
+            fi
 
             # Hosts pull the flake from the remote and accept only the tip of
             # main (modules/features/deploy-user.nix), so HEAD must match it.
@@ -292,4 +302,3 @@
 
       nixosConfigurations = hostConfigurations;
     };
-}

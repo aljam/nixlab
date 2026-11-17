@@ -1,63 +1,77 @@
-{ config, pkgs, ... }:
+{
+  config,
+  lib,
+  mkLink,
+  ...
+}:
 let
-  domain = config.networking.domains.primary;
-
-  mkLink = name: subdomain: description: icon: {
-    ${name} = {
-      href = "https://${subdomain}.${domain}";
-      inherit description icon;
-    };
-  };
+  cfg = config.modules.features.homepage;
 in
 {
-  roles.security.systemdHardenedServices = [ "homepage-dashboard" ];
+  options.modules.features.homepage.enable = lib.mkEnableOption "Homepage dashboard";
 
-  networking.proxyBackendPorts = [ 8082 ];
+  config = lib.mkIf cfg.enable {
+    services.homepage-dashboard = {
+      enable = true;
 
-  services.homepage-dashboard = {
-    enable = true;
-    # Restrict accepted Host headers to the public dashboard hostname.
-    allowedHosts = "home.${domain}";
+      settings = {
+        title = "Derezzed";
+        theme = "dark";
+        color = "slate";
+        headerStyle = "clean";
+        layout = {
+          "Media & Requests" = {
+            style = "row";
+            columns = 3;
+          };
 
-    # Only advertise services that are intentionally reachable through the
-    # public reverse-proxy path. pgAdmin is loopback-only and Shoko is
-    # LAN-only; neither should be listed here.
-    services = [
-      {
+          "Downloads" = {
+            style = "row";
+            columns = 4;
+          };
+
+          "Identity / communication" = {
+            style = "row";
+            columns = 3;
+          };
+
+          "Monitoring" = {
+            style = "row";
+            columns = 3;
+          };
+        };
+      };
+
+      services = {
         "Media & Requests" = [
           (mkLink "Jellyfin" "jellyfin" "Media Streaming" "jellyfin.png")
           (mkLink "Seerr" "seerr" "Media Requests" "seerr.png")
-          (mkLink "Audiobookshelf" "audiobookshelf" "Audiobooks & Podcasts" "audiobookshelf.png")
           (mkLink "PeerTube" "peertube" "Self-hosted Video" "peertube.png")
         ];
-      }
-      {
-        "Automation & Downloads" = [
-          (mkLink "Sonarr" "sonarr" "TV Shows" "sonarr.png")
-          (mkLink "Radarr" "radarr" "Movies" "radarr.png")
-          (mkLink "Prowlarr" "prowlarr" "Indexers Automation" "prowlarr.png")
-          (mkLink "Bazarr" "bazarr" "Subtitles Automation" "bazarr.png")
+
+        "Downloads" = [
+          (mkLink "Sonarr" "sonarr" "TV Automation" "sonarr.png")
+          (mkLink "Radarr" "radarr" "Movie Automation" "radarr.png")
+          (mkLink "Prowlarr" "prowlarr" "Indexer Management" "prowlarr.png")
+          (mkLink "Bazarr" "bazarr" "Subtitles" "bazarr.png")
           (mkLink "Lidarr" "lidarr" "Music Automation" "lidarr.png")
-          (mkLink "qBittorrent" "qb" "Torrents" "qbittorrent.png")
-          (mkLink "Autobrr" "autobrr" "IRC Torrent Filters" "autobrr.png")
+          (mkLink "qBittorrent" "qbittorrent" "Torrent Client" "qbittorrent.png")
+          (mkLink "Autobrr" "autobrr" "Release Automation" "autobrr.png")
+          (mkLink "Recyclarr" "recyclarr" "Sonarr/Radarr Quality Profiles" "recyclarr.png")
         ];
-      }
-      {
-        "Communication" = [
-          (mkLink "Matrix" "matrix" "Matrix Synapse" "matrix.png")
+
+        "Identity / communication" = [
           (mkLink "Vaultwarden" "vaultwarden" "Password Manager" "vaultwarden.png")
+          (mkLink "Matrix" "matrix" "Chat" "matrix.png")
+          (mkLink "Matrix RTC" "matrix-rtc" "Voice & Video" "matrix.png")
         ];
-      }
-      {
-        "Music & Radio" = [
-          (mkLink "Radio" "radio" "Icecast Radio" "icecast.png")
+
+        "Monitoring" = [
+          (mkLink "Grafana" "grafana" "Dashboards" "grafana.png")
+          (mkLink "Prometheus" "prometheus" "Metrics" "prometheus.png")
+          (mkLink "Alertmanager" "alertmanager" "Alerts" "alertmanager.png")
         ];
-      }
-      {
-        "System & Monitoring" = [
-          (mkLink "Grafana" "grafana" "Metrics & Dashboards" "grafana.png")
-        ];
-      }
-    ];
+      };
+    };
   };
 }

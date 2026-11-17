@@ -108,7 +108,6 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.backupFileExtension = "backup";
             home-manager.users.aljam = import ./users/aljam/home.nix;
             home-manager.extraSpecialArgs = {
               inherit inputs pkgs-stable hostname;
@@ -281,6 +280,10 @@
         servarr-media-access =
           nixpkgs.legacyPackages.${system}.testers.runNixOSTest
             ./tests/servarr-media-access.nix;
+
+        lidarr-restore-drill = import ./tests/lidarr-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
 
         postgresql-database-isolation = import ./tests/postgresql-database-isolation.nix {
           pkgs = nixpkgs.legacyPackages.${system};

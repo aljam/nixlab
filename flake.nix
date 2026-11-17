@@ -289,6 +289,10 @@
           pkgs = nixpkgs.legacyPackages.${system};
         };
 
+        postgresql-restore-drill = import ./tests/postgresql-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
         alert-delivery = import ./tests/alert-delivery.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };

@@ -74,7 +74,7 @@ pkgs.testers.nixosTest {
           "sudo -u vaultwarden sqlite3 "
           "/var/lib/vaultwarden-restore/data/db.sqlite3 "
           "'CREATE TABLE restore_probe (id INTEGER PRIMARY KEY, label TEXT); "
-          "INSERT INTO restore_probe VALUES (1, \'restore-drill\');'"
+          "INSERT INTO restore_probe VALUES (1, \"restore-drill\");'"
         )
         vaultwarden.succeed(
           "sudo -u vaultwarden sqlite3 "

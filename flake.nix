@@ -293,6 +293,10 @@
           pkgs = nixpkgs.legacyPackages.${system};
         };
 
+        matrix-restore-drill = import ./tests/matrix-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
         alert-delivery = import ./tests/alert-delivery.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };

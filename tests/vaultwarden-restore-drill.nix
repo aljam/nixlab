@@ -48,7 +48,6 @@ pkgs.testers.nixosTest {
   };
 
   testScript = ''
-    import json
     import shlex
 
     vaultwarden.start()
@@ -68,7 +67,7 @@ pkgs.testers.nixosTest {
         output = vaultwarden.succeed(
           "curl --fail --silent --show-error http://127.0.0.1:8222/alive"
         )
-        assert json.loads(output).get("status") == "alive", output
+        assert output.strip() == "alive", output
 
     with subtest("representative Vaultwarden state is backed up"):
         vaultwarden.succeed(
@@ -136,7 +135,7 @@ pkgs.testers.nixosTest {
         output = vaultwarden.succeed(
           "curl --fail --silent --show-error http://127.0.0.1:8222/alive"
         )
-        assert json.loads(output).get("status") == "alive", output
+        assert output.strip() == "alive", output
 
     with subtest("temporary recovery artifacts are removed"):
         vaultwarden.succeed("rm -rf -- /tmp/vaultwarden-restore-drill")

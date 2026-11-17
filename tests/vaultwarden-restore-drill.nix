@@ -127,9 +127,7 @@ pkgs.testers.nixosTest {
         )
 
     with subtest("Vaultwarden starts against restored state"):
-        vaultwarden.succeed(
-          "sudo -u vaultwarden systemctl restart vaultwarden.service"
-        )
+        vaultwarden.succeed("systemctl restart vaultwarden.service")
         vaultwarden.wait_for_unit("vaultwarden.service")
         vaultwarden.wait_for_open_port(8222)
 

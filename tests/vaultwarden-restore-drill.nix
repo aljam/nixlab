@@ -27,6 +27,10 @@ pkgs.testers.nixosTest {
       };
     };
 
+    systemd.services.vaultwarden.serviceConfig.ReadWritePaths = [
+      "/var/lib/vaultwarden-restore"
+    ];
+
     users.users.vaultwarden.extraGroups = [ "vaultwarden-restore" ];
     users.groups.vaultwarden-restore = { };
 

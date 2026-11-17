@@ -48,6 +48,8 @@ pkgs.testers.nixosTest {
       listenWeb = 9000;
       enableWebHttps = false;
 
+      secrets.secretsFile = "/etc/peertube-restore-secrets";
+
       redis = {
         enableUnixSocket = false;
         host = "127.0.0.1";
@@ -82,6 +84,12 @@ pkgs.testers.nixosTest {
       mode = "0400";
       user = "peertube";
       text = "vm-only-peertube-restore\n";
+    };
+
+    environment.etc."peertube-restore-secrets" = {
+      mode = "0400";
+      user = "peertube";
+      text = "vm-only-peertube-restore-secret\n";
     };
 
     users.users.peertube.extraGroups = [ "peertube-restore" ];

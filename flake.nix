@@ -108,7 +108,6 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.backupFileExtension = "backup";
             home-manager.users.aljam = import ./users/aljam/home.nix;
             home-manager.extraSpecialArgs = {
               inherit inputs pkgs-stable hostname;
@@ -263,6 +262,10 @@
           pkgs = nixpkgs.legacyPackages.${system};
         };
 
+        public-service-recovery-drill = import ./tests/public-service-recovery-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
         monitoring-coverage = import ./tests/monitoring-coverage.nix {
           pkgs = nixpkgs.legacyPackages.${system};
           hosts = self.nixosConfigurations;
@@ -283,6 +286,18 @@
             ./tests/servarr-media-access.nix;
 
         postgresql-database-isolation = import ./tests/postgresql-database-isolation.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        postgresql-restore-drill = import ./tests/postgresql-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        matrix-restore-drill = import ./tests/matrix-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        vaultwarden-restore-drill = import ./tests/vaultwarden-restore-drill.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };
 

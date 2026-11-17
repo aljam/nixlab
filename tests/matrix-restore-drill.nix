@@ -119,9 +119,10 @@ pkgs.testers.nixosTest {
     dump_path = "/tmp/matrix-restore-drill/matrix_synapse_restore.dump"
     restored_database = "matrix_synapse_restored"
 
+    # pg_dump runs as the postgres user, so its output directory must
+    # be writable by that user.
     matrix.succeed(
-      "install -d -m 0700 -o matrix-synapse -g matrix-synapse-restore "
-      "/tmp/matrix-restore-drill"
+      "install -d -m 0700 -o postgres -g postgres /tmp/matrix-restore-drill"
     )
 
     with subtest("representative Synapse database backup is created"):

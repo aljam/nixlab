@@ -78,6 +78,11 @@ pkgs.testers.nixosTest {
           "--options='-k /tmp -p 5433' start"
         )
         database.succeed(
+          "sudo -u postgres psql -X -v ON_ERROR_STOP=1 "
+          "--host=/tmp --port=5433 --dbname=postgres --command="
+          + shlex.quote("CREATE ROLE restore_probe LOGIN")
+        )
+        database.succeed(
           "sudo -u postgres pg_restore --dbname=postgres --host=/tmp --port=5433 "
           "--create --exit-on-error "
           + shlex.quote(dump_path)

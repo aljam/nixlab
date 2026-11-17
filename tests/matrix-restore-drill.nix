@@ -173,9 +173,7 @@ pkgs.testers.nixosTest {
         )
 
     with subtest("Synapse starts against restored database and media store"):
-        matrix.succeed(
-          "sudo -u matrix-synapse systemctl restart matrix-synapse.service"
-        )
+        matrix.succeed("systemctl restart matrix-synapse.service")
         matrix.wait_for_unit("matrix-synapse.service")
         matrix.wait_for_open_port(8008)
 

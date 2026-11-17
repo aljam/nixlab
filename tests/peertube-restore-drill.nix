@@ -59,7 +59,7 @@ pkgs.testers.nixosTest {
         port = 5432;
         name = "peertube_restore";
         user = "peertube_restore";
-        password = "vm-only-peertube-restore";
+        passwordFile = "/etc/peertube-restore-db-password";
       };
 
       settings = {
@@ -76,6 +76,12 @@ pkgs.testers.nixosTest {
         storage.streaming_playlists = "/var/lib/peertube-restore/storage/streaming-playlists";
         signup.enabled = false;
       };
+    };
+
+    environment.etc."peertube-restore-db-password" = {
+      mode = "0400";
+      user = "peertube";
+      text = "vm-only-peertube-restore\n";
     };
 
     users.users.peertube.extraGroups = [ "peertube-restore" ];
@@ -188,9 +194,7 @@ pkgs.testers.nixosTest {
         )
 
     with subtest("PeerTube starts against restored database and storage"):
-        peertube.succeed(
-          "sudo -u peertube systemctl restart peertube.service"
-        )
+        peertube.succeed("systemctl restart peertube.service")
         peertube.wait_for_unit("peertube.service")
         peertube.wait_for_open_port(9000)
 

@@ -160,11 +160,11 @@ pkgs.testers.nixosTest {
 
     with subtest("temporary media store is restored with intended ownership"):
         matrix.succeed(
-          "sudo -u matrix-synapse install -d -m 0750 "
+          "install -d -m 0750 -o matrix-synapse -g matrix-synapse-restore "
           "/var/lib/matrix-synapse-restore/media_store/restored"
         )
         matrix.succeed(
-          "sudo -u matrix-synapse install -m 0640 /dev/null "
+          "install -m 0640 -o matrix-synapse -g matrix-synapse-restore /dev/null "
           "/var/lib/matrix-synapse-restore/media_store/restored/probe"
         )
         matrix.succeed(

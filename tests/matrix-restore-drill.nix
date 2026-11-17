@@ -101,6 +101,21 @@ pkgs.testers.nixosTest {
       + shlex.quote("ALTER ROLE matrix_synapse_restore PASSWORD 'vm-only-matrix-restore'")
     )
 
+    # Synapse requires a C-collated database. Recreate the VM-only
+    # restore database before Synapse starts its service restart loop.
+    matrix.succeed("systemctl stop matrix-synapse.service || true")
+    matrix.succeed(
+      "sudo -u postgres psql -X -v ON_ERROR_STOP=1 -c "
+      + shlex.quote("DROP DATABASE IF EXISTS matrix_synapse_restore")
+    )
+    matrix.succeed(
+      "sudo -u postgres psql -X -v ON_ERROR_STOP=1 -c "
+      + shlex.quote(
+        "CREATE DATABASE matrix_synapse_restore OWNER matrix_synapse_restore "
+        "TEMPLATE template0 LC_COLLATE 'C' LC_CTYPE 'C'"
+      )
+    )
+
     dump_path = "/tmp/matrix-restore-drill/matrix_synapse_restore.dump"
     restored_database = "matrix_synapse_restored"
 
@@ -110,6 +125,7 @@ pkgs.testers.nixosTest {
     )
 
     with subtest("representative Synapse database backup is created"):
+        matrix.succeed("systemctl start matrix-synapse.service")
         matrix.wait_for_unit("matrix-synapse.service")
         matrix.wait_for_open_port(8008)
 
@@ -127,7 +143,7 @@ pkgs.testers.nixosTest {
     with subtest("Synapse database restores into an isolated database"):
         matrix.succeed(
           "sudo -u postgres psql -X -v ON_ERROR_STOP=1 -c "
-          + shlex.quote(f"CREATE DATABASE {restored_database} OWNER matrix_synapse_restore")
+          + shlex.quote(f"CREATE DATABASE {restored_database} OWNER matrix_synapse_restore TEMPLATE template0 LC_COLLATE 'C' LC_CTYPE 'C'")
         )
         matrix.succeed(
           "sudo -u postgres pg_restore --dbname=" + shlex.quote(restored_database) + " "

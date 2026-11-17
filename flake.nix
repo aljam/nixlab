@@ -262,6 +262,10 @@
           pkgs = nixpkgs.legacyPackages.${system};
         };
 
+        public-service-recovery-drill = import ./tests/public-service-recovery-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
         monitoring-coverage = import ./tests/monitoring-coverage.nix {
           pkgs = nixpkgs.legacyPackages.${system};
           hosts = self.nixosConfigurations;

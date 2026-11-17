@@ -108,7 +108,6 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.backupFileExtension = "backup";
             home-manager.users.aljam = import ./users/aljam/home.nix;
             home-manager.extraSpecialArgs = {
               inherit inputs pkgs-stable hostname;
@@ -263,6 +262,10 @@
           pkgs = nixpkgs.legacyPackages.${system};
         };
 
+        public-service-recovery-drill = import ./tests/public-service-recovery-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
         monitoring-coverage = import ./tests/monitoring-coverage.nix {
           pkgs = nixpkgs.legacyPackages.${system};
           hosts = self.nixosConfigurations;
@@ -281,6 +284,14 @@
         servarr-media-access =
           nixpkgs.legacyPackages.${system}.testers.runNixOSTest
             ./tests/servarr-media-access.nix;
+
+        media-stack-restore-drill = import ./tests/media-stack-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        jellyfin-restore-drill = import ./tests/jellyfin-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
 
         postgresql-database-isolation = import ./tests/postgresql-database-isolation.nix {
           pkgs = nixpkgs.legacyPackages.${system};

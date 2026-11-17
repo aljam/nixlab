@@ -110,7 +110,6 @@ pkgs.testers.nixosTest {
   };
 
   testScript = ''
-    import json
     import shlex
 
     peertube.start()

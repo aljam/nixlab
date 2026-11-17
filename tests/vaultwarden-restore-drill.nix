@@ -76,7 +76,9 @@ pkgs.testers.nixosTest {
         vaultwarden.succeed(
           "sudo -u vaultwarden sqlite3 "
           "/var/lib/vaultwarden-restore/data/db.sqlite3 "
-          "'.backup ' + shlex.quote(database_backup)
+          "'.backup "
+          + shlex.quote(database_backup)
+          + "'"
         )
         vaultwarden.succeed("test -s " + shlex.quote(database_backup))
 

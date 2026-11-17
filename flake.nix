@@ -281,6 +281,10 @@
           nixpkgs.legacyPackages.${system}.testers.runNixOSTest
             ./tests/servarr-media-access.nix;
 
+        homepage-restore-drill = import ./tests/homepage-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
         postgresql-database-isolation = import ./tests/postgresql-database-isolation.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };

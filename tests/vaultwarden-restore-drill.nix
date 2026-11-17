@@ -106,9 +106,10 @@ pkgs.testers.nixosTest {
           + " /var/lib/vaultwarden-restore/restored-data/db.sqlite3"
         )
         vaultwarden.succeed(
-          "sudo -u vaultwarden cp -a "
-          + shlex.quote(attachments_backup)
-          + "/. /var/lib/vaultwarden-restore/restored-attachments/"
+          "sudo -u vaultwarden install -m 0640 -o vaultwarden "
+          "-g vaultwarden-restore "
+          + shlex.quote(f"{attachments_backup}/restore-probe")
+          + " /var/lib/vaultwarden-restore/restored-attachments/restore-probe"
         )
 
         output = vaultwarden.succeed(

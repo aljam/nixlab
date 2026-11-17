@@ -100,16 +100,18 @@ let
     "docs/runbooks/incident-evidence.md"
   ];
 
-  missingRecoveryLinks = lib.filter (
-    link: !(lib.hasInfix link recoveryMatrix)
-  ) requiredRecoveryLinks;
+  missingRecoveryLinks = lib.filter (link: !(lib.hasInfix link recoveryMatrix)) requiredRecoveryLinks;
 
   failures =
     lib.optionals (endpoints == [ ]) [ "Public endpoint inventory must contain at least one endpoint" ]
     ++ map (name: "Public endpoint name is duplicated: ${name}") duplicateNames
     ++ endpointFailures
-    ++ map (topic: "Public-service recovery matrix is missing recovery topic: ${topic}") missingRecoveryTopics
-    ++ map (link: "Public-service recovery matrix is missing required link: ${link}") missingRecoveryLinks;
+    ++ map (
+      topic: "Public-service recovery matrix is missing recovery topic: ${topic}"
+    ) missingRecoveryTopics
+    ++ map (
+      link: "Public-service recovery matrix is missing required link: ${link}"
+    ) missingRecoveryLinks;
 
   failureReport = pkgs.writeText "public-service-recovery-drill-failures" (
     lib.concatStringsSep "\n" failures

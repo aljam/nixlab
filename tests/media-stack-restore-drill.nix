@@ -58,7 +58,6 @@ pkgs.testers.nixosTest {
   };
 
   testScript = ''
-    import json
     import shlex
 
     media.start()

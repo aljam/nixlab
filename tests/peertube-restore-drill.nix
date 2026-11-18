@@ -80,6 +80,8 @@ pkgs.testers.nixosTest {
       };
     };
 
+    systemd.services.peertube.wantedBy = lib.mkForce [ ];
+
     environment.etc."peertube-restore-db-password" = {
       mode = "0400";
       user = "peertube";
@@ -132,6 +134,7 @@ pkgs.testers.nixosTest {
     )
 
     with subtest("PeerTube local API is available before backup"):
+        peertube.succeed("systemctl start peertube.service")
         peertube.wait_for_unit("peertube.service")
         peertube.wait_for_open_port(9000)
 

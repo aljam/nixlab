@@ -135,6 +135,10 @@ pkgs.testers.nixosTest {
 
     with subtest("PeerTube local API is available before backup"):
         peertube.succeed("systemctl start peertube.service")
+        peertube.succeed("sleep 30")
+        peertube.succeed(
+          "journalctl -u peertube.service --no-pager | tail -n 300"
+        )
         peertube.wait_for_unit("peertube.service")
         peertube.wait_for_open_port(9000)
 

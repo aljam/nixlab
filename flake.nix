@@ -216,7 +216,7 @@
             rev="$(git rev-parse HEAD)"
 
             if [[ ! "$rev" =~ ^[0-9a-f]{40}$ ]]; then
-              echo "Refusing to deploy: unable to resolve a full commit SHA" >&2
+              echo "Refusing to deploy: unable to resolve a full commit SHA." >&2
               exit 1
             fi
 

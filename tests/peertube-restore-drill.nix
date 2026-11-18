@@ -85,7 +85,7 @@ pkgs.testers.nixosTest {
     environment.etc."peertube-restore-db-password" = {
       mode = "0400";
       user = "peertube";
-      text = "vm-only-peertube-restore\n";
+      text = "vm-only-peertube-restore";
     };
 
     environment.etc."peertube-restore-secrets" = {

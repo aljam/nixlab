@@ -128,13 +128,18 @@ pkgs.testers.nixosTest {
       + shlex.quote("ALTER ROLE peertube_restore PASSWORD 'vm-only-peertube-restore'")
     )
 
-    backup_root = "/tmp/peertube-restore-drill"
-    database_backup = f"{backup_root}/peertube_restore.dump"
-    videos_backup = f"{backup_root}/videos"
+    database_backup_root = "/tmp/peertube-restore-database"
+    videos_backup_root = "/tmp/peertube-restore-videos"
+    database_backup = f"{database_backup_root}/peertube_restore.dump"
+    videos_backup = f"{videos_backup_root}/videos"
 
     peertube.succeed(
+      "install -d -m 0700 -o postgres -g postgres "
+      + shlex.quote(database_backup_root)
+    )
+    peertube.succeed(
       "install -d -m 0700 -o peertube -g peertube-restore "
-      + shlex.quote(backup_root)
+      + shlex.quote(videos_backup_root)
     )
 
     with subtest("PeerTube local API is available before backup"):
@@ -218,6 +223,8 @@ pkgs.testers.nixosTest {
         )
 
     with subtest("temporary recovery artifacts are removed"):
-        peertube.succeed("rm -rf -- /tmp/peertube-restore-drill")
+        peertube.succeed(
+          "rm -rf -- /tmp/peertube-restore-database /tmp/peertube-restore-videos"
+        )
   '';
 }

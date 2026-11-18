@@ -137,11 +137,12 @@ pkgs.testers.nixosTest {
         peertube.succeed("systemctl start peertube.service")
         peertube.succeed("sleep 30")
 
-        ready = peertube.execute(
+        _, ready = peertube.execute(
           "curl --fail --silent --show-error "
           "http://127.0.0.1:9000/api/v1/search/videos/ >/dev/null 2>&1 "
           "&& echo ready || echo not-ready"
-        ).strip()
+        )
+        ready = ready.strip()
 
         if ready != "ready":
             peertube.succeed(

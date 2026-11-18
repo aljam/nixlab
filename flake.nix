@@ -288,8 +288,28 @@
         media-stack-restore-drill = import ./tests/media-stack-restore-drill.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };
+        
+        homepage-restore-drill = import ./tests/homepage-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
 
         postgresql-database-isolation = import ./tests/postgresql-database-isolation.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        postgresql-restore-drill = import ./tests/postgresql-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        matrix-restore-drill = import ./tests/matrix-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        vaultwarden-restore-drill = import ./tests/vaultwarden-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        peertube-restore-drill = import ./tests/peertube-restore-drill.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };
 

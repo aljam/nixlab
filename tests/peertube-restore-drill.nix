@@ -171,7 +171,7 @@ pkgs.testers.nixosTest {
           + shlex.quote(videos_backup)
         )
         peertube.succeed(
-          "sudo -u peertube install -m 0640 /dev/null "
+          "sudo -u peertube install -o peertube -g peertube-restore -m 0640 /dev/null "
           + shlex.quote(f"{videos_backup}/restore-probe")
         )
 

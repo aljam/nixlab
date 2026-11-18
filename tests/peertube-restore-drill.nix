@@ -136,9 +136,21 @@ pkgs.testers.nixosTest {
     with subtest("PeerTube local API is available before backup"):
         peertube.succeed("systemctl start peertube.service")
         peertube.succeed("sleep 30")
-        peertube.succeed(
-          "journalctl -u peertube.service --no-pager | tail -n 300"
-        )
+
+        ready = peertube.execute(
+          "curl --fail --silent --show-error "
+          "http://127.0.0.1:9000/api/v1/search/videos/ >/dev/null 2>&1 "
+          "&& echo ready || echo not-ready"
+        ).strip()
+
+        if ready != "ready":
+            peertube.succeed(
+              "journalctl -u peertube.service --no-pager | "
+              "grep -iE 'error|exception|migration|sequelize|postgres' | "
+              "tail -n 15"
+            )
+            peertube.fail("PeerTube did not become ready; see diagnostics above")
+
         peertube.wait_for_unit("peertube.service")
         peertube.wait_for_open_port(9000)
 

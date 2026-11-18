@@ -79,12 +79,12 @@ pkgs.testers.nixosTest {
         media.wait_for_open_port(8989)
 
         media.succeed(
-          "curl --fail --silent --show-error http://127.0.0.1:7878/api/v3/system/status"
-          " | jq -e 'has(\"version\")'"
+          "curl --fail --silent --show-error http://127.0.0.1:7878/ping"
+          " | jq -e '.status == \"OK\"'"
         )
         media.succeed(
-          "curl --fail --silent --show-error http://127.0.0.1:8989/api/v3/system/status"
-          " | jq -e 'has(\"version\")'"
+          "curl --fail --silent --show-error http://127.0.0.1:8989/ping"
+          " | jq -e '.status == \"OK\"'"
         )
 
     with subtest("representative Radarr and Sonarr state is backed up"):
@@ -188,12 +188,12 @@ pkgs.testers.nixosTest {
 
     with subtest("Radarr and Sonarr remain healthy after restore validation"):
         media.succeed(
-          "curl --fail --silent --show-error http://127.0.0.1:7878/api/v3/system/status"
-          " | jq -e 'has(\"version\")'"
+          "curl --fail --silent --show-error http://127.0.0.1:7878/ping"
+          " | jq -e '.status == \"OK\"'"
         )
         media.succeed(
-          "curl --fail --silent --show-error http://127.0.0.1:8989/api/v3/system/status"
-          " | jq -e 'has(\"version\")'"
+          "curl --fail --silent --show-error http://127.0.0.1:8989/ping"
+          " | jq -e '.status == \"OK\"'"
         )
 
     with subtest("temporary recovery artifacts are removed"):

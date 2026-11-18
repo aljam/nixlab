@@ -305,6 +305,10 @@
           pkgs = nixpkgs.legacyPackages.${system};
         };
 
+        peertube-restore-drill = import ./tests/peertube-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
         alert-delivery = import ./tests/alert-delivery.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };

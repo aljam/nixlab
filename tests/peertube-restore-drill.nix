@@ -137,12 +137,14 @@ pkgs.testers.nixosTest {
 
     with subtest("PeerTube local API is available before backup"):
         peertube.succeed("systemctl start peertube.service")
-        peertube.wait_for_unit("peertube.service")
-        peertube.wait_for_open_port(9000)
+        peertube.succeed("sleep 45")
 
-        output = peertube.succeed(
-          "curl --fail --silent --show-error "
-          "http://127.0.0.1:9000/api/v1/search/videos/ | jq -e 'has(\"total\")'"
+        _, diagnostics = peertube.execute(
+          "journalctl -u peertube.service --no-pager --since '-5 minutes' | "
+          "sed -n '1,160p'"
+        )
+        raise Exception(
+          "Temporary PeerTube first-start diagnostic:\n" + diagnostics
         )
 
     with subtest("representative PeerTube state is backed up"):

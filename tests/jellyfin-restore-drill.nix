@@ -49,6 +49,11 @@ pkgs.testers.nixosTest {
     jellyfin.wait_for_unit("jellyfin.service")
     jellyfin.wait_for_open_port(8096)
 
+    _, journal = jellyfin.execute(
+      "journalctl -u jellyfin --no-pager -n 200"
+    )
+    print(journal)
+
     backup_root = "/tmp/jellyfin-restore-drill"
     data_backup = f"{backup_root}/data"
     config_backup = f"{backup_root}/config"

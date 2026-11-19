@@ -64,13 +64,23 @@ pkgs.testers.nixosTest {
           + shlex.quote(config_backup) + "/"
         )
 
+        fastresume_probe = f"{torrent_backup}/restore-probe.fastresume"
+        torrent_probe = f"{torrent_backup}/restore-probe.torrent"
+
         qbittorrent.succeed(
           "sudo -u qbittorrent install -m 0640 /dev/null "
-          + shlex.quote(f"{torrent_backup}/restore-probe.fastresume")
+          + shlex.quote(fastresume_probe)
         )
         qbittorrent.succeed(
+          "sudo -u qbittorrent truncate -s 1 " + shlex.quote(fastresume_probe)
+        )
+
+        qbittorrent.succeed(
           "sudo -u qbittorrent install -m 0640 /dev/null "
-          + shlex.quote(f"{torrent_backup}/restore-probe.torrent")
+          + shlex.quote(torrent_probe)
+        )
+        qbittorrent.succeed(
+          "sudo -u qbittorrent truncate -s 1 " + shlex.quote(torrent_probe)
         )
 
     with subtest("qBittorrent state restores into an isolated environment"):

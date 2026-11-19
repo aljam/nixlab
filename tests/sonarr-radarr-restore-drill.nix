@@ -60,6 +60,14 @@ pkgs.testers.nixosTest {
   testScript = ''
     import shlex
 
+    def servarr_status(port, api_key):
+        return (
+          "curl --fail --silent --show-error -H "
+          + shlex.quote(f"X-Api-Key: {api_key}")
+          + f" http://127.0.0.1:{port}/api/v3/system/status"
+          + " | jq -e 'has(\"version\")'"
+        )
+
     media.start()
     media.wait_for_unit("multi-user.target", timeout=120)
 
@@ -78,13 +86,20 @@ pkgs.testers.nixosTest {
         media.wait_for_open_port(7878)
         media.wait_for_open_port(8989)
 
-        media.succeed(
-          "curl --fail --silent --show-error http://127.0.0.1:7878/api/v3/system/status"
-          " | jq -e 'has(\"version\")'"
+        radarr_api_key = media.succeed(
+          "grep -o '<ApiKey>[^<]*' /var/lib/radarr-restore/config.xml "
+          "| cut -d '>' -f2"
+        ).strip()
+        sonarr_api_key = media.succeed(
+          "grep -o '<ApiKey>[^<]*' /var/lib/sonarr-restore/config.xml "
+          "| cut -d '>' -f2"
+        ).strip()
+
+        media.wait_until_succeeds(
+          servarr_status(7878, radarr_api_key), timeout=180
         )
-        media.succeed(
-          "curl --fail --silent --show-error http://127.0.0.1:8989/api/v3/system/status"
-          " | jq -e 'has(\"version\")'"
+        media.wait_until_succeeds(
+          servarr_status(8989, sonarr_api_key), timeout=180
         )
 
     with subtest("representative Radarr and Sonarr state is backed up"):
@@ -187,14 +202,8 @@ pkgs.testers.nixosTest {
         )
 
     with subtest("Radarr and Sonarr remain healthy after restore validation"):
-        media.succeed(
-          "curl --fail --silent --show-error http://127.0.0.1:7878/api/v3/system/status"
-          " | jq -e 'has(\"version\")'"
-        )
-        media.succeed(
-          "curl --fail --silent --show-error http://127.0.0.1:8989/api/v3/system/status"
-          " | jq -e 'has(\"version\")'"
-        )
+        media.succeed(servarr_status(7878, radarr_api_key))
+        media.succeed(servarr_status(8989, sonarr_api_key))
 
     with subtest("temporary recovery artifacts are removed"):
         media.succeed("rm -rf -- /tmp/sonarr-radarr-restore-drill")

@@ -285,6 +285,10 @@
           nixpkgs.legacyPackages.${system}.testers.runNixOSTest
             ./tests/servarr-media-access.nix;
 
+        sonarr-radarr-restore-drill = import ./tests/sonarr-radarr-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
         qbittorrent-restore-drill = import ./tests/qbittorrent-restore-drill.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };

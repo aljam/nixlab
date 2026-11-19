@@ -49,6 +49,8 @@ pkgs.testers.nixosTest {
       "d /srv/media-restore/tv 2775 sonarr media -"
       "d /var/lib/radarr-restore 0750 radarr radarr -"
       "d /var/lib/sonarr-restore 0750 sonarr sonarr -"
+      "d /var/lib/radarr-restored 0750 radarr radarr -"
+      "d /var/lib/sonarr-restored 0750 sonarr sonarr -"
     ];
 
     environment.systemPackages = with pkgs; [
@@ -127,16 +129,10 @@ pkgs.testers.nixosTest {
 
     with subtest("Radarr and Sonarr state restores into isolated directories"):
         media.succeed(
-          "sudo -u radarr install -d -m 0750 /var/lib/radarr-restored"
-        )
-        media.succeed(
           "sudo -u radarr cp -a " + shlex.quote(radarr_backup) + "/. "
           "/var/lib/radarr-restored/"
         )
 
-        media.succeed(
-          "sudo -u sonarr install -d -m 0750 /var/lib/sonarr-restored"
-        )
         media.succeed(
           "sudo -u sonarr cp -a " + shlex.quote(sonarr_backup) + "/. "
           "/var/lib/sonarr-restored/"

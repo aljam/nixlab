@@ -13,6 +13,8 @@ pkgs.testers.nixosTest {
   name = "jellyfin-restore-drill";
 
   nodes.jellyfin = { lib, ... }: {
+    virtualisation.diskSize = 8192;
+
     users.groups.media = { };
 
     users.users.jellyfin.extraGroups = [ "media" ];
@@ -25,15 +27,16 @@ pkgs.testers.nixosTest {
       cacheDir = "/var/lib/jellyfin-restore/cache";
     };
 
-    systemd.services.jellyfin.environment.DOTNET_EnableDiagnostics = "0";
-
     systemd.tmpfiles.rules = [
       "d /srv/jellyfin-restore 2775 root media -"
       "d /srv/jellyfin-restore/movies 2775 jellyfin media -"
-      "d /var/lib/jellyfin-restore 0750 jellyfin jellyfin -"
-      "d /var/lib/jellyfin-restore/data 0750 jellyfin jellyfin -"
-      "d /var/lib/jellyfin-restore/config 0750 jellyfin jellyfin -"
-      "d /var/lib/jellyfin-restore/cache 0750 jellyfin jellyfin -"
+      "d /var/lib/jellyfin-restore 0750 jellyfin media -"
+      "d /var/lib/jellyfin-restore/data 0750 jellyfin media -"
+      "d /var/lib/jellyfin-restore/config 0750 jellyfin media -"
+      "d /var/lib/jellyfin-restore/cache 0750 jellyfin media -"
+      "d /var/lib/jellyfin-restored 0750 jellyfin media -"
+      "d /var/lib/jellyfin-restored/data 0750 jellyfin media -"
+      "d /var/lib/jellyfin-restored/config 0750 jellyfin media -"
     ];
 
     environment.systemPackages = with pkgs; [
@@ -62,7 +65,7 @@ pkgs.testers.nixosTest {
     media_backup = f"{backup_root}/media"
 
     jellyfin.succeed(
-      "install -d -m 0700 -o root -g root " + shlex.quote(backup_root)
+      "install -d -m 0700 -o jellyfin -g media " + shlex.quote(backup_root)
     )
 
     with subtest("Jellyfin local system API is available before backup"):

@@ -21,6 +21,7 @@ pkgs.testers.nixosTest {
       "d /srv/qbittorrent-restore 2775 qbittorrent qbittorrent -"
       "d /srv/qbittorrent-restore/downloads 2775 qbittorrent qbittorrent -"
       "d /var/lib/qbittorrent 0750 qbittorrent qbittorrent -"
+      "d /var/lib/qbittorrent-restored 0750 qbittorrent qbittorrent -"
     ];
 
     environment.systemPackages = with pkgs; [
@@ -74,7 +75,7 @@ pkgs.testers.nixosTest {
 
     with subtest("qBittorrent state restores into an isolated environment"):
         qbittorrent.succeed(
-          "sudo -u qbittorrent install -d -m 0750 "
+          "install -d -m 0750 -o qbittorrent -g qbittorrent "
           "/var/lib/qbittorrent-restored"
         )
         qbittorrent.succeed(

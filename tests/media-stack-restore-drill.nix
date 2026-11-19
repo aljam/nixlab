@@ -113,7 +113,8 @@ pkgs.testers.nixosTest {
         )
 
         media.succeed(
-          "sudo -u radarr install -d -m 0750 " + shlex.quote(media_backup)
+          "sudo -u radarr install -d -m 2770 -o radarr -g media "
+          + shlex.quote(media_backup)
         )
         media.succeed(
           "sudo -u radarr install -m 0660 /dev/null "

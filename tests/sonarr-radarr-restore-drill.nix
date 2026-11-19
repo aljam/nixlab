@@ -129,8 +129,12 @@ pkgs.testers.nixosTest {
           + shlex.quote(sonarr_backup) + "/"
         )
 
+        # Radarr creates the shared media backup directory, but Sonarr must be
+        # able to add its own probe file. Use the shared media group and a
+        # group-writable directory.
         media.succeed(
-          "sudo -u radarr install -d -m 0750 " + shlex.quote(media_backup)
+          "sudo -u radarr install -d -m 0775 -o radarr -g media "
+          + shlex.quote(media_backup)
         )
         media.succeed(
           "sudo -u radarr install -m 0660 /dev/null "

@@ -15,13 +15,12 @@ pkgs.testers.nixosTest {
     services.qbittorrent = {
       enable = true;
       webuiPort = 8080;
-      dataDir = "/var/lib/qbittorrent-restore";
     };
 
     systemd.tmpfiles.rules = [
       "d /srv/qbittorrent-restore 2775 qbittorrent qbittorrent -"
       "d /srv/qbittorrent-restore/downloads 2775 qbittorrent qbittorrent -"
-      "d /var/lib/qbittorrent-restore 0750 qbittorrent qbittorrent -"
+      "d /var/lib/qbittorrent 0750 qbittorrent qbittorrent -"
     ];
 
     environment.systemPackages = with pkgs; [
@@ -60,7 +59,7 @@ pkgs.testers.nixosTest {
         )
 
         qbittorrent.succeed(
-          "sudo -u qbittorrent cp -a /var/lib/qbittorrent-restore/. "
+          "sudo -u qbittorrent cp -a /var/lib/qbittorrent/. "
           + shlex.quote(config_backup) + "/"
         )
 

@@ -76,8 +76,10 @@ pkgs.testers.nixosTest {
     sonarr_backup = f"{backup_root}/sonarr"
     media_backup = f"{backup_root}/media"
 
+    # Both service users need to create their own backup subdirectories, so
+    # make the shared parent writable by the media group.
     media.succeed(
-      "install -d -m 0700 -o root -g root " + shlex.quote(backup_root)
+      "install -d -m 0775 -o root -g media " + shlex.quote(backup_root)
     )
 
     with subtest("Radarr and Sonarr local APIs are available before backup"):

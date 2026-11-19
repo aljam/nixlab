@@ -77,8 +77,13 @@ pkgs.testers.nixosTest {
     )
 
     with subtest("Jellyfin local system API is available before backup"):
-        output = jellyfin.succeed(
-          "curl --fail --silent --show-error http://127.0.0.1:8096/System/Info/Public"
+        # Jellyfin may continue startup migrations after /health becomes
+        # available and temporarily serve HTTP 503 from the public system-info
+        # endpoint. Wait for that endpoint before validating its JSON payload.
+        output = jellyfin.wait_until_succeeds(
+          "curl --fail --silent --show-error "
+          "http://127.0.0.1:8096/System/Info/Public",
+          timeout=180,
         )
         parsed = json.loads(output)
         assert parsed.get("id"), output

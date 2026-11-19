@@ -61,6 +61,13 @@ in
     8081
   ];
 
+  networking.firewall.allowedUDPPortRanges = [
+    {
+      from = 50100;
+      to = 50200;
+    }
+  ];
+
   environment.systemPackages = [ livekitTestToken ];
 
   sops.secrets = {

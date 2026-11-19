@@ -112,9 +112,9 @@ pkgs.testers.nixosTest {
         )
 
     with subtest("qBittorrent starts against restored state"):
-        qbittorrent.succeed(
-          "sudo -u qbittorrent systemctl restart qbittorrent.service"
-        )
+        # Restarting a system unit requires root; the qBittorrent service user
+        # does not have permission to manage systemd units.
+        qbittorrent.succeed("systemctl restart qbittorrent.service")
         qbittorrent.wait_for_unit("qbittorrent.service")
         qbittorrent.wait_for_open_port(8080)
 

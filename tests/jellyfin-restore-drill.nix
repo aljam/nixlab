@@ -2,8 +2,8 @@
 #
 # Validates the local recovery path: create a representative Jellyfin
 # configuration/data backup and media-library state, restore both into an
-# isolated environment, start Jellyfin, and verify its local public
-# system-info API.
+# isolated environment, start Jellyfin from the restored state, and verify its
+# local health endpoint.
 #
 # The drill deliberately excludes production Jellyfin data, media, secrets,
 # Restic repositories, transcoding, plugins, remote clients, and public access.
@@ -55,11 +55,10 @@ pkgs.testers.nixosTest {
     jellyfin.wait_for_open_port(8096)
 
     # Jellyfin opens its HTTP listener before it is fully ready to serve
-    # requests. Wait for a successful public API response instead of assuming
-    # that an open TCP port means the application is ready.
+    # requests. The health endpoint verifies both HTTP and database
+    # connectivity, so use it rather than treating an open TCP port as ready.
     jellyfin.wait_until_succeeds(
-      "curl --fail --silent --show-error "
-      "http://127.0.0.1:8096/System/Info/Public",
+      "curl --fail --silent --show-error http://127.0.0.1:8096/health",
       timeout=120,
     )
 
@@ -86,6 +85,11 @@ pkgs.testers.nixosTest {
         assert parsed.get("serverName"), output
 
     with subtest("representative Jellyfin state is backed up"):
+        # Stop Jellyfin before copying its state so the backup captures a
+        # consistent configuration and SQLite database state.
+        jellyfin.succeed("systemctl stop jellyfin")
+        jellyfin.wait_for_unit_state("jellyfin.service", "inactive")
+
         jellyfin.succeed(
           "sudo -u jellyfin install -d -m 0750 "
           + shlex.quote(data_backup) + " "
@@ -130,6 +134,40 @@ pkgs.testers.nixosTest {
           "sudo -u jellyfin test -d /var/lib/jellyfin-restored/config"
         )
 
+    with subtest("Jellyfin starts from the restored state"):
+        # Replace the active state with the restored copy, then start Jellyfin
+        # against it. This validates that the restored configuration and
+        # database can boot, rather than only checking that files were copied.
+        jellyfin.succeed(
+          "mv /var/lib/jellyfin-restore/data "
+          "/var/lib/jellyfin-restore/data.pre-restore"
+        )
+        jellyfin.succeed(
+          "mv /var/lib/jellyfin-restore/config "
+          "/var/lib/jellyfin-restore/config.pre-restore"
+        )
+        jellyfin.succeed(
+          "mv /var/lib/jellyfin-restored/data /var/lib/jellyfin-restore/data"
+        )
+        jellyfin.succeed(
+          "mv /var/lib/jellyfin-restored/config "
+          "/var/lib/jellyfin-restore/config"
+        )
+
+        jellyfin.succeed(
+          "chown -R jellyfin:media /var/lib/jellyfin-restore/data "
+          "/var/lib/jellyfin-restore/config"
+        )
+
+        jellyfin.succeed("systemctl start jellyfin")
+        jellyfin.wait_for_unit("jellyfin.service")
+        jellyfin.wait_for_open_port(8096)
+
+        jellyfin.wait_until_succeeds(
+          "curl --fail --silent --show-error http://127.0.0.1:8096/health",
+          timeout=180,
+        )
+
     with subtest("media library restores with intended ownership"):
         jellyfin.succeed(
           "install -d -m 2775 -o root -g media /srv/jellyfin-restored"
@@ -153,11 +191,8 @@ pkgs.testers.nixosTest {
 
     with subtest("Jellyfin remains healthy after restore validation"):
         output = jellyfin.succeed(
-          "curl --fail --silent --show-error http://127.0.0.1:8096/System/Info/Public"
+          "curl --fail --silent --show-error http://127.0.0.1:8096/health"
         )
-        parsed = json.loads(output)
-        assert parsed.get("id"), output
-        assert parsed.get("serverName"), output
 
     with subtest("temporary recovery artifacts are removed"):
         jellyfin.succeed("rm -rf -- /tmp/jellyfin-restore-drill")

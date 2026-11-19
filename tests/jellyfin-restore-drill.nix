@@ -25,6 +25,8 @@ pkgs.testers.nixosTest {
       cacheDir = "/var/lib/jellyfin-restore/cache";
     };
 
+    systemd.services.jellyfin.environment.DOTNET_EnableDiagnostics = "0";
+
     systemd.tmpfiles.rules = [
       "d /srv/jellyfin-restore 2775 root media -"
       "d /srv/jellyfin-restore/movies 2775 jellyfin media -"

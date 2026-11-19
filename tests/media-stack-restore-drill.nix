@@ -69,7 +69,7 @@ pkgs.testers.nixosTest {
     media_backup = f"{backup_root}/media"
 
     media.succeed(
-      "install -d -m 0700 -o root -g root " + shlex.quote(backup_root)
+      "install -d -m 0777 -o root -g root " + shlex.quote(backup_root)
     )
 
     with subtest("Radarr and Sonarr local APIs are available before backup"):

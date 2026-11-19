@@ -82,8 +82,8 @@ pkgs.testers.nixosTest {
           "curl --fail --silent --show-error http://127.0.0.1:8096/System/Info/Public"
         )
         parsed = json.loads(output)
-        assert parsed.get("Id"), output
-        assert parsed.get("ServerName"), output
+        assert parsed.get("id"), output
+        assert parsed.get("serverName"), output
 
     with subtest("representative Jellyfin state is backed up"):
         jellyfin.succeed(
@@ -156,8 +156,8 @@ pkgs.testers.nixosTest {
           "curl --fail --silent --show-error http://127.0.0.1:8096/System/Info/Public"
         )
         parsed = json.loads(output)
-        assert parsed.get("Id"), output
-        assert parsed.get("ServerName"), output
+        assert parsed.get("id"), output
+        assert parsed.get("serverName"), output
 
     with subtest("temporary recovery artifacts are removed"):
         jellyfin.succeed("rm -rf -- /tmp/jellyfin-restore-drill")

@@ -292,7 +292,7 @@
         jellyfin-restore-drill = import ./tests/jellyfin-restore-drill.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };
-        
+
         homepage-restore-drill = import ./tests/homepage-restore-drill.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };

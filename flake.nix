@@ -285,6 +285,10 @@
           nixpkgs.legacyPackages.${system}.testers.runNixOSTest
             ./tests/servarr-media-access.nix;
 
+        media-stack-restore-drill = import ./tests/media-stack-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
         homepage-restore-drill = import ./tests/homepage-restore-drill.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };

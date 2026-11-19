@@ -86,9 +86,9 @@ pkgs.testers.nixosTest {
 
     with subtest("representative Jellyfin state is backed up"):
         # Stop Jellyfin before copying its state so the backup captures a
-        # consistent configuration and SQLite database state.
+        # consistent configuration and SQLite database state. systemctl stop
+        # is synchronous, so the unit is inactive when this command returns.
         jellyfin.succeed("systemctl stop jellyfin")
-        jellyfin.wait_for_unit_state("jellyfin.service", "inactive")
 
         jellyfin.succeed(
           "sudo -u jellyfin install -d -m 0750 "

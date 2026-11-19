@@ -54,6 +54,15 @@ pkgs.testers.nixosTest {
     jellyfin.wait_for_unit("jellyfin.service")
     jellyfin.wait_for_open_port(8096)
 
+    # Jellyfin opens its HTTP listener before it is fully ready to serve
+    # requests. Wait for a successful public API response instead of assuming
+    # that an open TCP port means the application is ready.
+    jellyfin.wait_until_succeeds(
+      "curl --fail --silent --show-error "
+      "http://127.0.0.1:8096/System/Info/Public",
+      timeout=120,
+    )
+
     _, journal = jellyfin.execute(
       "journalctl -u jellyfin --no-pager -n 200"
     )

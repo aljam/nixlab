@@ -1,23 +1,10 @@
-# Grafana restore drill.
-#
-# Validates the local recovery path for Grafana: create a representative
-# configuration/database backup, restore it into an isolated environment,
-# start Grafana, and verify its local HTTP API.
-#
-# The drill deliberately excludes production Grafana data, secrets, Restic
-# repositories, external integrations, and public access.
 { pkgs }:
 
 pkgs.testers.nixosTest {
   name = "grafana-restore-drill";
 
   nodes.grafana = { lib, ... }: {
-    users.users.grafana = {
-      isSystemUser = true;
-      group = "grafana";
-    };
-
-    users.groups.grafana = { };
+    environment.etc."grafana-secret-key".text = "test-grafana-secret-key";
 
     services.grafana = {
       enable = true;
@@ -25,11 +12,9 @@ pkgs.testers.nixosTest {
       addr = "127.0.0.1";
       port = 3001;
       openFirewall = false;
-    };
 
-    systemd.tmpfiles.rules = [
-      "d /var/lib/grafana-restore 0750 grafana grafana -"
-    ];
+      settings.security.secret_key = "$__file{/etc/grafana-secret-key}";
+    };
 
     environment.systemPackages = with pkgs; [
       curl
@@ -47,7 +32,6 @@ pkgs.testers.nixosTest {
 
     backup_root = "/tmp/grafana-restore-drill"
     grafana_backup = f"{backup_root}/grafana"
-    restored_state = "/var/lib/grafana-restored"
 
     grafana.succeed(
       "install -d -m 0700 -o root -g root " + shlex.quote(backup_root)
@@ -61,44 +45,44 @@ pkgs.testers.nixosTest {
 
     with subtest("representative Grafana state is backed up"):
         grafana.succeed(
-          "sudo -u grafana install -d -m 0750 " + shlex.quote(grafana_backup)
+          "install -d -m 0750 -o root -g root " + shlex.quote(grafana_backup)
+        )
+
+        database_probe = f"{grafana_backup}/grafana.db"
+        settings_probe = f"{grafana_backup}/grafana.ini"
+
+        grafana.succeed(
+          "install -m 0640 /dev/null " + shlex.quote(database_probe)
+        )
+        grafana.succeed(
+          "truncate -s 1 " + shlex.quote(database_probe)
         )
 
         grafana.succeed(
-          "sudo -u grafana install -m 0640 /dev/null "
-          + shlex.quote(f"{grafana_backup}/grafana.db")
+          "install -m 0640 /dev/null " + shlex.quote(settings_probe)
         )
         grafana.succeed(
-          "sudo -u grafana install -m 0640 /dev/null "
-          + shlex.quote(f"{grafana_backup}/grafana.ini")
+          "truncate -s 1 " + shlex.quote(settings_probe)
         )
 
         grafana.succeed(
-          "sudo -u grafana cp -a /var/lib/grafana-restore/. "
-          + shlex.quote(grafana_backup) + "/"
+          "cp -a /var/lib/grafana-restore/. " + shlex.quote(grafana_backup) + "/"
         )
 
-    with subtest("Grafana state restores into an isolated directory"):
+    with subtest("Grafana state restores into the service state directory"):
+        grafana.succeed("systemctl stop grafana")
         grafana.succeed(
-          "sudo -u grafana install -d -m 0750 " + shlex.quote(restored_state)
+          "find /var/lib/grafana-restore -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +"
+        )
+        grafana.succeed(
+          "cp -a " + shlex.quote(grafana_backup) + "/. /var/lib/grafana-restore/"
         )
 
-        grafana.succeed(
-          "sudo -u grafana cp -a " + shlex.quote(grafana_backup) + "/. "
-          + shlex.quote(restored_state) + "/"
-        )
-
-        grafana.succeed(
-          "sudo -u grafana test -s " + shlex.quote(f"{restored_state}/grafana.db")
-        )
-        grafana.succeed(
-          "sudo -u grafana test -s " + shlex.quote(f"{restored_state}/grafana.ini")
-        )
+        grafana.succeed("test -s /var/lib/grafana-restore/grafana.db")
+        grafana.succeed("test -s /var/lib/grafana-restore/grafana.ini")
 
     with subtest("Grafana starts against restored state"):
-        grafana.succeed(
-          "sudo -u grafana systemctl restart grafana.service"
-        )
+        grafana.succeed("systemctl start grafana")
         grafana.wait_for_unit("grafana.service")
         grafana.wait_for_open_port(3001)
 

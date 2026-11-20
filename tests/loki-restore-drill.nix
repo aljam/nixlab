@@ -18,6 +18,10 @@ pkgs.testers.nixosTest {
       configuration = {
         auth_enabled = false;
 
+        common = {
+          path_prefix = "/var/lib/loki-restore";
+        };
+
         server = {
           http_listen_address = "127.0.0.1";
           http_listen_port = 3100;
@@ -48,6 +52,11 @@ pkgs.testers.nixosTest {
         storage_config = {
           filesystem = {
             directory = "/var/lib/loki-restore/chunks";
+          };
+
+          tsdb_shipper = {
+            active_index_directory = "/var/lib/loki-restore/index";
+            cache_location = "/var/lib/loki-restore/index-cache";
           };
         };
 

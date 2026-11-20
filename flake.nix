@@ -285,6 +285,10 @@
           nixpkgs.legacyPackages.${system}.testers.runNixOSTest
             ./tests/servarr-media-access.nix;
 
+        radio-restore-drill = import ./tests/radio-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
         shoko-restore-drill = import ./tests/shoko-restore-drill.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };

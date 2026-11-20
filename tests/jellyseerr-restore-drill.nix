@@ -18,6 +18,7 @@ pkgs.testers.nixosTest {
     };
 
     systemd.tmpfiles.rules = [
+      "d /var/lib/seerr 0750 seerr seerr -"
       "d /var/lib/seerr-restored 0750 seerr seerr -"
     ];
 

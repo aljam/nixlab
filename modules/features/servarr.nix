@@ -37,11 +37,6 @@ let
       userType = "dynamic";
     };
 
-    audiobookshelf = {
-      port = 13378;
-      userType = "static";
-    };
-
     jellyfin = {
       port = 8096;
       userType = "static";
@@ -92,12 +87,6 @@ in
       };
 
       shoko.enable = true;
-
-      audiobookshelf = {
-        enable = true;
-        host = config.networking.servicesBindAddress;
-        port = serviceDefs.audiobookshelf.port;
-      };
 
       jellyfin = {
         enable = true;

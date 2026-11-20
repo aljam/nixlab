@@ -40,6 +40,13 @@ pkgs.testers.nixosTest {
       "install -d -m 0700 -o root -g root " + shlex.quote(backup_root)
     )
 
+    resolve_config = (
+      "exec=\"$(systemctl show icecast --property=ExecStart --value)\"; "
+      "config=\"$(printf '%s\\n' \"$exec\" | sed -n 's/.*[[:space:]]-c[[:space:]]\\([^[:space:]]*\\).*/\\1/p; "
+      "s/.*-c=\\([^[:space:]]*\\).*/\\1/p')\"; "
+      "test -n \"$config\"; test -s \"$config\""
+    )
+
     with subtest("Icecast local status endpoint is available before recovery"):
         radio.succeed(
           "curl --fail --silent --show-error --output /dev/null "
@@ -48,9 +55,7 @@ pkgs.testers.nixosTest {
 
     with subtest("active Icecast configuration is captured"):
         radio.succeed(
-          "config=\"$(systemctl show icecast --property=ExecStart --value "
-          "| awk '{print $NF}')\"; test -n \"$config\"; test -s \"$config\"; "
-          "cp -a \"$config\" " + shlex.quote(config_backup)
+          resolve_config + "; cp -a \"$config\" " + shlex.quote(config_backup)
         )
         radio.succeed(
           "test -s " + shlex.quote(config_backup)
@@ -62,8 +67,7 @@ pkgs.testers.nixosTest {
         radio.wait_for_open_port(8000)
 
         radio.succeed(
-          "config=\"$(systemctl show icecast --property=ExecStart --value "
-          "| awk '{print $NF}')\"; "
+          resolve_config + "; "
           "sha256sum \"$config\" " + shlex.quote(config_backup) +
           " | awk 'NR==1 {a=$1} NR==2 {b=$1} END {exit a==b ? 0 : 1}'"
         )

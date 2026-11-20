@@ -20,6 +20,10 @@ pkgs.testers.nixosTest {
 
         common = {
           path_prefix = "/var/lib/loki-restore";
+          replication_factor = 1;
+          ring = {
+            kvstore.store = "inmemory";
+          };
         };
 
         server = {
@@ -32,6 +36,8 @@ pkgs.testers.nixosTest {
             enabled = true;
             dir = "/var/lib/loki-restore/wal";
           };
+
+          lifecycler.ring.replication_factor = 1;
         };
 
         schema_config = {

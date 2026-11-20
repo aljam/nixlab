@@ -1,8 +1,8 @@
 # Shoko restore drill.
 #
 # Validates the local recovery path for Shoko: create a representative
-# configuration/database backup, restore it into an isolated environment,
-# start Shoko, and verify its local HTTP API.
+# configuration/database backup, restore it into the service state directory,
+# restart Shoko, and verify its local HTTP API.
 #
 # The drill deliberately excludes production Shoko data, secrets, Restic
 # repositories, external integrations, and public access.
@@ -12,22 +12,10 @@ pkgs.testers.nixosTest {
   name = "shoko-restore-drill";
 
   nodes.shoko = { lib, ... }: {
-    users.users.shoko = {
-      isSystemUser = true;
-      group = "shoko";
-    };
-
-    users.groups.shoko = { };
-
     services.shoko = {
       enable = true;
-      dataDir = "/var/lib/shoko-restore";
       openFirewall = false;
     };
-
-    systemd.tmpfiles.rules = [
-      "d /var/lib/shoko-restore 0750 shoko shoko -"
-    ];
 
     environment.systemPackages = with pkgs; [
       curl
@@ -45,7 +33,6 @@ pkgs.testers.nixosTest {
 
     backup_root = "/tmp/shoko-restore-drill"
     shoko_backup = f"{backup_root}/shoko"
-    restored_state = "/var/lib/shoko-restored"
 
     shoko.succeed(
       "install -d -m 0700 -o root -g root " + shlex.quote(backup_root)
@@ -59,44 +46,44 @@ pkgs.testers.nixosTest {
 
     with subtest("representative Shoko state is backed up"):
         shoko.succeed(
-          "sudo -u shoko install -d -m 0750 " + shlex.quote(shoko_backup)
+          "install -d -m 0750 -o root -g root " + shlex.quote(shoko_backup)
+        )
+
+        database_probe = f"{shoko_backup}/ShokoServer.db"
+        settings_probe = f"{shoko_backup}/ShokoServer.json"
+
+        shoko.succeed(
+          "install -m 0640 /dev/null " + shlex.quote(database_probe)
+        )
+        shoko.succeed(
+          "truncate -s 1 " + shlex.quote(database_probe)
         )
 
         shoko.succeed(
-          "sudo -u shoko install -m 0640 /dev/null "
-          + shlex.quote(f"{shoko_backup}/ShokoServer.db")
+          "install -m 0640 /dev/null " + shlex.quote(settings_probe)
         )
         shoko.succeed(
-          "sudo -u shoko install -m 0640 /dev/null "
-          + shlex.quote(f"{shoko_backup}/ShokoServer.json")
+          "truncate -s 1 " + shlex.quote(settings_probe)
         )
 
         shoko.succeed(
-          "sudo -u shoko cp -a /var/lib/shoko-restore/. "
-          + shlex.quote(shoko_backup) + "/"
+          "cp -a /var/lib/shoko/. " + shlex.quote(shoko_backup) + "/"
         )
 
-    with subtest("Shoko state restores into an isolated directory"):
+    with subtest("Shoko state restores into the service state directory"):
+        shoko.succeed("systemctl stop shoko")
         shoko.succeed(
-          "sudo -u shoko install -d -m 0750 " + shlex.quote(restored_state)
+          "find /var/lib/shoko -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +"
+        )
+        shoko.succeed(
+          "cp -a " + shlex.quote(shoko_backup) + "/. /var/lib/shoko/"
         )
 
-        shoko.succeed(
-          "sudo -u shoko cp -a " + shlex.quote(shoko_backup) + "/. "
-          + shlex.quote(restored_state) + "/"
-        )
-
-        shoko.succeed(
-          "sudo -u shoko test -s " + shlex.quote(f"{restored_state}/ShokoServer.db")
-        )
-        shoko.succeed(
-          "sudo -u shoko test -s " + shlex.quote(f"{restored_state}/ShokoServer.json")
-        )
+        shoko.succeed("test -s /var/lib/shoko/ShokoServer.db")
+        shoko.succeed("test -s /var/lib/shoko/ShokoServer.json")
 
     with subtest("Shoko starts against restored state"):
-        shoko.succeed(
-          "sudo -u shoko systemctl restart shoko.service"
-        )
+        shoko.succeed("systemctl start shoko")
         shoko.wait_for_unit("shoko.service")
         shoko.wait_for_open_port(8111)
 

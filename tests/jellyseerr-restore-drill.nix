@@ -1,8 +1,8 @@
 # Seerr restore drill.
 #
 # Validates the local recovery path for Seerr (formerly Jellyseerr): create a
-# representative configuration/database backup, restore it into an isolated
-# environment, start Seerr, and verify its local HTTP API.
+# representative configuration/database backup, restore it into the service's
+# state directory, restart Seerr, and verify its local HTTP API.
 #
 # The drill deliberately excludes production Seerr data, secrets, Restic
 # repositories, external integrations, and public access.
@@ -16,11 +16,6 @@ pkgs.testers.nixosTest {
       enable = true;
       openFirewall = false;
     };
-
-    systemd.tmpfiles.rules = [
-      "d /var/lib/seerr 0750 seerr seerr -"
-      "d /var/lib/seerr-restored 0750 seerr seerr -"
-    ];
 
     environment.systemPackages = with pkgs; [
       curl
@@ -38,10 +33,9 @@ pkgs.testers.nixosTest {
 
     backup_root = "/tmp/jellyseerr-restore-drill"
     seerr_backup = f"{backup_root}/seerr"
-    restored_state = "/var/lib/seerr-restored"
 
     jellyseerr.succeed(
-      "install -d -m 0775 -o root -g seerr " + shlex.quote(backup_root)
+      "install -d -m 0700 -o root -g root " + shlex.quote(backup_root)
     )
 
     with subtest("Seerr local API is available before backup"):
@@ -52,51 +46,50 @@ pkgs.testers.nixosTest {
 
     with subtest("representative Seerr state is backed up"):
         jellyseerr.succeed(
-          "sudo -u seerr install -d -m 0750 " + shlex.quote(seerr_backup)
+          "install -d -m 0750 -o root -g root " + shlex.quote(seerr_backup)
         )
 
         database_probe = f"{seerr_backup}/db.db"
         settings_probe = f"{seerr_backup}/settings.json"
 
         jellyseerr.succeed(
-          "sudo -u seerr install -m 0640 /dev/null "
-          + shlex.quote(database_probe)
+          "install -m 0640 /dev/null " + shlex.quote(database_probe)
         )
         jellyseerr.succeed(
-          "sudo -u seerr truncate -s 1 " + shlex.quote(database_probe)
-        )
-
-        jellyseerr.succeed(
-          "sudo -u seerr install -m 0640 /dev/null "
-          + shlex.quote(settings_probe)
-        )
-        jellyseerr.succeed(
-          "sudo -u seerr truncate -s 1 " + shlex.quote(settings_probe)
+          "truncate -s 1 " + shlex.quote(database_probe)
         )
 
         jellyseerr.succeed(
-          "sudo -u seerr cp -a /var/lib/seerr/. "
-          + shlex.quote(seerr_backup) + "/"
+          "install -m 0640 /dev/null " + shlex.quote(settings_probe)
+        )
+        jellyseerr.succeed(
+          "truncate -s 1 " + shlex.quote(settings_probe)
         )
 
-    with subtest("Seerr state restores into an isolated directory"):
+        # Seerr uses a systemd dynamic user, so perform the state backup as
+        # root rather than relying on a stable service-user identity.
         jellyseerr.succeed(
-          "sudo -u seerr cp -a " + shlex.quote(seerr_backup) + "/. "
-          + shlex.quote(restored_state) + "/"
+          "cp -a /var/lib/seerr/. " + shlex.quote(seerr_backup) + "/"
+        )
+
+    with subtest("Seerr state restores into the service state directory"):
+        jellyseerr.succeed("systemctl stop seerr")
+        jellyseerr.succeed(
+          "find /var/lib/seerr -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +"
+        )
+        jellyseerr.succeed(
+          "cp -a " + shlex.quote(seerr_backup) + "/. /var/lib/seerr/"
         )
 
         jellyseerr.succeed(
-          "sudo -u seerr test -s " + shlex.quote(f"{restored_state}/db.db")
+          "test -s /var/lib/seerr/db.db"
         )
         jellyseerr.succeed(
-          "sudo -u seerr test -s "
-          + shlex.quote(f"{restored_state}/settings.json")
+          "test -s /var/lib/seerr/settings.json"
         )
 
     with subtest("Seerr starts against restored state"):
-        # Restarting a system unit requires root; the Seerr service user does
-        # not have permission to manage systemd units.
-        jellyseerr.succeed("systemctl restart seerr.service")
+        jellyseerr.succeed("systemctl start seerr")
         jellyseerr.wait_for_unit("seerr.service")
         jellyseerr.wait_for_open_port(5055)
 

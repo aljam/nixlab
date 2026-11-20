@@ -81,14 +81,14 @@ pkgs.testers.nixosTest {
         )
 
         alertmanager.succeed(
-          "cp -a /var/lib/alertmanager "
-          + shlex.quote(f"{alertmanager_backup}/state")
+          "cp -aL /var/lib/alertmanager/. "
+          + shlex.quote(f"{alertmanager_backup}/state/")
         )
 
     with subtest("Alertmanager state restores into the service state directory"):
         alertmanager.succeed("systemctl stop alertmanager")
         alertmanager.succeed(
-          "find /var/lib/alertmanager -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +"
+          "find -L /var/lib/alertmanager -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +"
         )
         alertmanager.succeed(
           "cp -a " + shlex.quote(f"{alertmanager_backup}/state")

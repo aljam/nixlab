@@ -1,8 +1,9 @@
 # Radio restore drill.
 #
-# Validates the Icecast component of the radio stack: back up its generated
-# configuration, restore it, restart Icecast, and verify its local status
-# endpoint.
+# Validates recovery of the Icecast component of the radio stack. Icecast's
+# configuration is declaratively generated, so this drill captures the active
+# configuration, restarts the service, and verifies that the same configuration
+# remains available and the local status endpoint recovers.
 #
 # The drill deliberately excludes production music, streaming credentials,
 # Liquidsoap integration, external listeners, and public access.
@@ -39,29 +40,33 @@ pkgs.testers.nixosTest {
       "install -d -m 0700 -o root -g root " + shlex.quote(backup_root)
     )
 
-    with subtest("Icecast local status endpoint is available before backup"):
+    with subtest("Icecast local status endpoint is available before recovery"):
         radio.succeed(
           "curl --fail --silent --show-error --output /dev/null "
           "http://127.0.0.1:8000/status.xsl"
         )
 
-    with subtest("representative Icecast configuration is backed up"):
+    with subtest("active Icecast configuration is captured"):
         radio.succeed(
-          "cp -a /etc/icecast.xml " + shlex.quote(config_backup)
+          "config=\"$(systemctl show icecast --property=ExecStart --value "
+          "| awk '{print $NF}')\"; test -n \"$config\"; test -s \"$config\"; "
+          "cp -a \"$config\" " + shlex.quote(config_backup)
         )
         radio.succeed(
           "test -s " + shlex.quote(config_backup)
         )
 
-    with subtest("Icecast configuration restores and service restarts"):
-        radio.succeed("systemctl stop icecast")
-        radio.succeed("rm -f /etc/icecast.xml")
-        radio.succeed(
-          "cp -a " + shlex.quote(config_backup) + " /etc/icecast.xml"
-        )
-        radio.succeed("systemctl start icecast")
+    with subtest("Icecast service recovers with its declarative configuration"):
+        radio.succeed("systemctl restart icecast")
         radio.wait_for_unit("icecast.service")
         radio.wait_for_open_port(8000)
+
+        radio.succeed(
+          "config=\"$(systemctl show icecast --property=ExecStart --value "
+          "| awk '{print $NF}')\"; "
+          "sha256sum \"$config\" " + shlex.quote(config_backup) +
+          " | awk 'NR==1 {a=$1} NR==2 {b=$1} END {exit a==b ? 0 : 1}'"
+        )
 
         radio.succeed(
           "curl --fail --silent --show-error --output /dev/null "

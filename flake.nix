@@ -285,6 +285,10 @@
           nixpkgs.legacyPackages.${system}.testers.runNixOSTest
             ./tests/servarr-media-access.nix;
 
+        bazarr-restore-drill = import ./tests/bazarr-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
         lidarr-restore-drill = import ./tests/lidarr-restore-drill.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };

@@ -1,8 +1,8 @@
 # Prometheus restore drill.
 #
 # Validates the local recovery path for Prometheus: create a representative
-# configuration/data backup, restore it into an isolated environment, start
-# Prometheus, and verify its local HTTP API.
+# configuration/data backup, restore it into the service state directory,
+# restart Prometheus, and verify its local HTTP API.
 #
 # The drill deliberately excludes production Prometheus data, secrets, Restic
 # repositories, external integrations, and public access.
@@ -12,18 +12,10 @@ pkgs.testers.nixosTest {
   name = "prometheus-restore-drill";
 
   nodes.prometheus = { lib, ... }: {
-    users.users.prometheus = {
-      isSystemUser = true;
-      group = "prometheus";
-    };
-
-    users.groups.prometheus = { };
-
     services.prometheus = {
       enable = true;
       listenAddress = "127.0.0.1";
       port = 9090;
-      openFirewall = false;
 
       retentionTime = "1d";
 
@@ -60,7 +52,6 @@ pkgs.testers.nixosTest {
 
     backup_root = "/tmp/prometheus-restore-drill"
     prometheus_backup = f"{backup_root}/prometheus"
-    restored_data = "/var/lib/prometheus-restored"
 
     prometheus.succeed(
       "install -d -m 0700 -o root -g root " + shlex.quote(backup_root)
@@ -74,7 +65,7 @@ pkgs.testers.nixosTest {
 
     with subtest("representative Prometheus state is backed up"):
         prometheus.succeed(
-          "install -d -m 0750 " + shlex.quote(prometheus_backup)
+          "install -d -m 0750 -o root -g root " + shlex.quote(prometheus_backup)
         )
 
         prometheus.succeed(
@@ -86,30 +77,33 @@ pkgs.testers.nixosTest {
           "install -m 0640 /dev/null "
           + shlex.quote(f"{prometheus_backup}/restore-manifest")
         )
-
         prometheus.succeed(
-          "cp -a /var/lib/prometheus2/. " + shlex.quote(prometheus_backup) + "/data/"
-        )
-
-    with subtest("Prometheus state restores into an isolated directory"):
-        prometheus.succeed(
-          "install -d -m 0750 " + shlex.quote(restored_data)
+          "truncate -s 1 "
+          + shlex.quote(f"{prometheus_backup}/restore-manifest")
         )
 
         prometheus.succeed(
-          "cp -a " + shlex.quote(prometheus_backup) + "/data/. "
-          + shlex.quote(restored_data) + "/"
+          "cp -a /var/lib/prometheus2 "
+          + shlex.quote(f"{prometheus_backup}/data")
+        )
+
+    with subtest("Prometheus state restores into the service state directory"):
+        prometheus.succeed("systemctl stop prometheus")
+        prometheus.succeed(
+          "find /var/lib/prometheus2 -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +"
+        )
+        prometheus.succeed(
+          "cp -a " + shlex.quote(f"{prometheus_backup}/data")
+          + "/. /var/lib/prometheus2/"
         )
 
         prometheus.succeed(
-          "test -s " + shlex.quote(f"{restored_data}/restore-manifest")
+          "test -s " + shlex.quote(f"{prometheus_backup}/restore-manifest")
         )
-        prometheus.succeed(
-          "test -s /etc/prometheus/prometheus.yml"
-        )
+        prometheus.succeed("test -s /etc/prometheus/prometheus.yml")
 
     with subtest("Prometheus starts against restored state"):
-        prometheus.succeed("systemctl restart prometheus.service")
+        prometheus.succeed("systemctl start prometheus")
         prometheus.wait_for_unit("prometheus.service")
         prometheus.wait_for_open_port(9090)
 

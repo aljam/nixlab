@@ -57,6 +57,12 @@ pkgs.testers.nixosTest {
       "install -d -m 0700 -o root -g root " + shlex.quote(backup_root)
     )
 
+    resolve_config = (
+      "exec=\"$(systemctl show prometheus --property=ExecStart --value)\"; "
+      "config=\"$(printf '%s\\n' \"$exec\" | sed -n 's/.*--config.file=\\([^[:space:]]*\\).*/\\1/p')\"; "
+      "test -n \"$config\"; test -s \"$config\""
+    )
+
     with subtest("Prometheus local API is available before backup"):
         prometheus.succeed(
           "curl --fail --silent --show-error --output /dev/null "
@@ -69,7 +75,7 @@ pkgs.testers.nixosTest {
         )
 
         prometheus.succeed(
-          "install -m 0640 /etc/prometheus/prometheus.yml "
+          resolve_config + "; cp -a \"$config\" "
           + shlex.quote(f"{prometheus_backup}/prometheus.yml")
         )
 
@@ -100,12 +106,18 @@ pkgs.testers.nixosTest {
         prometheus.succeed(
           "test -s " + shlex.quote(f"{prometheus_backup}/restore-manifest")
         )
-        prometheus.succeed("test -s /etc/prometheus/prometheus.yml")
 
     with subtest("Prometheus starts against restored state"):
         prometheus.succeed("systemctl start prometheus")
         prometheus.wait_for_unit("prometheus.service")
         prometheus.wait_for_open_port(9090)
+
+        prometheus.succeed(
+          resolve_config + "; "
+          "sha256sum \"$config\" "
+          + shlex.quote(f"{prometheus_backup}/prometheus.yml") +
+          " | awk 'NR==1 {a=$1} NR==2 {b=$1} END {exit a==b ? 0 : 1}'"
+        )
 
         prometheus.succeed(
           "curl --fail --silent --show-error --output /dev/null "

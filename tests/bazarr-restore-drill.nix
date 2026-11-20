@@ -74,14 +74,26 @@ pkgs.testers.nixosTest {
           + shlex.quote(f"{bazarr_backup}/config") + " "
           + shlex.quote(f"{bazarr_backup}/db")
         )
+
+        config_probe = f"{bazarr_backup}/config/config.ini"
+        database_probe = f"{bazarr_backup}/db/bazarr.db"
+
         bazarr.succeed(
           "sudo -u bazarr install -m 0640 /dev/null "
-          + shlex.quote(f"{bazarr_backup}/config/config.ini")
+          + shlex.quote(config_probe)
         )
         bazarr.succeed(
-          "sudo -u bazarr install -m 0640 /dev/null "
-          + shlex.quote(f"{bazarr_backup}/db/bazarr.db")
+          "sudo -u bazarr truncate -s 1 " + shlex.quote(config_probe)
         )
+
+        bazarr.succeed(
+          "sudo -u bazarr install -m 0640 /dev/null "
+          + shlex.quote(database_probe)
+        )
+        bazarr.succeed(
+          "sudo -u bazarr truncate -s 1 " + shlex.quote(database_probe)
+        )
+
         bazarr.succeed(
           "sudo -u bazarr cp -a /var/lib/bazarr-restore/. "
           + shlex.quote(bazarr_backup) + "/"

@@ -285,6 +285,10 @@
           nixpkgs.legacyPackages.${system}.testers.runNixOSTest
             ./tests/servarr-media-access.nix;
 
+        alertmanager-restore-drill = import ./tests/alertmanager-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
         prometheus-restore-drill = import ./tests/prometheus-restore-drill.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };

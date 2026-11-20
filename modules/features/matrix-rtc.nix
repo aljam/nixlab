@@ -61,6 +61,13 @@ in
     8081
   ];
 
+  networking.firewall.allowedUDPPortRanges = [
+    {
+      from = 50100;
+      to = 50200;
+    }
+  ];
+
   environment.systemPackages = [ livekitTestToken ];
 
   sops.secrets = {
@@ -111,6 +118,7 @@ in
       };
       environmentFiles = [ config.sops.secrets.livekit-jwt-env.path ];
       extraOptions = containerRuntimeOptions ++ [
+        "--add-host=matrix.derezzed.info:${config.networking.fleet.proxy.ip}"
         "--cpus=0.5"
         "--memory=256m"
         "--pids-limit=64"

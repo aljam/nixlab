@@ -16,6 +16,8 @@ pkgs.testers.nixosTest {
       enable = true;
       dataDir = "/var/lib/loki-restore";
       configuration = {
+        auth_enabled = false;
+
         server = {
           http_listen_address = "127.0.0.1";
           http_listen_port = 3100;
@@ -26,6 +28,21 @@ pkgs.testers.nixosTest {
             enabled = true;
             dir = "/var/lib/loki-restore/wal";
           };
+        };
+
+        schema_config = {
+          configs = [
+            {
+              from = "2026-01-01";
+              store = "tsdb";
+              object_store = "filesystem";
+              schema = "v13";
+              index = {
+                prefix = "index_";
+                period = "24h";
+              };
+            }
+          ];
         };
 
         storage_config = {

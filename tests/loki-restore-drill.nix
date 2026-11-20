@@ -1,8 +1,8 @@
 # Loki restore drill.
 #
 # Validates the local recovery path for Loki: create a representative
-# configuration/data backup, restore it into an isolated environment, start
-# Loki, and verify its local HTTP API.
+# configuration/data backup, restore it into the service state directory,
+# restart Loki, and verify its local HTTP API.
 #
 # The drill deliberately excludes production Loki data, secrets, Restic
 # repositories, external integrations, and public access.
@@ -12,13 +12,6 @@ pkgs.testers.nixosTest {
   name = "loki-restore-drill";
 
   nodes.loki = { lib, ... }: {
-    users.users.loki = {
-      isSystemUser = true;
-      group = "loki";
-    };
-
-    users.groups.loki = { };
-
     services.loki = {
       enable = true;
       dataDir = "/var/lib/loki-restore";
@@ -45,15 +38,7 @@ pkgs.testers.nixosTest {
           reject_old_samples = false;
         };
       };
-
-      openFirewall = false;
     };
-
-    systemd.tmpfiles.rules = [
-      "d /var/lib/loki-restore 0750 loki loki -"
-      "d /var/lib/loki-restore/wal 0750 loki loki -"
-      "d /var/lib/loki-restore/chunks 0750 loki loki -"
-    ];
 
     environment.systemPackages = with pkgs; [
       curl
@@ -71,10 +56,24 @@ pkgs.testers.nixosTest {
 
     backup_root = "/tmp/loki-restore-drill"
     loki_backup = f"{backup_root}/loki"
-    restored_data = "/var/lib/loki-restored"
 
     loki.succeed(
       "install -d -m 0700 -o root -g root " + shlex.quote(backup_root)
+    )
+
+    resolve_config = (
+      "exec_line=\"$(systemctl show loki --property=ExecStart --value)\"; "
+      "config=\"$(printf '%s\\n' \"$exec_line\" | sed -n "
+      "-e 's/.*-config.file=\\([^[:space:]]*\\).*/\\1/p' "
+      "-e 's/.*-config.file[[:space:]]\\+\\([^[:space:]]*\\).*/\\1/p')\"; "
+      "if [ -z \"$config\" ]; then "
+      "config=\"$(systemctl cat loki | sed -n "
+      "-e 's/^ExecStart=.*-config.file=\\([^[:space:]]*\\).*/\\1/p' "
+      "-e 's/^ExecStart=.*-config.file[[:space:]]\\+\\([^[:space:]]*\\).*/\\1/p')\"; "
+      "fi; "
+      "echo \"Loki ExecStart: $exec_line\" >&2; "
+      "echo \"Resolved Loki config: $config\" >&2; "
+      "test -n \"$config\"; test -s \"$config\""
     )
 
     with subtest("Loki local API is available before backup"):
@@ -85,11 +84,11 @@ pkgs.testers.nixosTest {
 
     with subtest("representative Loki state is backed up"):
         loki.succeed(
-          "install -d -m 0750 " + shlex.quote(loki_backup)
+          "install -d -m 0750 -o root -g root " + shlex.quote(loki_backup)
         )
 
         loki.succeed(
-          "install -m 0640 /etc/loki/config.yaml "
+          resolve_config + "; cp -a \"$config\" "
           + shlex.quote(f"{loki_backup}/config.yaml")
         )
 
@@ -97,32 +96,41 @@ pkgs.testers.nixosTest {
           "install -m 0640 /dev/null "
           + shlex.quote(f"{loki_backup}/restore-manifest")
         )
-
         loki.succeed(
-          "cp -a /var/lib/loki-restore/. " + shlex.quote(loki_backup) + "/data/"
-        )
-
-    with subtest("Loki state restores into an isolated directory"):
-        loki.succeed(
-          "install -d -m 0750 " + shlex.quote(restored_data)
+          "truncate -s 1 "
+          + shlex.quote(f"{loki_backup}/restore-manifest")
         )
 
         loki.succeed(
-          "cp -a " + shlex.quote(loki_backup) + "/data/. "
-          + shlex.quote(restored_data) + "/"
+          "cp -aL /var/lib/loki-restore/. "
+          + shlex.quote(f"{loki_backup}/data/")
+        )
+
+    with subtest("Loki state restores into the service state directory"):
+        loki.succeed("systemctl stop loki")
+        loki.succeed(
+          "find -L /var/lib/loki-restore -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +"
+        )
+        loki.succeed(
+          "cp -a " + shlex.quote(f"{loki_backup}/data")
+          + "/. /var/lib/loki-restore/"
         )
 
         loki.succeed(
-          "test -s " + shlex.quote(f"{restored_data}/restore-manifest")
-        )
-        loki.succeed(
-          "test -s /etc/loki/config.yaml"
+          "test -s " + shlex.quote(f"{loki_backup}/restore-manifest")
         )
 
     with subtest("Loki starts against restored state"):
-        loki.succeed("systemctl restart loki.service")
+        loki.succeed("systemctl start loki")
         loki.wait_for_unit("loki.service")
         loki.wait_for_open_port(3100)
+
+        loki.succeed(
+          resolve_config + "; "
+          "sha256sum \"$config\" "
+          + shlex.quote(f"{loki_backup}/config.yaml") +
+          " | awk 'NR==1 {a=$1} NR==2 {b=$1} END {exit a==b ? 0 : 1}'"
+        )
 
         loki.succeed(
           "curl --fail --silent --show-error --output /dev/null "

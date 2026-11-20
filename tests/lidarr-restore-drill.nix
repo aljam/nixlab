@@ -32,6 +32,7 @@ pkgs.testers.nixosTest {
       "d /srv/music-restore 2775 root media -"
       "d /srv/music-restore/albums 2775 lidarr media -"
       "d /var/lib/lidarr-restore 0750 lidarr lidarr -"
+      "d /var/lib/lidarr-restored 0750 lidarr lidarr -"
     ];
 
     environment.systemPackages = with pkgs; [
@@ -43,6 +44,14 @@ pkgs.testers.nixosTest {
   testScript = ''
     import shlex
 
+    def lidarr_status(api_key):
+        return (
+          "curl --fail --silent --show-error -H "
+          + shlex.quote(f"X-Api-Key: {api_key}")
+          + " http://127.0.0.1:8686/api/v1/system/status"
+          + " | jq -e 'has(\"version\")'"
+        )
+
     lidarr.start()
     lidarr.wait_for_unit("multi-user.target", timeout=120)
     lidarr.wait_for_unit("lidarr.service")
@@ -53,14 +62,16 @@ pkgs.testers.nixosTest {
     music_backup = f"{backup_root}/music"
 
     lidarr.succeed(
-      "install -d -m 0700 -o root -g root " + shlex.quote(backup_root)
+      "install -d -m 0775 -o root -g media " + shlex.quote(backup_root)
     )
 
     with subtest("Lidarr local API is available before backup"):
-        lidarr.succeed(
-          "curl --fail --silent --show-error http://127.0.0.1:8686/api/v1/system/status"
-          " | jq -e 'has(\"version\")'"
-        )
+        api_key = lidarr.succeed(
+          "grep -o '<ApiKey>[^<]*' /var/lib/lidarr-restore/config.xml "
+          "| cut -d '>' -f2"
+        ).strip()
+
+        lidarr.wait_until_succeeds(lidarr_status(api_key), timeout=180)
 
     with subtest("representative Lidarr state is backed up"):
         lidarr.succeed(
@@ -84,9 +95,6 @@ pkgs.testers.nixosTest {
         )
 
     with subtest("Lidarr state restores into an isolated directory"):
-        lidarr.succeed(
-          "sudo -u lidarr install -d -m 0750 /var/lib/lidarr-restored"
-        )
         lidarr.succeed(
           "sudo -u lidarr cp -a " + shlex.quote(lidarr_backup) + "/. "
           "/var/lib/lidarr-restored/"
@@ -118,10 +126,7 @@ pkgs.testers.nixosTest {
         )
 
     with subtest("Lidarr remains healthy after restore validation"):
-        lidarr.succeed(
-          "curl --fail --silent --show-error http://127.0.0.1:8686/api/v1/system/status"
-          " | jq -e 'has(\"version\")'"
-        )
+        lidarr.succeed(lidarr_status(api_key))
 
     with subtest("temporary recovery artifacts are removed"):
         lidarr.succeed("rm -rf -- /tmp/lidarr-restore-drill")

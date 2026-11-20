@@ -288,7 +288,7 @@
         lidarr-restore-drill = import ./tests/lidarr-restore-drill.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };
-        
+
         sonarr-radarr-restore-drill = import ./tests/sonarr-radarr-restore-drill.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };

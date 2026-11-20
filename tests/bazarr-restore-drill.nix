@@ -33,6 +33,7 @@ pkgs.testers.nixosTest {
       "d /srv/media-restore 2775 root media -"
       "d /srv/media-restore/movies 2775 bazarr media -"
       "d /var/lib/bazarr-restore 0750 bazarr bazarr -"
+      "d /var/lib/bazarr-restored 0750 bazarr bazarr -"
     ];
 
     environment.systemPackages = with pkgs; [
@@ -53,8 +54,9 @@ pkgs.testers.nixosTest {
     bazarr_backup = f"{backup_root}/bazarr"
     media_backup = f"{backup_root}/media"
 
+    # The Bazarr service user needs to create its backup subdirectories.
     bazarr.succeed(
-      "install -d -m 0700 -o root -g root " + shlex.quote(backup_root)
+      "install -d -m 0775 -o root -g media " + shlex.quote(backup_root)
     )
 
     with subtest("Bazarr local health endpoint is available before backup"):
@@ -90,9 +92,6 @@ pkgs.testers.nixosTest {
 
     with subtest("Bazarr state restores into an isolated directory"):
         bazarr.succeed(
-          "sudo -u bazarr install -d -m 0750 /var/lib/bazarr-restored"
-        )
-        bazarr.succeed(
           "sudo -u bazarr cp -a " + shlex.quote(bazarr_backup) + "/. "
           "/var/lib/bazarr-restored/"
         )
@@ -126,9 +125,9 @@ pkgs.testers.nixosTest {
         )
 
     with subtest("Bazarr starts against restored state"):
-        bazarr.succeed(
-          "sudo -u bazarr systemctl restart bazarr.service"
-        )
+        # Restarting a system unit requires root; the Bazarr service user does
+        # not have permission to manage systemd units.
+        bazarr.succeed("systemctl restart bazarr.service")
         bazarr.wait_for_unit("bazarr.service")
         bazarr.wait_for_open_port(6767)
 

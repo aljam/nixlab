@@ -288,7 +288,7 @@
         jellyseerr-restore-drill = import ./tests/jellyseerr-restore-drill.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };
-        
+
         prowlarr-restore-drill = import ./tests/prowlarr-restore-drill.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };

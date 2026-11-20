@@ -41,7 +41,7 @@ pkgs.testers.nixosTest {
     with subtest("Shoko local API is available before backup"):
         shoko.succeed(
           "curl --fail --silent --show-error --output /dev/null "
-          "http://127.0.0.1:8111/api/v3/system/status"
+          "http://127.0.0.1:8111/api/v3/Init/Status"
         )
 
     with subtest("representative Shoko state is backed up"):
@@ -89,7 +89,7 @@ pkgs.testers.nixosTest {
 
         shoko.succeed(
           "curl --fail --silent --show-error --output /dev/null "
-          "http://127.0.0.1:8111/api/v3/system/status"
+          "http://127.0.0.1:8111/api/v3/Init/Status"
         )
 
     with subtest("temporary recovery artifacts are removed"):

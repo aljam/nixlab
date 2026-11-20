@@ -56,11 +56,20 @@ pkgs.testers.nixosTest {
       "install -d -m 0700 -o root -g root " + shlex.quote(backup_root)
     )
 
-    resolve_config = (
-      "exec=\"$(systemctl show alertmanager --property=ExecStart --value)\"; "
-      "config=\"$(printf '%s\\n' \"$exec\" | sed -n 's/.*--config.file=\\([^[:space:]]*\\).*/\\1/p')\"; "
-      "test -n \"$config\"; test -s \"$config\""
-    )
+    resolve_config = r'''
+      exec_line="$(systemctl show alertmanager --property=ExecStart --value)"
+      config="$(printf '%s\n' "$exec_line" | sed -n -e 's/.*--config.file=\([^[:space:]]*\).*/\1/p' -e 's/.*--config.file[[:space:]]\+\([^[:space:]]*\).*/\1/p')"
+
+      if [ -z "$config" ]; then
+        config="$(systemctl cat alertmanager | sed -n -e 's/^ExecStart=.*--config.file=\([^[:space:]]*\).*/\1/p' -e 's/^ExecStart=.*--config.file[[:space:]]\+\([^[:space:]]*\).*/\1/p')"
+      fi
+
+      echo "Alertmanager ExecStart: $exec_line" >&2
+      echo "Resolved Alertmanager config: $config" >&2
+
+      test -n "$config"
+      test -s "$config"
+    '''
 
     with subtest("Alertmanager local API is available before backup"):
         alertmanager.succeed(

@@ -285,6 +285,10 @@
           nixpkgs.legacyPackages.${system}.testers.runNixOSTest
             ./tests/servarr-media-access.nix;
 
+        prometheus-restore-drill = import ./tests/prometheus-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
         grafana-restore-drill = import ./tests/grafana-restore-drill.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };

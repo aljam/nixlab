@@ -285,6 +285,10 @@
           nixpkgs.legacyPackages.${system}.testers.runNixOSTest
             ./tests/servarr-media-access.nix;
 
+        grafana-restore-drill = import ./tests/grafana-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
         radio-restore-drill = import ./tests/radio-restore-drill.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };

@@ -1,8 +1,12 @@
 # Alertmanager restore drill.
 #
 # Validates the local recovery path for Alertmanager: create a representative
-# configuration/state backup, restore it into the service state directory,
-# restart Alertmanager, and verify its local HTTP API.
+# state backup, restore it into the service state directory, restart
+# Alertmanager, and verify its local HTTP API.
+#
+# Alertmanager's configuration is generated at service start and removed after
+# use, so this drill validates recovery of its persistent state and service
+# health rather than retaining a runtime-only configuration file.
 #
 # The drill deliberately excludes production Alertmanager data, secrets,
 # Restic repositories, external integrations, and public access.
@@ -56,21 +60,6 @@ pkgs.testers.nixosTest {
       "install -d -m 0700 -o root -g root " + shlex.quote(backup_root)
     )
 
-    resolve_config = (
-      "exec_line=\"$(systemctl show alertmanager --property=ExecStart --value)\"; "
-      "config=\"$(printf '%s\\n' \"$exec_line\" | sed -n "
-      "-e 's/.*--config.file=\\([^[:space:]]*\\).*/\\1/p' "
-      "-e 's/.*--config.file[[:space:]]\\+\\([^[:space:]]*\\).*/\\1/p')\"; "
-      "if [ -z \"$config\" ]; then "
-      "config=\"$(systemctl cat alertmanager | sed -n "
-      "-e 's/^ExecStart=.*--config.file=\\([^[:space:]]*\\).*/\\1/p' "
-      "-e 's/^ExecStart=.*--config.file[[:space:]]\\+\\([^[:space:]]*\\).*/\\1/p')\"; "
-      "fi; "
-      "echo \"Alertmanager ExecStart: $exec_line\" >&2; "
-      "echo \"Resolved Alertmanager config: $config\" >&2; "
-      "test -n \"$config\"; test -s \"$config\""
-    )
-
     with subtest("Alertmanager local API is available before backup"):
         alertmanager.succeed(
           "curl --fail --silent --show-error --output /dev/null "
@@ -80,11 +69,6 @@ pkgs.testers.nixosTest {
     with subtest("representative Alertmanager state is backed up"):
         alertmanager.succeed(
           "install -d -m 0750 -o root -g root " + shlex.quote(alertmanager_backup)
-        )
-
-        alertmanager.succeed(
-          resolve_config + "; cp -a \"$config\" "
-          + shlex.quote(f"{alertmanager_backup}/alertmanager.yml")
         )
 
         alertmanager.succeed(
@@ -119,13 +103,6 @@ pkgs.testers.nixosTest {
         alertmanager.succeed("systemctl start alertmanager")
         alertmanager.wait_for_unit("alertmanager.service")
         alertmanager.wait_for_open_port(9093)
-
-        alertmanager.succeed(
-          resolve_config + "; "
-          "sha256sum \"$config\" "
-          + shlex.quote(f"{alertmanager_backup}/alertmanager.yml") +
-          " | awk 'NR==1 {a=$1} NR==2 {b=$1} END {exit a==b ? 0 : 1}'"
-        )
 
         alertmanager.succeed(
           "curl --fail --silent --show-error --output /dev/null "

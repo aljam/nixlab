@@ -70,6 +70,11 @@ pkgs.testers.nixosTest {
           "sudo -u bazarr install -d -m 0750 " + shlex.quote(bazarr_backup)
         )
         bazarr.succeed(
+          "sudo -u bazarr install -d -m 0750 "
+          + shlex.quote(f"{bazarr_backup}/config") + " "
+          + shlex.quote(f"{bazarr_backup}/db")
+        )
+        bazarr.succeed(
           "sudo -u bazarr install -m 0640 /dev/null "
           + shlex.quote(f"{bazarr_backup}/config/config.ini")
         )

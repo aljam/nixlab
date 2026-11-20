@@ -285,6 +285,10 @@
           nixpkgs.legacyPackages.${system}.testers.runNixOSTest
             ./tests/servarr-media-access.nix;
 
+        shoko-restore-drill = import ./tests/shoko-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
         jellyseerr-restore-drill = import ./tests/jellyseerr-restore-drill.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };

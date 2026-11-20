@@ -1,8 +1,8 @@
 # Alertmanager restore drill.
 #
 # Validates the local recovery path for Alertmanager: create a representative
-# configuration/state backup, restore it into an isolated environment, start
-# Alertmanager, and verify its local HTTP API.
+# configuration/state backup, restore it into the service state directory,
+# restart Alertmanager, and verify its local HTTP API.
 #
 # The drill deliberately excludes production Alertmanager data, secrets,
 # Restic repositories, external integrations, and public access.
@@ -12,18 +12,10 @@ pkgs.testers.nixosTest {
   name = "alertmanager-restore-drill";
 
   nodes.alertmanager = { lib, ... }: {
-    users.users.alertmanager = {
-      isSystemUser = true;
-      group = "alertmanager";
-    };
-
-    users.groups.alertmanager = { };
-
     services.prometheus.alertmanager = {
       enable = true;
       listenAddress = "127.0.0.1";
       port = 9093;
-      openFirewall = false;
 
       configuration = {
         global = {
@@ -59,10 +51,15 @@ pkgs.testers.nixosTest {
 
     backup_root = "/tmp/alertmanager-restore-drill"
     alertmanager_backup = f"{backup_root}/alertmanager"
-    restored_state = "/var/lib/alertmanager-restored"
 
     alertmanager.succeed(
       "install -d -m 0700 -o root -g root " + shlex.quote(backup_root)
+    )
+
+    resolve_config = (
+      "exec=\"$(systemctl show alertmanager --property=ExecStart --value)\"; "
+      "config=\"$(printf '%s\\n' \"$exec\" | sed -n 's/.*--config.file=\\([^[:space:]]*\\).*/\\1/p')\"; "
+      "test -n \"$config\"; test -s \"$config\""
     )
 
     with subtest("Alertmanager local API is available before backup"):
@@ -73,11 +70,11 @@ pkgs.testers.nixosTest {
 
     with subtest("representative Alertmanager state is backed up"):
         alertmanager.succeed(
-          "install -d -m 0750 " + shlex.quote(alertmanager_backup)
+          "install -d -m 0750 -o root -g root " + shlex.quote(alertmanager_backup)
         )
 
         alertmanager.succeed(
-          "install -m 0640 /etc/alertmanager/alertmanager.yml "
+          resolve_config + "; cp -a \"$config\" "
           + shlex.quote(f"{alertmanager_backup}/alertmanager.yml")
         )
 
@@ -85,32 +82,41 @@ pkgs.testers.nixosTest {
           "install -m 0640 /dev/null "
           + shlex.quote(f"{alertmanager_backup}/restore-manifest")
         )
-
         alertmanager.succeed(
-          "cp -a /var/lib/alertmanager/. " + shlex.quote(alertmanager_backup) + "/state/"
-        )
-
-    with subtest("Alertmanager state restores into an isolated directory"):
-        alertmanager.succeed(
-          "install -d -m 0750 " + shlex.quote(restored_state)
+          "truncate -s 1 "
+          + shlex.quote(f"{alertmanager_backup}/restore-manifest")
         )
 
         alertmanager.succeed(
-          "cp -a " + shlex.quote(alertmanager_backup) + "/state/. "
-          + shlex.quote(restored_state) + "/"
+          "cp -a /var/lib/alertmanager "
+          + shlex.quote(f"{alertmanager_backup}/state")
+        )
+
+    with subtest("Alertmanager state restores into the service state directory"):
+        alertmanager.succeed("systemctl stop alertmanager")
+        alertmanager.succeed(
+          "find /var/lib/alertmanager -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +"
+        )
+        alertmanager.succeed(
+          "cp -a " + shlex.quote(f"{alertmanager_backup}/state")
+          + "/. /var/lib/alertmanager/"
         )
 
         alertmanager.succeed(
-          "test -s " + shlex.quote(f"{restored_state}/restore-manifest")
-        )
-        alertmanager.succeed(
-          "test -s /etc/alertmanager/alertmanager.yml"
+          "test -s " + shlex.quote(f"{alertmanager_backup}/restore-manifest")
         )
 
     with subtest("Alertmanager starts against restored state"):
-        alertmanager.succeed("systemctl restart alertmanager.service")
+        alertmanager.succeed("systemctl start alertmanager")
         alertmanager.wait_for_unit("alertmanager.service")
         alertmanager.wait_for_open_port(9093)
+
+        alertmanager.succeed(
+          resolve_config + "; "
+          "sha256sum \"$config\" "
+          + shlex.quote(f"{alertmanager_backup}/alertmanager.yml") +
+          " | awk 'NR==1 {a=$1} NR==2 {b=$1} END {exit a==b ? 0 : 1}'"
+        )
 
         alertmanager.succeed(
           "curl --fail --silent --show-error --output /dev/null "

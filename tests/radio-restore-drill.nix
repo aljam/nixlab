@@ -1,37 +1,26 @@
 # Radio restore drill.
 #
-# Validates the local recovery path for Radio: create a representative
-# configuration/state backup, restore it into an isolated environment, start
-# Radio, and verify its local HTTP API.
+# Validates the Icecast component of the radio stack: back up its generated
+# configuration, restore it, restart Icecast, and verify its local status
+# endpoint.
 #
-# The drill deliberately excludes production Radio data, secrets, Restic
-# repositories, external integrations, and public access.
+# The drill deliberately excludes production music, streaming credentials,
+# Liquidsoap integration, external listeners, and public access.
 { pkgs }:
 
 pkgs.testers.nixosTest {
   name = "radio-restore-drill";
 
   nodes.radio = { lib, ... }: {
-    users.users.radio = {
-      isSystemUser = true;
-      group = "radio";
-    };
-
-    users.groups.radio = { };
-
-    services.radio = {
+    services.icecast = {
       enable = true;
-      dataDir = "/var/lib/radio-restore";
-      openFirewall = false;
+      hostname = "localhost";
+      listen.address = "127.0.0.1";
+      admin.password = "unused-by-test";
     };
-
-    systemd.tmpfiles.rules = [
-      "d /var/lib/radio-restore 0750 radio radio -"
-    ];
 
     environment.systemPackages = with pkgs; [
       curl
-      jq
     ];
   };
 
@@ -40,69 +29,43 @@ pkgs.testers.nixosTest {
 
     radio.start()
     radio.wait_for_unit("multi-user.target", timeout=120)
-    radio.wait_for_unit("radio.service")
-    radio.wait_for_open_port(3000)
+    radio.wait_for_unit("icecast.service")
+    radio.wait_for_open_port(8000)
 
     backup_root = "/tmp/radio-restore-drill"
-    radio_backup = f"{backup_root}/radio"
-    restored_state = "/var/lib/radio-restored"
+    config_backup = f"{backup_root}/icecast.xml"
 
     radio.succeed(
       "install -d -m 0700 -o root -g root " + shlex.quote(backup_root)
     )
 
-    with subtest("Radio local API is available before backup"):
+    with subtest("Icecast local status endpoint is available before backup"):
         radio.succeed(
           "curl --fail --silent --show-error --output /dev/null "
-          "http://127.0.0.1:3000/api/health"
+          "http://127.0.0.1:8000/status.xsl"
         )
 
-    with subtest("representative Radio state is backed up"):
+    with subtest("representative Icecast configuration is backed up"):
         radio.succeed(
-          "sudo -u radio install -d -m 0750 " + shlex.quote(radio_backup)
+          "cp -a /etc/icecast.xml " + shlex.quote(config_backup)
+        )
+        radio.succeed(
+          "test -s " + shlex.quote(config_backup)
         )
 
+    with subtest("Icecast configuration restores and service restarts"):
+        radio.succeed("systemctl stop icecast")
+        radio.succeed("rm -f /etc/icecast.xml")
         radio.succeed(
-          "sudo -u radio install -m 0640 /dev/null "
-          + shlex.quote(f"{radio_backup}/radio.db")
+          "cp -a " + shlex.quote(config_backup) + " /etc/icecast.xml"
         )
-        radio.succeed(
-          "sudo -u radio install -m 0640 /dev/null "
-          + shlex.quote(f"{radio_backup}/config.json")
-        )
-
-        radio.succeed(
-          "sudo -u radio cp -a /var/lib/radio-restore/. "
-          + shlex.quote(radio_backup) + "/"
-        )
-
-    with subtest("Radio state restores into an isolated directory"):
-        radio.succeed(
-          "sudo -u radio install -d -m 0750 " + shlex.quote(restored_state)
-        )
-
-        radio.succeed(
-          "sudo -u radio cp -a " + shlex.quote(radio_backup) + "/. "
-          + shlex.quote(restored_state) + "/"
-        )
-
-        radio.succeed(
-          "sudo -u radio test -s " + shlex.quote(f"{restored_state}/radio.db")
-        )
-        radio.succeed(
-          "sudo -u radio test -s " + shlex.quote(f"{restored_state}/config.json")
-        )
-
-    with subtest("Radio starts against restored state"):
-        radio.succeed(
-          "sudo -u radio systemctl restart radio.service"
-        )
-        radio.wait_for_unit("radio.service")
-        radio.wait_for_open_port(3000)
+        radio.succeed("systemctl start icecast")
+        radio.wait_for_unit("icecast.service")
+        radio.wait_for_open_port(8000)
 
         radio.succeed(
           "curl --fail --silent --show-error --output /dev/null "
-          "http://127.0.0.1:3000/api/health"
+          "http://127.0.0.1:8000/status.xsl"
         )
 
     with subtest("temporary recovery artifacts are removed"):

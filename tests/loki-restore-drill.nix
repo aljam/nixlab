@@ -80,6 +80,7 @@ pkgs.testers.nixosTest {
 
   testScript = ''
     import shlex
+    import time
 
     loki.start()
     loki.wait_for_unit("multi-user.target", timeout=120)
@@ -88,6 +89,17 @@ pkgs.testers.nixosTest {
 
     backup_root = "/tmp/loki-restore-drill"
     loki_backup = f"{backup_root}/loki"
+
+    def wait_for_loki_ready():
+        for _ in range(60):
+            exit_code, _ = loki.execute(
+                "curl --fail --silent --show-error --output /dev/null "
+                "http://127.0.0.1:3100/ready"
+            )
+            if exit_code == 0:
+                return
+            time.sleep(1)
+        raise Exception("Loki did not become ready within 60 seconds")
 
     loki.succeed(
       "install -d -m 0700 -o root -g root " + shlex.quote(backup_root)
@@ -109,10 +121,7 @@ pkgs.testers.nixosTest {
     )
 
     with subtest("Loki local API is available before backup"):
-        loki.succeed(
-          "curl --fail --silent --show-error --output /dev/null "
-          "http://127.0.0.1:3100/ready"
-        )
+        wait_for_loki_ready()
 
     with subtest("representative Loki state is backed up"):
         loki.succeed(
@@ -156,17 +165,13 @@ pkgs.testers.nixosTest {
         loki.succeed("systemctl start loki")
         loki.wait_for_unit("loki.service")
         loki.wait_for_open_port(3100)
+        wait_for_loki_ready()
 
         loki.succeed(
           resolve_config + "; "
           "sha256sum \"$config\" "
           + shlex.quote(f"{loki_backup}/config.yaml") +
           " | awk 'NR==1 {a=$1} NR==2 {b=$1} END {exit a==b ? 0 : 1}'"
-        )
-
-        loki.succeed(
-          "curl --fail --silent --show-error --output /dev/null "
-          "http://127.0.0.1:3100/ready"
         )
 
     with subtest("temporary recovery artifacts are removed"):

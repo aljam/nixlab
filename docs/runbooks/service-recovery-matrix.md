@@ -43,7 +43,7 @@ Desktop conveniences and host-local development features are out of scope unless
 | Static site | `r730xd` | [Public-service recovery matrix](public-service-recovery-matrix.md); public-service recovery drill (`checks.x86_64-linux.public-service-recovery-drill`) | Covered | Maintain the public-service recovery procedure and validate it during recovery exercises. |
 | Restic backups | Multiple | [Restic restore drill](restic-restore-drill.md); backup failure and staleness alerts; backup documentation | Covered | Maintain the restore drill and validate it during recovery exercises. |
 | NAS mounts | `navi`, `oryx` | Declarative CIFS mount; SOPS-managed NAS credentials; manual remount after credential rotation | Covered | Verify NAS reachability, deploy the SOPS-managed credential, mount `/mnt/share`, validate read/write access, and remount after credential rotation. |
-| ZFS / Sanoid | Server hosts | Backup and disk-health alerts | Partial | Define pool import, snapshot verification, and recovery-point validation. |
+| ZFS / Sanoid | Server hosts | Sanoid automated snapshots and pruning; `mediapool/media` and `mediapool/root` protected datasets; backup and disk-health alerts | Covered | Recover the required ZFS pool and datasets from a validated Sanoid snapshot, then confirm pool health, dataset availability, and service recovery. |
 | Grafana | Monitoring host | [Monitoring outage response](monitoring-outage.md) | Covered | Maintain the monitoring outage procedure and validate it during recovery exercises. |
 | Loki | Monitoring host | Loki restore drill (`checks.x86_64-linux.loki-restore-drill`); [Monitoring outage response](monitoring-outage.md) | Covered | Maintain the restore drill and monitoring outage procedure; validate them during recovery exercises. |
 | ntfy relay | Monitoring host | [Monitoring outage response](monitoring-outage.md); alert-delivery validation | Covered | Maintain the monitoring outage procedure and validate it during recovery exercises. |
@@ -103,11 +103,31 @@ After a host rebuild, NAS outage, credential rotation, or mount failure:
 
 Do not restart or remount the share automatically after credential rotation. The configuration intentionally requires a manual remount to avoid disrupting active workloads.
 
-## Prioritized follow-up
+## ZFS / Sanoid recovery
 
-Address gaps in this order:
+ZFS provides the underlying storage for protected datasets, while Sanoid provides automated snapshots and pruning. The recovery objective is to restore a required dataset to a known-good snapshot and validate that dependent services can access the recovered data.
 
-1. **ZFS / Sanoid recovery** — defines pool import, snapshot verification, and recovery-point validation.
+The protected datasets are:
+
+- `mediapool/media`
+- `mediapool/root`
+
+Sanoid retains hourly, daily, weekly, and monthly snapshots for these datasets. The selected snapshot is the recovery point; its age and completeness determine the recovery-point objective.
+
+After a dataset corruption, accidental deletion, host rebuild, or storage outage:
+
+1. Confirm the ZFS pool is importable and healthy.
+2. Identify the newest known-good Sanoid snapshot for the affected dataset.
+3. Confirm the selected snapshot exists and has the expected creation time.
+4. Recover the affected dataset from the selected snapshot.
+5. Confirm the recovered dataset is mounted and readable.
+6. Confirm representative files or directories are present and readable.
+7. Confirm dependent workloads can access the recovered dataset.
+8. Confirm Sanoid snapshot creation resumes after recovery.
+9. Confirm ZFS pool health and disk-health monitoring are healthy.
+10. Record the selected snapshot, recovery time, and validation evidence in the incident record.
+
+Do not treat snapshot retention as a substitute for a validated restore. A snapshot is not a recovery point until it has been restored or otherwise validated.
 
 ## Verification standard
 

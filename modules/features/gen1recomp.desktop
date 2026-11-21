@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Gen1Recomp
+GenericName=Pokémon Recompilation
+Comment=Fan-made native LÖVE recreation of Pokémon Gen 1 and 2
+Exec=gen1recomp
+Terminal=false
+Categories=Game;
+Keywords=game;pokemon;love;recomp;rpg;nintendo;emulation;

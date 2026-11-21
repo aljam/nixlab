@@ -69,6 +69,8 @@
       system = "x86_64-linux";
       inherit (nixpkgs) lib;
 
+      pkgs = nixpkgs.legacyPackages.${system};
+
       pkgs-stable = import nixpkgs-stable {
         inherit system;
         config.allowUnfree = true;
@@ -134,7 +136,7 @@
           programs.appimage = {
             enable = true;
             binfmt = true;
-            package = nixpkgs.legacyPackages.${system}.appimage-run.override {
+            package = pkgs.appimage-run.override {
               extraPkgs = pkgs: [
                 pkgs.libxcrypt-legacy
                 pkgs.libffi
@@ -196,13 +198,13 @@
       ];
     in
     {
-      formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt-tree;
+      formatter.${system} = pkgs.nixfmt-tree;
 
       packages.${system} = {
-        firewall-isolation = nixpkgs.legacyPackages.${system}.testers.runNixOSTest ./tests/firewall.nix;
+        firewall-isolation = pkgs.testers.runNixOSTest ./tests/firewall.nix;
 
         admin-isolation = import ./tests/runtime-isolation.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
           test = "admin-isolation";
         };
       };
@@ -211,7 +213,7 @@
         deploy = {
           type = "app";
           meta.description = "Deploy a pushed revision of this flake to one or more hosts.";
-          program = "${nixpkgs.legacyPackages.${system}.writeShellScript "deploy-all" ''
+          program = "${pkgs.writeShellScript "deploy-all" ''
             set -euo pipefail
 
             known_hosts=(${lib.concatStringsSep " " deployHosts})
@@ -253,152 +255,150 @@
 
       checks.${system} = {
         nftables-input-rules = import ./tests/nftables-input-rules.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
           hosts = self.nixosConfigurations;
         };
 
         service-exposure = import ./tests/service-exposure.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
           hosts = self.nixosConfigurations;
         };
 
         public-service-hardening = import ./tests/public-service-hardening.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
           hosts = self.nixosConfigurations;
         };
 
         public-endpoint-inventory = import ./tests/public-endpoint-inventory.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         public-service-recovery-drill = import ./tests/public-service-recovery-drill.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         monitoring-coverage = import ./tests/monitoring-coverage.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
           hosts = self.nixosConfigurations;
         };
 
         monitoring-health = import ./tests/runtime-isolation.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
           test = "monitoring-health";
         };
 
         postgresql-auth = import ./tests/runtime-isolation.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
           test = "postgresql-auth";
         };
 
-        servarr-media-access =
-          nixpkgs.legacyPackages.${system}.testers.runNixOSTest
-            ./tests/servarr-media-access.nix;
+        servarr-media-access = pkgs.testers.runNixOSTest ./tests/servarr-media-access.nix;
 
         host-rebuild-recovery-drill = import ./tests/host-rebuild-recovery-drill.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         loki-restore-drill = import ./tests/loki-restore-drill.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         alertmanager-restore-drill = import ./tests/alertmanager-restore-drill.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         prometheus-restore-drill = import ./tests/prometheus-restore-drill.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         grafana-restore-drill = import ./tests/grafana-restore-drill.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         radio-restore-drill = import ./tests/radio-restore-drill.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         shoko-restore-drill = import ./tests/shoko-restore-drill.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         jellyseerr-restore-drill = import ./tests/jellyseerr-restore-drill.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         prowlarr-restore-drill = import ./tests/prowlarr-restore-drill.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         bazarr-restore-drill = import ./tests/bazarr-restore-drill.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         lidarr-restore-drill = import ./tests/lidarr-restore-drill.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         sonarr-radarr-restore-drill = import ./tests/sonarr-radarr-restore-drill.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         qbittorrent-restore-drill = import ./tests/qbittorrent-restore-drill.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         media-stack-restore-drill = import ./tests/media-stack-restore-drill.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         jellyfin-restore-drill = import ./tests/jellyfin-restore-drill.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         homepage-restore-drill = import ./tests/homepage-restore-drill.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         postgresql-database-isolation = import ./tests/postgresql-database-isolation.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         postgresql-restore-drill = import ./tests/postgresql-restore-drill.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         matrix-restore-drill = import ./tests/matrix-restore-drill.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         vaultwarden-restore-drill = import ./tests/vaultwarden-restore-drill.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         peertube-restore-drill = import ./tests/peertube-restore-drill.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         alert-delivery = import ./tests/alert-delivery.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
         deploy-guard = import ./tests/deploy-guard.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
           deployScript = self.apps.${system}.deploy.program;
         };
 
         deploy-behavior = import ./tests/deploy-behavior.nix {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
           deployScript = self.apps.${system}.deploy.program;
           inherit deployHosts;
         };
 
         sops-recovery = import ./tests/sops-recovery.nix {
           lib = nixpkgs.lib;
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = pkgs;
         };
 
-        drift-detection = nixpkgs.legacyPackages.${system}.testers.runNixOSTest ./tests/drift-detection.nix;
+        drift-detection = pkgs.testers.runNixOSTest ./tests/drift-detection.nix;
       };
 
       nixosConfigurations = hostConfigurations;

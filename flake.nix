@@ -72,6 +72,10 @@
         config.allowUnfree = true;
       };
 
+      stablePackages = {
+        lutris = pkgs-stable.lutris;
+      };
+
       mkHost =
         {
           hostname,
@@ -81,7 +85,7 @@
           inherit system;
 
           specialArgs = {
-            inherit inputs pkgs-stable hostname;
+            inherit inputs stablePackages hostname;
           };
 
           modules =
@@ -110,7 +114,7 @@
             home-manager.useUserPackages = true;
             home-manager.users.aljam = import ./users/aljam/home.nix;
             home-manager.extraSpecialArgs = {
-              inherit inputs pkgs-stable hostname;
+              inherit inputs stablePackages hostname;
             };
           }
 

@@ -22,7 +22,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SECRETS_DIR = ROOT / "secrets"
 
 REFERENCE_PATTERN = re.compile(
-    r"sopsFile\s*=\s*(?:\./)?(?P<path>secrets/[A-Za-z0-9_./-]+\.yaml)\s*;"
+    r"sopsFile\s*=\s*(?:\.\./)*(?:\./)?(?P<path>secrets/[A-Za-z0-9_./-]+\.yaml)\s*;"
 )
 
 

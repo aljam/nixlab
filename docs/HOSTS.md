@@ -16,7 +16,7 @@ a navigation aid and should be updated when host composition changes.
 | Host | Imported roles and hardware | Host-specific settings | Feature traceability |
 |---|---|---|---|
 | `navi` | `modules/roles/desktop-node.nix`, `modules/hardware/navi-desktop.nix` | `programs.corectrl.enable = true` for AMD overclocking and undervolting. | Desktop node; inspect `desktop-node.nix` for the enabled feature set. |
-| `oryx` | `modules/roles/desktop-node.nix`, `modules/hardware/system76-laptop.nix` | CachyOS binary cache for local rebuilds; see [first-rebuild instructions](../CACHIX.md#oryx-compiles-the-cachyos-kernel-and-runs-out-of-space). | Desktop node; inspect `desktop-node.nix` for the enabled feature set. |
+| `oryx` | `modules/roles/desktop-node.nix`, `modules/hardware/system76-laptop.nix` | None beyond the shared desktop role and System76 hardware module. | Desktop node; inspect `desktop-node.nix` for the enabled feature set. |
 | `r730` | `modules/roles/server-core.nix`, `modules/roles/storage-node.nix`, `modules/hardware/dell-poweredge.nix`, `modules/features/nvidia-headless.nix` | ZFS host ID; CUDA toolkit package. | Server and storage node with NVIDIA headless support. |
 | `r730xd` | `modules/roles/server-core.nix`, `modules/roles/media-node.nix`, `modules/roles/storage-node.nix`, `modules/hardware/dell-poweredge.nix`, `modules/features/nvidia-headless.nix`; monitoring, backup, Loki, Restic, Matrix, static site, radio, PeerTube, and Vaultwarden features. | ZFS ARC maximum; ZFS host ID; systemd-resolved; Loki address; Grafana Loki URL; Restic jobs. | Primary application, media, monitoring, and backup host. |
 | `r820` | `modules/roles/server-core.nix`, `modules/features/libvirt.nix`, `modules/features/postgres.nix`; mail role and module are intentionally commented out. | PostgreSQL databases, users, and client allowlists; PeerTube PostgreSQL extensions; Nix allowed users. | Database and virtualization host. |
@@ -26,7 +26,7 @@ a navigation aid and should be updated when host composition changes.
 | Role | Responsibility | Status |
 |---|---|---|
 | `common.nix` | Fleet-wide baseline: boot, log shipping, networking options, Nix cache, SOPS, SSH, security policy, systemd hardening, audit logging, and automatic updates. | Active on all hosts. |
-| `desktop-node.nix` | Desktop composition: audio, Bluetooth, graphics, Hyprland, emulation, NAS mount, networking tools, gaming, libvirt GUI, Flatpak, fonts, Gen1 recomp, and desktop portals. | Active on `navi` and `oryx`. |
+| `desktop-node.nix` | Desktop composition: audio, Bluetooth, graphics, Hyprland, emulation, NAS mount, networking tools, gaming, libvirt GUI, Flatpak, fonts, Gen1 recomp, desktop portals, and the [CachyOS kernel cache](../CACHIX.md#a-desktop-compiles-the-cachyos-kernel-and-runs-out-of-space). | Active on `navi` and `oryx`. |
 | `server-core.nix` | Server baseline: node exporter, reverse-proxy backends, libvirt remote management, static networking, nftables, and Podman. | Active on `r730`, `r730xd`, and `r820`. |
 | `media-node.nix` | Media and application service composition: homepage, Autobrr, Recyclarr, Vaultwarden, Grafana, Servarr, Matrix, static site, radio, and PeerTube. | Active on `r730xd`. |
 | `storage-node.nix` | ZFS baseline and Sanoid snapshot policy. | Active on `r730` and `r730xd`. |

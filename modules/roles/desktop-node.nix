@@ -15,6 +15,7 @@
     ../../modules/features/emulation.nix
     ../../modules/features/nas-mount.nix
     ../../modules/features/networking-tools.nix
+    ../../modules/features/developer-tools.nix
     ../../modules/features/gaming.nix
     ../../modules/features/libvirt.nix
     ../../modules/features/flatpak.nix
@@ -63,4 +64,7 @@
 
   # Desktops and laptops get the local libvirt GUI.
   modules.features.libvirt.gui.enable = true;
+
+  # Developer and API debugging tools for desktop hosts.
+  modules.features.developerTools.enable = true;
 }

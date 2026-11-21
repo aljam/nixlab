@@ -5,8 +5,8 @@ This static, keyless check ensures that:
 
 - Every ``sops.secrets`` file reference resolves to an encrypted YAML file
   beneath ``secrets/``.
-- Every encrypted YAML file beneath ``secrets/`` is referenced by at least one
-  Nix configuration file.
+- Every encrypted YAML file beneath ``secrets/`` is either referenced by at
+  least one Nix configuration file or explicitly marked as operator-managed.
 
 It does not decrypt secrets or validate recipient authorization; those concerns
 are covered by the repository's SOPS policy and recovery checks.
@@ -24,6 +24,13 @@ SECRETS_DIR = ROOT / "secrets"
 REFERENCE_PATTERN = re.compile(
     r"sopsFile\s*=\s*(?:\.\./)*(?:\./)?(?P<path>secrets/[A-Za-z0-9_./-]+\.yaml)\s*;"
 )
+
+# SOPS files that are intentionally managed and decrypted by an operator
+# rather than consumed directly by a NixOS module. They must still exist and
+# remain covered by the SOPS recipient policy.
+OPERATOR_MANAGED = {
+    "secrets/acme.yaml",
+}
 
 
 def main() -> int:
@@ -49,7 +56,9 @@ def main() -> int:
             referenced.add(match.group("path"))
 
     missing_files = sorted(referenced - existing)
-    orphan_secrets = sorted(existing - referenced)
+    orphan_secrets = sorted(
+        (existing - referenced) - OPERATOR_MANAGED
+    )
 
     failures = False
 
@@ -70,7 +79,8 @@ def main() -> int:
 
     print(
         f"OK: validated {len(existing)} SOPS files and "
-        f"{len(referenced)} NixOS secret references."
+        f"{len(referenced)} NixOS secret references; "
+        f"{len(existing & OPERATOR_MANAGED)} operator-managed SOPS files."
     )
     return 0
 

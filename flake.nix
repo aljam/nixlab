@@ -255,7 +255,7 @@
         deploy-plan = {
           type = "app";
           meta.description = "Validate and print the hosts that deploy would target without connecting or switching.";
-          program = "${nixpkgs.legacyPackages.${system}.writeShellScript "deploy-plan" ''
+          program = "${pkgs.writeShellScript "deploy-plan" ''
             set -euo pipefail
 
             known_hosts=(${lib.concatStringsSep " " deployHosts})
@@ -293,7 +293,51 @@
             for host in "''${hosts[@]}"; do
               echo "  - $host"
             done
-            echo "No hosts were connected to or switched." 
+            echo "No hosts were connected to or switched."
+          ''}";
+        };
+
+        deploy-status = {
+          type = "app";
+          meta.description = "Report whether deploy hosts are running the current main revision without switching.";
+          program = "${pkgs.writeShellScript "deploy-status" ''
+            set -euo pipefail
+
+            known_hosts=(${lib.concatStringsSep " " deployHosts})
+
+            rev="$(git rev-parse origin/main)"
+
+            if [[ ! "$rev" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "Refusing to check status: unable to resolve a full commit SHA." >&2
+              exit 1
+            fi
+
+            hosts=("$@")
+            if (( ''${#hosts[@]} == 0 )); then
+              hosts=("''${known_hosts[@]}")
+            fi
+
+            echo "==> Deployment status"
+            echo "Revision: $rev"
+
+            stale=0
+            for host in "''${hosts[@]}"; do
+              if running="$(ssh -o BatchMode=yes -o ConnectTimeout=10 "deploy@''${host}" "nixos-version --configuration-revision" 2>/dev/null)"; then
+                if [[ "$running" == "$rev" ]]; then
+                  status="up-to-date"
+                else
+                  status="out-of-date"
+                  stale=1
+                fi
+                echo "''${host}: ''${status} (running ''${running:-unknown})"
+              else
+                status="unknown"
+                stale=1
+                echo "''${host}: ''${status}"
+              fi
+            done
+
+            exit "''${stale}"
           ''}";
         };
       };

@@ -1,37 +1,26 @@
-# nixlab documentation
+# Documentation
 
-This directory contains operational and security documentation for the
-nixlab repository.
-
-## Security
-
-- [Security overview](SECURITY.md)
-- [Security review checklist](SECURITY-REVIEW.md)
-- [Authentication](AUTHENTICATION.md)
-- [Deployment authorization boundary](security/deploy-authorization.md)
-- [Public service exposure](security/public-service-exposure.md)
-- [SSH key audit](security/ssh-key-audit.md)
-
-## Operations
-
-- [Architecture](ARCHITECTURE.md)
-- [Backups](BACKUPS.md)
-- [Disk health](DISK-HEALTH.md)
-- [Host onboarding](HOST-ONBOARDING.md)
-- [Mail](MAIL.md)
-- [Maintenance](MAINTENANCE.md)
-- [Modules](MODULES.md)
-- [Monitoring](MONITORING.md)
-- [Networking](NETWORKING.md)
-- [Public services](PUBLIC_SERVICES.md)
-- [Recovery](RECOVERY.md)
-- [Runbook](RUNBOOK.md)
-- [Secrets](SECRETS.md)
-- [Updates](UPDATES.md)
-- [User management](USER-MANAGEMENT.md)
-
-## Audits
-
-- [Audit documents](audits/)
-- [Runbooks](runbooks/)
-- [Security documentation](security/)
+- [`ARCHITECTURE.md`](./ARCHITECTURE.md) — repository and infrastructure architecture
+- [`FLAKE.md`](./FLAKE.md) — flake input inventory and `nix flake show` guide
+- [`HOSTS.md`](./HOSTS.md) — host inventory and roles
+- [`MODULES.md`](./MODULES.md) — module organization
+- [`NETWORKING.md`](./NETWORKING.md) — networking and firewall design
+- [`SECURITY.md`](./SECURITY.md) — security controls and policies
+- [`SECRETS.md`](./SECRETS.md) — SOPS secret management
+- [`RECOVERY.md`](./RECOVERY.md) — recovery procedures
+- [`BACKUPS.md`](./BACKUPS.md) — backup procedures
+- [`UPDATES.md`](./UPDATES.md) — update procedures
+- [`MAINTENANCE.md`](./MAINTENANCE.md) — maintenance procedures
+- [`PUBLIC_SERVICES.md`](./PUBLIC_SERVICES.md) — public service exposure
+- [`AUTHENTICATION.md`](./AUTHENTICATION.md) — authentication services
+- [`USER-MANAGEMENT.md`](./USER-MANAGEMENT.md) — user management
+- [`HOST-ONBOARDING.md`](./HOST-ONBOARDING.md) — host onboarding
+- [`CODE_REVIEW.md`](./CODE_REVIEW.md) — code review process
+- [`DISK-HEALTH.md`](./DISK-HEALTH.md) — disk health monitoring
+- [`MAIL.md`](./MAIL.md) — mail configuration
+- [`MONITORING.md`](./MONITORING.md) — monitoring configuration
+- [`RUNBOOK.md`](./RUNBOOK.md) — operational runbook
+- [`SECURITY-REVIEW.md`](./SECURITY-REVIEW.md) — security review process
+- [`audits/`](./audits/) — audit documentation
+- [`runbooks/`](./runbooks/) — operational runbooks
+- [`security/`](./security/) — security documentation

@@ -32,9 +32,13 @@ pkgs.testers.nixosTest {
       };
     };
 
-    networking.firewall = {
-      enable = true;
-      allowedTCPPorts = [ 22 ];
+    networking = {
+      nftables.enable = true;
+
+      firewall = {
+        enable = true;
+        allowedTCPPorts = [ 22 ];
+      };
     };
 
     services.prometheus.exporters.node = {

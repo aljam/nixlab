@@ -7,6 +7,8 @@ from pathlib import Path
 
 import yaml
 
+PERSONAL_RECIPIENTS = {"aljam"}
+
 
 def fail(message: str) -> None:
     print(f"FAIL: {message}")
@@ -128,6 +130,12 @@ def main() -> int:
             failures.append(
                 f"{relative_path} is encrypted for recipients outside its creation rule: "
                 + ", ".join(sorted(unauthorized))
+            )
+
+        host_recipients = recipients - PERSONAL_RECIPIENTS
+        if not host_recipients:
+            failures.append(
+                f"{relative_path} has no host recipient; it must remain recoverable without the personal aljam identity."
             )
 
     if failures:

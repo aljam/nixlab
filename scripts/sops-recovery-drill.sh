@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run a host-specific SOPS recovery drill.
+# Run a host-specific or fleet-wide SOPS recovery drill.
 #
 # This command validates the repository's recipient policy and prints the
 # recovery steps for one host. With --decrypt, it also verifies that the
@@ -8,24 +8,30 @@
 # Usage:
 #   ./scripts/sops-recovery-drill.sh --host r730xd
 #   ./scripts/sops-recovery-drill.sh --host r730xd --decrypt
+#   ./scripts/sops-recovery-drill.sh --all
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-usage() {
-  cat <<'EOF'
-Usage: scripts/sops-recovery-drill.sh --host HOST [--decrypt]
+known_hosts="$(python3 scripts/sops_policy.py --hosts)"
 
-Validate the SOPS recipient policy and print recovery guidance for one host.
+usage() {
+  cat <<EOF
+Usage: scripts/sops-recovery-drill.sh --host HOST [--decrypt]
+       scripts/sops-recovery-drill.sh --all
+
+Validate the SOPS recipient policy and print recovery guidance.
 
 Hosts:
-  navi, oryx, r730, r730xd, r820
+$known_hosts
 
 Options:
   --host HOST  Select the host to drill.
-  --decrypt    Also attempt to decrypt every secret file allowed for HOST.
-               This requires a local SOPS identity authorized for those files.
+  --all        Run a keyless policy dry run for every host.
+  --decrypt    With --host, also attempt to decrypt every secret file allowed
+               for HOST. This requires a local SOPS identity authorized for
+               those files.
   -h, --help   Show this help.
 EOF
 }
@@ -37,6 +43,7 @@ fail() {
 
 host=""
 decrypt=false
+all_hosts=false
 
 while (($#)); do
   case "$1" in
@@ -44,6 +51,10 @@ while (($#)); do
       (($# >= 2)) || fail "--host requires an argument"
       host="$2"
       shift 2
+      ;;
+    --all)
+      all_hosts=true
+      shift
       ;;
     --decrypt)
       decrypt=true
@@ -60,18 +71,56 @@ while (($#)); do
   esac
 done
 
-[[ -n "$host" ]] || { usage >&2; fail "--host is required"; }
+if [[ "$all_hosts" == true ]]; then
+  [[ -z "$host" ]] || fail "--all cannot be combined with --host"
+  [[ "$decrypt" == false ]] || fail "--all cannot be combined with --decrypt"
+fi
+
+if [[ "$all_hosts" == false && -z "$host" ]]; then
+  usage >&2
+  fail "--host is required"
+fi
 
 printf 'Running SOPS recipient policy audit...\n'
 python3 scripts/check-sops-recipients.py
 
+validate_host() {
+  local drill_host="$1"
+  local recipient
+
+  recipient="$(python3 scripts/sops_policy.py --host "$drill_host" --recipient)" || \
+    fail "could not resolve SOPS recipient for host: $drill_host"
+
+  mapfile -t allowed_files < <(python3 scripts/sops_policy.py --host "$drill_host" --files)
+  ((${#allowed_files[@]} > 0)) || \
+    fail "no secret files are authorized for host: $drill_host"
+
+  printf 'Host: %s\n' "$drill_host"
+  printf 'Recipient: %s\n' "$recipient"
+  printf 'Allowed secret files:\n'
+  for file in "${allowed_files[@]}"; do
+    printf '  - %s\n' "$file"
+  done
+}
+
+if [[ "$all_hosts" == true ]]; then
+  mapfile -t drill_hosts < <(python3 scripts/sops_policy.py --hosts)
+  ((${#drill_hosts[@]} > 0)) || fail "no SOPS recipient aliases are defined"
+
+  for drill_host in "${drill_hosts[@]}"; do
+    validate_host "$drill_host"
+  done
+
+  printf 'All-host SOPS recovery policy dry run passed.\n'
+  exit 0
+fi
+
+recipient="$(python3 scripts/sops_policy.py --host "$host" --recipient)" || \
+  fail "could not resolve SOPS recipient for host: $host"
+
 mapfile -t allowed_files < <(python3 scripts/sops_policy.py --host "$host" --files)
-
-recipient_line="$(grep -E "^[[:space:]]*-[[:space:]]*&${host}[[:space:]]" .sops.yaml)" || \
-  fail "no SOPS recipient alias found for host: $host"
-
-recipient="$(printf '%s\n' "$recipient_line" | awk '{print $3}')"
-[[ -n "$recipient" ]] || fail "could not resolve SOPS recipient for host: $host"
+((${#allowed_files[@]} > 0)) || \
+  fail "no secret files are authorized for host: $host"
 
 printf 'Host: %s\n' "$host"
 printf 'Recipient: %s\n' "$recipient"

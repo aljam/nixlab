@@ -251,6 +251,51 @@
             done
           ''}";
         };
+
+        deploy-plan = {
+          type = "app";
+          meta.description = "Validate and print the hosts that deploy would target without connecting or switching.";
+          program = "${nixpkgs.legacyPackages.${system}.writeShellScript "deploy-plan" ''
+            set -euo pipefail
+
+            known_hosts=(${lib.concatStringsSep " " deployHosts})
+
+            if [[ -n "$(git status --porcelain)" ]]; then
+              echo "Refusing to plan: Git working tree is dirty." >&2
+              echo "Commit or stash changes, then retry." >&2
+              exit 1
+            fi
+
+            rev="$(git rev-parse HEAD)"
+
+            if [[ ! "$rev" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "Refusing to plan: unable to resolve a full commit SHA." >&2
+              exit 1
+            fi
+
+            git fetch --quiet origin
+            if [[ "$rev" != "$(git rev-parse origin/main)" ]]; then
+              echo "Refusing to plan: HEAD ($rev) is not the tip of origin/main" >&2
+              exit 1
+            fi
+
+            echo "==> Running flake checks"
+            nix --extra-experimental-features 'nix-command flakes' flake check --show-trace
+
+            hosts=("$@")
+            if (( ''${#hosts[@]} == 0 )); then
+              hosts=("''${known_hosts[@]}")
+            fi
+
+            echo "==> Deployment plan"
+            echo "Revision: $rev"
+            echo "Hosts:"
+            for host in "''${hosts[@]}"; do
+              echo "  - $host"
+            done
+            echo "No hosts were connected to or switched." 
+          ''}";
+        };
       };
 
       checks.${system} = {

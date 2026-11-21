@@ -124,9 +124,5 @@
         "float,class:^(nm-connection-editor)$"
       ];
     };
-
-    extraConfig = '''
-      # Add machine-specific or experimental Hyprland settings here.
-    ''';
   };
 }

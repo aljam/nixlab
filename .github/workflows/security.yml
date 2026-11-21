@@ -125,10 +125,11 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Install pinned audit dependencies
+        run: python3 -m pip install --disable-pip-version-check -r requirements-security.txt
+
       - name: Check SOPS file and host policy
-        run: |
-          python3 -m pip install --disable-pip-version-check pyyaml
-          python3 scripts/check-sops-file-consistency.py
+        run: python3 scripts/check-sops-file-consistency.py
 
   sops-usage:
     name: Validate SOPS secret usage

@@ -305,39 +305,128 @@
 
             known_hosts=(${lib.concatStringsSep " " deployHosts})
 
-            rev="$(git rev-parse origin/main)"
+            usage() {
+              echo "Usage: deploy-status [--json] [--quiet] [HOST...]" >&2
+              echo "Hosts: ${lib.concatStringsSep " " deployHosts}" >&2
+            }
 
-            if [[ ! "$rev" =~ ^[0-9a-f]{40}$ ]]; then
-              echo "Refusing to check status: unable to resolve a full commit SHA." >&2
-              exit 1
-            fi
+            output="human"
+            hosts=()
 
-            hosts=("$@")
+            for arg in "$@"; do
+              case "$arg" in
+                --json)
+                  output="json"
+                  ;;
+                --quiet)
+                  output="quiet"
+                  ;;
+                -h|--help)
+                  usage
+                  exit 0
+                  ;;
+                --*)
+                  echo "Unknown option: $arg" >&2
+                  usage
+                  exit 3
+                  ;;
+                *)
+                  hosts+=("$arg")
+                  ;;
+              esac
+            done
+
             if (( ''${#hosts[@]} == 0 )); then
               hosts=("''${known_hosts[@]}")
             fi
 
-            echo "==> Deployment status"
-            echo "Revision: $rev"
+            for host in "''${hosts[@]}"; do
+              valid=0
+              for known in "''${known_hosts[@]}"; do
+                if [[ "$host" == "$known" ]]; then
+                  valid=1
+                  break
+                fi
+              done
 
-            stale=0
+              if (( valid == 0 )); then
+                echo "Unknown deploy host: $host" >&2
+                usage
+                exit 3
+              fi
+            done
+
+            rev="$(git rev-parse origin/main)"
+
+            if [[ ! "$rev" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "Refusing to check status: unable to resolve a full commit SHA." >&2
+              exit 3
+            fi
+
+            up_to_date=0
+            out_of_date=0
+            unreachable=0
+
+            if [[ "$output" == "json" ]]; then
+              printf '{"revision":"%s","hosts":[' "$rev"
+            elif [[ "$output" == "human" ]]; then
+              echo "==> Deployment status"
+              echo "Revision: $rev"
+              echo
+              printf '%-12s %-12s %s\\n' "Host" "Status" "Running revision"
+            fi
+
+            first=1
             for host in "''${hosts[@]}"; do
               if running="$(ssh -o BatchMode=yes -o ConnectTimeout=10 "deploy@''${host}" "nixos-version --configuration-revision" 2>/dev/null)"; then
                 if [[ "$running" == "$rev" ]]; then
                   status="up-to-date"
+                  up_to_date=$((up_to_date + 1))
                 else
                   status="out-of-date"
-                  stale=1
+                  out_of_date=$((out_of_date + 1))
                 fi
-                echo "''${host}: ''${status} (running ''${running:-unknown})"
               else
-                status="unknown"
-                stale=1
-                echo "''${host}: ''${status}"
+                status="unreachable"
+                running=""
+                unreachable=$((unreachable + 1))
               fi
+
+              case "$output" in
+                json)
+                  if (( first == 0 )); then
+                    printf ','
+                  fi
+                  printf '{"host":"%s","status":"%s","runningRevision":"%s"}' \\
+                    "$host" "$status" "$running"
+                  first=0
+                  ;;
+                quiet)
+                  printf '%s %s\\n' "$host" "$status"
+                  ;;
+                human)
+                  printf '%-12s %-12s %s\\n' "$host" "$status" "''${running:--}"
+                  ;;
+              esac
             done
 
-            exit "''${stale}"
+            if [[ "$output" == "json" ]]; then
+              printf '],"summary":{"upToDate":%d,"outOfDate":%d,"unreachable":%d}}\\n' \\
+                "$up_to_date" "$out_of_date" "$unreachable"
+            elif [[ "$output" == "human" ]]; then
+              echo
+              echo "Summary: $up_to_date up-to-date, $out_of_date out-of-date, $unreachable unreachable"
+            fi
+
+            if (( unreachable > 0 )); then
+              exit 2
+            fi
+
+            if (( out_of_date > 0 )); then
+              exit 1
+            fi
+
+            exit 0
           ''}";
         };
       };

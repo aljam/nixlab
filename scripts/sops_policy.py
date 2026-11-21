@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 
 POLICY = {
     "secrets/common.yaml": {"aljam", "navi", "oryx", "r730", "r730xd", "r820"},
@@ -26,8 +25,12 @@ def files_for_host(host: str) -> list[str]:
     return sorted(path for path, recipients in POLICY.items() if host in recipients)
 
 
+def hosts() -> list[str]:
+    return sorted({recipient for recipients in POLICY.values() for recipient in recipients})
+
+
 def recipient_for_host(host: str) -> str:
-    if host not in {recipient for recipients in POLICY.values() for recipient in recipients}:
+    if host not in hosts():
         raise ValueError(f"unknown SOPS recipient: {host}")
     return host
 
@@ -37,11 +40,17 @@ def main() -> None:
     parser.add_argument("--host", help="Show secret files allowed for this host")
     parser.add_argument("--files", action="store_true", help="Print allowed files, one per line")
     parser.add_argument("--recipient", action="store_true", help="Print the canonical SOPS recipient alias for HOST")
+    parser.add_argument("--hosts", action="store_true", help="Print all known SOPS recipient aliases, one per line")
     parser.add_argument("--json", action="store_true", help="Print the full policy as JSON")
     args = parser.parse_args()
 
     if args.json:
         print(json.dumps({path: sorted(recipients) for path, recipients in POLICY.items()}, indent=2))
+        return
+
+    if args.hosts:
+        for host in hosts():
+            print(host)
         return
 
     if not args.host:

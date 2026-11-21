@@ -26,10 +26,17 @@ def files_for_host(host: str) -> list[str]:
     return sorted(path for path, recipients in POLICY.items() if host in recipients)
 
 
+def recipient_for_host(host: str) -> str:
+    if host not in {recipient for recipients in POLICY.values() for recipient in recipients}:
+        raise ValueError(f"unknown SOPS recipient: {host}")
+    return host
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--host", help="Show secret files allowed for this host")
     parser.add_argument("--files", action="store_true", help="Print allowed files, one per line")
+    parser.add_argument("--recipient", action="store_true", help="Print the canonical SOPS recipient alias for HOST")
     parser.add_argument("--json", action="store_true", help="Print the full policy as JSON")
     args = parser.parse_args()
 
@@ -37,11 +44,23 @@ def main() -> None:
         print(json.dumps({path: sorted(recipients) for path, recipients in POLICY.items()}, indent=2))
         return
 
-    if not args.host or not args.files:
+    if not args.host:
+        parser.error("--files or --recipient requires --host HOST")
+
+    if args.recipient:
+        try:
+            print(recipient_for_host(args.host))
+        except ValueError as exc:
+            parser.error(str(exc))
+        return
+
+    if not args.files:
         parser.error("--files requires --host HOST")
 
-    if args.host not in {recipient for recipients in POLICY.values() for recipient in recipients}:
-        parser.error(f"unknown SOPS recipient: {args.host}")
+    try:
+        recipient_for_host(args.host)
+    except ValueError as exc:
+        parser.error(str(exc))
 
     for path in files_for_host(args.host):
         print(path)

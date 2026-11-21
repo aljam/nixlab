@@ -1,11 +1,17 @@
 {
   config,
   lib,
-  mkLink,
   ...
 }:
 let
   cfg = config.modules.features.homepage;
+
+  mkLink =
+    name: service: description: icon:
+    {
+      inherit name description icon;
+      href = "https://${service}.derezzed.info";
+    };
 in
 {
   options.modules.features.homepage.enable = lib.mkEnableOption "Homepage dashboard";
@@ -61,7 +67,7 @@ in
         ];
 
         "Identity / communication" = [
-          (mkLink "Vaultwarden" "vaultwarden" "Password Manager" "vaultwarden.png")
+          (mkLink "Vaultwarden" "vault" "Password Manager" "vaultwarden.png")
           (mkLink "Matrix" "matrix" "Chat" "matrix.png")
           (mkLink "Matrix RTC" "matrix-rtc" "Voice & Video" "matrix.png")
         ];

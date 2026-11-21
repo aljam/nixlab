@@ -292,9 +292,7 @@
           test = "postgresql-auth";
         };
 
-        servarr-media-access =
-          pkgs.testers.runNixOSTest
-            ./tests/servarr-media-access.nix;
+        servarr-media-access = pkgs.testers.runNixOSTest ./tests/servarr-media-access.nix;
 
         host-rebuild-recovery-drill = import ./tests/host-rebuild-recovery-drill.nix {
           pkgs = pkgs;

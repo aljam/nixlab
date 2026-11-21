@@ -43,6 +43,8 @@
     networking.hostName = hostname;
     networking.domain = config.networking.myDomain;
 
+    nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+
     roles.security.sopsAllowedRootSecrets = [
       "nas-credentials"
       "smtp_relay_password"

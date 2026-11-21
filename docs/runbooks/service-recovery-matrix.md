@@ -38,7 +38,7 @@ Desktop conveniences and host-local development features are out of scope unless
 | Sonarr | `r730xd` | Media-stack restore drill (`checks.x86_64-linux.media-stack-restore-drill`); SOPS secret compromise playbook | Covered | Maintain the restore drill and validate it during recovery exercises. |
 | Recyclarr | `r730xd` | Media-stack restore drill (`checks.x86_64-linux.media-stack-restore-drill`); SOPS secret compromise playbook | Covered | Maintain the restore drill and validate it during recovery exercises. |
 | Autobrr | `r730xd` | Media-stack restore drill (`checks.x86_64-linux.media-stack-restore-drill`); SOPS secret compromise playbook | Covered | Maintain the restore drill and validate it during recovery exercises. |
-| Radio | `r730xd` | No dedicated procedure | Gap | Define stream and source recovery, listener verification, and dependency order. |
+| Radio | `r730xd` | Declarative Icecast and Liquidsoap configuration; SOPS-managed streaming credentials; shared media-library recovery; local nginx front end | Covered | Recover the music library and SOPS-managed credentials, redeploy the authorized revision, then validate the local stream and public radio endpoint. Icecast logs are diagnostic only and are not a recovery-point objective. |
 | Homepage | `r730xd` | Homepage restore drill (`checks.x86_64-linux.homepage-restore-drill`) | Covered | Maintain the restore drill and validate it during recovery exercises. |
 | Static site | `r730xd` | [Public-service recovery matrix](public-service-recovery-matrix.md); public-service recovery drill (`checks.x86_64-linux.public-service-recovery-drill`) | Covered | Maintain the public-service recovery procedure and validate it during recovery exercises. |
 | Restic backups | Multiple | [Restic restore drill](restic-restore-drill.md); backup failure and staleness alerts; backup documentation | Covered | Maintain the restore drill and validate it during recovery exercises. |
@@ -65,13 +65,33 @@ After a host rebuild or pgAdmin state loss:
 
 Do not restore pgAdmin state over a newer deployment. If pgAdmin state is unavailable, recreate it rather than treating its loss as a PostgreSQL recovery failure.
 
+## Radio recovery
+
+Radio is a declarative streaming stack: Liquidsoap reads music from the shared media mount and streams to loopback-only Icecast. The public radio endpoint is served by the local nginx front end.
+
+The music library is the primary recovery artifact. Icecast and Liquidsoap configuration is generated from SOPS templates, and neither service has critical persistent state beyond diagnostic logs.
+
+After a host rebuild, media-storage recovery, or Radio outage:
+
+1. Deploy the authorized NixOS revision.
+2. Recover and validate `/mnt/media/music`.
+3. Confirm the SOPS-managed `icecast_source_password` and `icecast_admin_password` are deployed with the expected ownership and permissions.
+4. Start `icecast.service`.
+5. Start `liquidsoap-radio.service`.
+6. Confirm Icecast remains bound to `127.0.0.1:8000`.
+7. Confirm Liquidsoap can read a representative music file from the recovered library.
+8. Confirm the local nginx radio front end reaches Icecast.
+9. Confirm the public radio endpoint returns the expected stream or status response.
+10. Confirm that restarting either streaming service does not expose Icecast directly to the network.
+
+Do not treat Icecast logs as a recovery-point objective. If the music library is unavailable, recover it before attempting to validate the stream.
+
 ## Prioritized follow-up
 
 Address gaps in this order:
 
-1. **Radio recovery** — defines stream and source recovery, listener verification, and dependency order.
-2. **NAS mount recovery** — defines mount recovery, credential-rotation effects, and data-access verification.
-3. **ZFS / Sanoid recovery** — defines pool import, snapshot verification, and recovery-point validation.
+1. **NAS mount recovery** — defines mount recovery, credential-rotation effects, and data-access verification.
+2. **ZFS / Sanoid recovery** — defines pool import, snapshot verification, and recovery-point validation.
 
 ## Verification standard
 

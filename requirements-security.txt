@@ -1,0 +1,5 @@
+# Dependencies for repository security audits.
+#
+# Pin the direct dependency used by the SOPS consistency audit. Hash pinning
+# should be added after generating a lockfile against the CI Python version.
+pyyaml==6.0.3

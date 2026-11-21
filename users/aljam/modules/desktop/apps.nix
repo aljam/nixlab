@@ -1,7 +1,7 @@
 {
   config,
   pkgs,
-  pkgs-stable,
+  stablePackages,
   ...
 }:
 
@@ -26,7 +26,7 @@
     hunspell
     hunspellDicts.en_US
     hyphenDicts.en_US
-    pkgs-stable.lutris
+    stablePackages.lutris
     heroic
     protonup-qt
     mangohud

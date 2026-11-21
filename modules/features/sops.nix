@@ -21,6 +21,7 @@ let
       owner,
       group,
       neededForUsers ? false,
+      restartUnits ? [ ],
       ...
     }@args:
     args
@@ -31,6 +32,7 @@ let
         owner
         group
         neededForUsers
+        restartUnits
         ;
       mode = "0400";
     };
@@ -69,6 +71,15 @@ let
     in
     !(lib.elem config.networking.hostName approvedHosts)
   ) secretRelativePaths;
+
+  serviceSecretsWithoutRestartUnits = lib.filter (
+    secret:
+    secret.owner != "root"
+    && !(lib.elem secret.name config.roles.security.sopsRestartExemptions)
+    && secret.restartUnits == [ ]
+  ) sopsSecrets;
+
+  secretsWithoutRestartUnits = map (secret: secret.name) serviceSecretsWithoutRestartUnits;
 
   # The operator identity, `aljam`, is intentionally excluded: it is not a
   # NixOS host. These mappings must match the age recipients declared for each
@@ -128,6 +139,15 @@ in
       This is intended for system-level credentials such as mount credentials,
       mail relay configuration, and services that do not yet have a
       dedicated unprivileged identity.
+    '';
+  };
+
+  options.roles.security.sopsRestartExemptions = lib.mkOption {
+    type = lib.types.listOf lib.types.str;
+    default = [ ];
+    description = ''
+      Names of service-owned SOPS secrets that intentionally do not restart a
+      systemd unit when their value changes. Each exemption must be explicit.
     '';
   };
 
@@ -192,8 +212,20 @@ in
     {
       assertion = undeclaredSecretGroups == [ ];
       message =
-        "SOPS secret owners must be declared system groups. Undeclared groups: "
-        + lib.concatStringsSep ", " (map (secret: secret.group) undeclaredSecretGroups);
+        "SOPS secret owners must be declared system groups. Undeclared owners: "
+        + lib.concatStringsSep ", " (map (secret: secret.owner) undeclaredSecretGroups);
+    }
+
+    # Ensure credential rotation reaches the service consuming the secret.
+    # Root-owned secrets may be consumed by activation paths that cannot be
+    # restarted and therefore remain governed by the root-secret allowlist.
+    {
+      assertion = serviceSecretsWithoutRestartUnits == [ ];
+      message =
+        "Service-owned SOPS secrets must declare restartUnits, or be explicitly "
+        + "exempted in roles.security.sopsRestartExemptions. Secrets without "
+        + "restart units: "
+        + lib.concatStringsSep ", " secretsWithoutRestartUnits;
     }
 
     # Keep encrypted secrets within the dedicated repository secrets tree.

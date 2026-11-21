@@ -132,9 +132,14 @@ done
 if [[ "$decrypt" == true ]]; then
   command -v sops >/dev/null 2>&1 || fail "--decrypt requires sops"
 
+  decrypted_file="$(mktemp)"
+  trap 'rm -f "$decrypted_file"' EXIT
+
   printf 'Decrypting allowed secret files with the local SOPS identity...\n'
   for file in "${allowed_files[@]}"; do
-    sops -d "$file" >/dev/null
+    : > "$decrypted_file"
+    sops -d "$file" > "$decrypted_file"
+    [[ -s "$decrypted_file" ]] || fail "decrypted output is empty: $file"
     printf '  OK %s\n' "$file"
   done
 else

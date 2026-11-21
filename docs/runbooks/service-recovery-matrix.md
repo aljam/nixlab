@@ -32,34 +32,30 @@ Desktop conveniences and host-local development features are out of scope unless
 | pgAdmin | `r820` | PostgreSQL recovery is adjacent | Gap | Determine whether pgAdmin state is disposable or backed up; document recovery and administrative-access verification. |
 | Matrix Synapse | `r730xd` | [Matrix recovery matrix](matrix-recovery-matrix.md); client and federation reachability alerts; Matrix secret rotation runbook | Covered | Maintain the recovery matrix and validate it during recovery exercises. |
 | MatrixRTC / LiveKit | `r730xd` | [Matrix recovery matrix](matrix-recovery-matrix.md) RTC recovery section; RTC reachability alert | Covered | Maintain the RTC recovery procedure and validate it during recovery exercises. |
-| Vaultwarden | `r730xd`, `r820` | SOPS secret compromise playbook | Partial | Define database and attachment recovery, admin-token rotation, and user-access verification. |
-| PeerTube | `r730xd` | PostgreSQL password rotation runbook | Partial | Add media-storage recovery, database restore, and upload or playback verification. |
-| Radarr | `r730xd` | SOPS secret compromise playbook | Gap | Define configuration and state recovery, then verify API integration and library access. |
-| Sonarr | `r730xd` | SOPS secret compromise playbook | Gap | Define configuration and state recovery, then verify API integration and library access. |
-| Recyclarr | `r730xd` | SOPS secret compromise playbook | Gap | Define configuration recovery and verify integration with Radarr and Sonarr. |
-| Autobrr | `r730xd` | No dedicated procedure | Gap | Define configuration and state recovery, then verify torrent-client integration. |
+| Vaultwarden | `r730xd`, `r820` | Vaultwarden restore drill (`checks.x86_64-linux.vaultwarden-restore-drill`); SOPS secret compromise playbook | Covered | Maintain the restore drill and validate it during recovery exercises. |
+| PeerTube | `r730xd` | PeerTube restore drill (`checks.x86_64-linux.peertube-restore-drill`); PostgreSQL password rotation runbook | Covered | Maintain the restore drill and validate it during recovery exercises. |
+| Radarr | `r730xd` | Media-stack restore drill (`checks.x86_64-linux.media-stack-restore-drill`); SOPS secret compromise playbook | Covered | Maintain the restore drill and validate it during recovery exercises. |
+| Sonarr | `r730xd` | Media-stack restore drill (`checks.x86_64-linux.media-stack-restore-drill`); SOPS secret compromise playbook | Covered | Maintain the restore drill and validate it during recovery exercises. |
+| Recyclarr | `r730xd` | Media-stack restore drill (`checks.x86_64-linux.media-stack-restore-drill`); SOPS secret compromise playbook | Covered | Maintain the restore drill and validate it during recovery exercises. |
+| Autobrr | `r730xd` | Media-stack restore drill (`checks.x86_64-linux.media-stack-restore-drill`); SOPS secret compromise playbook | Covered | Maintain the restore drill and validate it during recovery exercises. |
 | Radio | `r730xd` | No dedicated procedure | Gap | Define stream and source recovery, listener verification, and dependency order. |
-| Homepage | `r730xd` | No dedicated procedure | Gap | Determine whether configuration is declarative or persistent; document recovery and link verification. |
-| Static site | `r730xd` | No dedicated procedure | Gap | Define content or source recovery and verify the public endpoint. |
+| Homepage | `r730xd` | Homepage restore drill (`checks.x86_64-linux.homepage-restore-drill`) | Covered | Maintain the restore drill and validate it during recovery exercises. |
+| Static site | `r730xd` | [Public-service recovery matrix](public-service-recovery-matrix.md); public-service recovery drill (`checks.x86_64-linux.public-service-recovery-drill`) | Covered | Maintain the public-service recovery procedure and validate it during recovery exercises. |
 | Restic backups | Multiple | [Restic restore drill](restic-restore-drill.md); backup failure and staleness alerts; backup documentation | Covered | Maintain the restore drill and validate it during recovery exercises. |
 | NAS mounts | `navi`, `oryx` | SOPS secret compromise playbook | Partial | Define mount recovery, credential-rotation effects, and data-access verification. |
 | ZFS / Sanoid | Server hosts | Backup and disk-health alerts | Partial | Define pool import, snapshot verification, and recovery-point validation. |
 | Grafana | Monitoring host | [Monitoring outage response](monitoring-outage.md) | Covered | Maintain the monitoring outage procedure and validate it during recovery exercises. |
-| Loki | Monitoring host | [Monitoring outage response](monitoring-outage.md) | Covered | Maintain the monitoring outage procedure and validate it during recovery exercises. |
+| Loki | Monitoring host | Loki restore drill (`checks.x86_64-linux.loki-restore-drill`); [Monitoring outage response](monitoring-outage.md) | Covered | Maintain the restore drill and monitoring outage procedure; validate them during recovery exercises. |
 | ntfy relay | Monitoring host | [Monitoring outage response](monitoring-outage.md); alert-delivery validation | Covered | Maintain the monitoring outage procedure and validate it during recovery exercises. |
 
 ## Prioritized follow-up
 
 Address gaps in this order:
 
-1. **Vaultwarden recovery** — protects a high-value credential store.
-2. **PeerTube media recovery** — connects database, media storage, and public playback verification.
-3. **Media-stack recovery** — covers Radarr, Sonarr, Recyclarr, and Autobrr as a coordinated group.
-4. **Public-site and Homepage recovery** — defines simple, repeatable content and endpoint verification.
-5. **pgAdmin recovery** — determines whether administrative state is disposable or requires backup and recovery coverage.
-6. **Radio recovery** — defines stream and source recovery, listener verification, and dependency order.
-7. **NAS mount recovery** — defines mount recovery, credential-rotation effects, and data-access verification.
-8. **ZFS / Sanoid recovery** — defines pool import, snapshot verification, and recovery-point validation.
+1. **pgAdmin recovery** — determines whether administrative state is disposable or requires backup and recovery coverage.
+2. **Radio recovery** — defines stream and source recovery, listener verification, and dependency order.
+3. **NAS mount recovery** — defines mount recovery, credential-rotation effects, and data-access verification.
+4. **ZFS / Sanoid recovery** — defines pool import, snapshot verification, and recovery-point validation.
 
 ## Verification standard
 
@@ -79,6 +75,7 @@ A service is not recovered until its functional checks pass, its monitoring is h
 
 - [Matrix recovery matrix](matrix-recovery-matrix.md)
 - [PostgreSQL restore drill](postgresql-restore-drill.md)
+- [Public-service recovery matrix](public-service-recovery-matrix.md)
 - [Restic restore drill](restic-restore-drill.md)
 - [Monitoring outage response](monitoring-outage.md)
 - `docs/runbooks/alert-runbook-map.md`

@@ -26,7 +26,7 @@ a navigation aid and should be updated when host composition changes.
 | Role | Responsibility | Status |
 |---|---|---|
 | `common.nix` | Fleet-wide baseline: boot, log shipping, networking options, Nix cache, SOPS, SSH, security policy, systemd hardening, audit logging, and automatic updates. | Active on all hosts. |
-| `desktop-node.nix` | Desktop composition: audio, Bluetooth, graphics, Hyprland, emulation, NAS mount, networking tools, gaming, libvirt GUI, Flatpak, fonts, Gen1 recomp, and desktop portals. | Active on `navi` and `oryx`. |
+| `desktop-node.nix` | Desktop composition: audio, Bluetooth, graphics, Hyprland, emulation, NAS mount, networking tools, gaming, libvirt GUI, Flatpak, fonts, Gen1 recomp, desktop portals, and the [CachyOS kernel cache](../CACHIX.md#a-desktop-compiles-the-cachyos-kernel-and-runs-out-of-space). | Active on `navi` and `oryx`. |
 | `server-core.nix` | Server baseline: node exporter, reverse-proxy backends, libvirt remote management, static networking, nftables, and Podman. | Active on `r730`, `r730xd`, and `r820`. |
 | `media-node.nix` | Media and application service composition: homepage, Autobrr, Recyclarr, Vaultwarden, Grafana, Servarr, Matrix, static site, radio, and PeerTube. | Active on `r730xd`. |
 | `storage-node.nix` | ZFS baseline and Sanoid snapshot policy. | Active on `r730` and `r730xd`. |

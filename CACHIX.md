@@ -81,6 +81,20 @@ Confirm that `CACHIX_AUTH_TOKEN` exists, is valid, and has push permission for t
 
 Confirm the host is a configured `nixosConfigurations` output and run the same build locally with the selected host name. Check host-specific secrets, hardware assumptions, and evaluation errors.
 
+### A desktop compiles the CachyOS kernel and runs out of space
+
+`oryx` and `navi` use the [CachyOS kernel maintainer's binary cache](https://github.com/xddxdd/nix-cachyos-kernel/issues/110). On the first rebuild of either host, the new settings are not active yet. From the updated checkout on that host, pass the cache and its signing key to the build explicitly:
+
+```bash
+sudo nixos-rebuild build --flake ".#$(hostname -s)" \
+  --option extra-substituters https://cache.lantian.pub/lantian \
+  --option extra-trusted-public-keys 'lantian:WVGO7vsRMSEN+h7Lp7kv6SAmrkEXgUGbbXm7jMDjBuQ='
+```
+
+This builds without activating. To apply the generation after the build succeeds, rerun the same command with `switch` in place of `build`. Subsequent rebuilds can use the activated daemon settings.
+
+If a future lock update has no matching substitute, Nix may still compile the kernel. In that case, check free space and inodes on both the Nix store filesystem and the daemon's build filesystem. `/build` in the error is the sandbox path, not necessarily a host mount.
+
 ### The cache is still growing unexpectedly
 
 Inspect workflow logs for additional `nix build`, `cachix push`, or `watch-exec` steps. The intended upload is one explicit system-closure path per run; general packages should come from the other configured caches.

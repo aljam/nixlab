@@ -26,15 +26,17 @@
 
   boot.kernelPackages = pkgs.cachyosKernels."linuxPackages-cachyos-latest";
 
-  # Binary caches for desktop-only software, in addition to the fleet-wide
-  # ones in modules/features/nix-cache.nix.
+  # Binary caches for desktop software and the CachyOS kernel, in addition to
+  # the fleet-wide ones in modules/features/nix-cache.nix.
   nix.settings.substituters = [
     "https://nix-gaming.cachix.org"
     "https://hyprland.cachix.org"
+    "https://cache.lantian.pub/lantian"
   ];
 
   nix.settings.trusted-public-keys = [
     "nix-gaming.cachix.org-1:nbjlureqMbRAxR1gJ/f3hxemL9svXaZF/Ees8vCUUs4="
+    "lantian:WVGO7vsRMSEN+h7Lp7kv6SAmrkEXgUGbbXm7jMDjBuQ="
   ];
 
   networking.networkmanager.enable = true;

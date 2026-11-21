@@ -128,6 +128,7 @@
 
       desktopModules = [
         ./modules/features/baloo-portal-compat.nix
+        ./modules/features/streamdeck.nix
         ./modules/features/hyprland.nix
 
         {

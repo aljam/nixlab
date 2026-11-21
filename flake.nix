@@ -35,7 +35,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    nix-flatpak.url = "github:gmodena/nix-flatpak";
+    nix-flatpak = {
+      url = "github:gmodena/nix-flatpak";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     hyprland = {
       url = "github:hyprwm/Hyprland";
@@ -121,6 +124,7 @@
 
       desktopModules = [
         ./modules/features/baloo-portal-compat.nix
+        ./modules/features/hyprland.nix
 
         {
           programs.appimage = {
@@ -142,6 +146,7 @@
 
           home-manager.users.aljam.imports = [
             ./users/aljam/home-gui.nix
+            ./users/aljam/modules/desktop/hyprland.nix
           ];
         }
 

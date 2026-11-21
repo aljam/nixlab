@@ -53,6 +53,18 @@
       "icecast_source_password"
     ];
 
+    # `aljam_password` configures the interactive user account through
+    # `hashedPasswordFile`; it is consumed during activation rather than by a
+    # long-running service.
+    #
+    # `restic-backup-password` is read by scheduled Restic oneshot jobs, whose
+    # unit names depend on configured backup jobs. A rotated password takes
+    # effect on the next job invocation.
+    roles.security.sopsRestartExemptions = [
+      "aljam_password"
+      "restic-backup-password"
+    ];
+
     roles.security.systemdHardenedServices = [
       "grafana"
       "loki"
@@ -77,7 +89,6 @@
       LC_NAME = "en_CA.UTF-8";
       LC_NUMERIC = "en_CA.UTF-8";
       LC_PAPER = "en_CA.UTF-8";
-      LC_TIME = "en_CA.UTF-8";
     };
 
     nix.settings.experimental-features = [

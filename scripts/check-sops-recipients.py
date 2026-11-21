@@ -130,6 +130,22 @@ def main() -> None:
     if duplicate_aliases:
         fail("Duplicate SOPS key aliases: " + ", ".join(duplicate_aliases))
 
+    key_to_aliases: dict[str, list[str]] = {}
+    for alias, key in alias_to_key.items():
+        key_to_aliases.setdefault(key, []).append(alias)
+
+    reused_recipients = sorted(
+        (key, aliases)
+        for key, aliases in key_to_aliases.items()
+        if len(aliases) > 1
+    )
+    if reused_recipients:
+        details = "\n".join(
+            f"- {key}: {', '.join(aliases)}"
+            for key, aliases in reused_recipients
+        )
+        fail("Reused SOPS recipient keys:\n" + details)
+
     missing_aliases = sorted(REQUIRED_ALIASES - set(defined_aliases))
     if missing_aliases:
         fail("Missing required SOPS key aliases: " + ", ".join(missing_aliases))

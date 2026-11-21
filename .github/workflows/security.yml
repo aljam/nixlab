@@ -125,24 +125,39 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Check SOPS file and host policy
+      - name: Install hash-locked audit dependencies
         run: |
-          python3 -m pip install --disable-pip-version-check pyyaml
-          python3 scripts/check-sops-file-consistency.py
+          python3 -m pip install \
+            --disable-pip-version-check \
+            --require-hashes \
+            -r requirements-security.txt
+
+      - name: Check SOPS file and host policy
+        run: python3 scripts/check-sops-file-consistency.py
+
+  sops-usage:
+    name: Validate SOPS secret usage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Check SOPS secret usage
+        run: python3 scripts/check-sops-usage.py
+
+  sops-host-usage:
+    name: Enforce SOPS host authorization
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Check SOPS host usage
+        run: python3 scripts/check-sops-host-usage.py
 
   sops-recovery-drill:
-    name: Validate SOPS recovery drill for ${{ matrix.host }}
+    name: Validate SOPS recovery drill for all hosts
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        host:
-          - navi
-          - oryx
-          - r730
-          - r730xd
-          - r820
-
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -151,7 +166,7 @@ jobs:
         run: bash -n scripts/sops-recovery-drill.sh
 
       - name: Run non-decrypting recovery drill
-        run: bash scripts/sops-recovery-drill.sh --host "${{ matrix.host }}"
+        run: bash scripts/sops-recovery-drill.sh --all
 
   security-invariants:
     name: Check repository security invariants

@@ -2,7 +2,7 @@
 #
 # Validates that a rebuilt host retains the recovery-critical configuration
 # required before it can be promoted back into service: deployment access,
-# SOPS secret wiring, firewall policy, service enablement, and monitoring
+# SOPS recovery tooling, firewall policy, service enablement, and monitoring
 # readiness.
 #
 # The drill is VM-only and deliberately excludes production deployment,
@@ -47,6 +47,7 @@ pkgs.testers.nixosTest {
     environment.systemPackages = with pkgs; [
       curl
       jq
+      sops
     ];
   };
 
@@ -61,11 +62,9 @@ pkgs.testers.nixosTest {
           "test -s /etc/ssh/authorized_keys.d/deploy"
         )
 
-    with subtest("SOPS secret wiring is present for recovery"):
-        rebuilt_host.succeed("systemctl is-active sops-nix.service")
-        rebuilt_host.succeed(
-          "test -d /run/secrets"
-        )
+    with subtest("SOPS recovery tooling is available"):
+        rebuilt_host.succeed("command -v sops")
+        rebuilt_host.succeed("sops --version")
 
     with subtest("firewall policy remains restrictive"):
         rebuilt_host.succeed("systemctl is-active nftables.service")

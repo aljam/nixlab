@@ -285,6 +285,10 @@
           nixpkgs.legacyPackages.${system}.testers.runNixOSTest
             ./tests/servarr-media-access.nix;
 
+        loki-restore-drill = import ./tests/loki-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
         alertmanager-restore-drill = import ./tests/alertmanager-restore-drill.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };

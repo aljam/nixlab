@@ -6,12 +6,10 @@
 let
   cfg = config.modules.features.homepage;
 
-  mkLink =
-    name: service: description: icon:
-    {
-      inherit name description icon;
-      href = "https://${service}.derezzed.info";
-    };
+  mkLink = name: service: description: icon: {
+    inherit name description icon;
+    href = "https://${service}.derezzed.info";
+  };
 in
 {
   options.modules.features.homepage.enable = lib.mkEnableOption "Homepage dashboard";

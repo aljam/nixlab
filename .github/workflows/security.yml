@@ -151,16 +151,6 @@ jobs:
         run: python3 scripts/check-sops-host-usage.py
 
   sops-recovery-drill:
-    name: Validate SOPS recovery drill for ${{ matrix.host }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Check SOPS secret usage
-        run: python3 scripts/check-sops-usage.py
-
-  sops-recovery-drill:
     name: Validate SOPS recovery drill for all hosts
     runs-on: ubuntu-latest
     steps:

@@ -34,10 +34,10 @@ Desktop conveniences and host-local development features are out of scope unless
 | MatrixRTC / LiveKit | `r730xd` | RTC reachability alert | Gap | Define recovery order, secret dependencies, and call or connectivity verification. |
 | Vaultwarden | `r730xd`, `r820` | SOPS secret compromise playbook | Partial | Define database and attachment recovery, admin-token rotation, and user-access verification. |
 | PeerTube | `r730xd` | PostgreSQL password rotation runbook | Partial | Add media-storage recovery, database restore, and upload or playback verification. |
-| Radarr | `r730xd` | SOPS secret compromise playbook | Gap | Define configuration and state recovery, then verify API integration and library access. |
-| Sonarr | `r730xd` | SOPS secret compromise playbook | Gap | Define configuration and state recovery, then verify API integration and library access. |
-| Recyclarr | `r730xd` | SOPS secret compromise playbook | Gap | Define configuration recovery and verify integration with Radarr and Sonarr. |
-| Autobrr | `r730xd` | No dedicated procedure | Gap | Define configuration and state recovery, then verify torrent-client integration. |
+| Radarr | `r730xd` | [Media-stack recovery matrix](media-stack-recovery.md) | Covered | Maintain the recovery procedure and validate it during recovery exercises. |
+| Sonarr | `r730xd` | [Media-stack recovery matrix](media-stack-recovery.md) | Covered | Maintain the recovery procedure and validate it during recovery exercises. |
+| Recyclarr | `r730xd` | [Media-stack recovery matrix](media-stack-recovery.md) | Covered | Maintain the recovery procedure and validate it during recovery exercises. |
+| Autobrr | `r730xd` | [Media-stack recovery matrix](media-stack-recovery.md) | Covered | Maintain the recovery procedure and validate it during recovery exercises. |
 | Radio | `r730xd` | No dedicated procedure | Gap | Define stream and source recovery, listener verification, and dependency order. |
 | Homepage | `r730xd` | No dedicated procedure | Gap | Determine whether configuration is declarative or persistent; document recovery and link verification. |
 | Static site | `r730xd` | No dedicated procedure | Gap | Define content or source recovery and verify the public endpoint. |
@@ -57,8 +57,7 @@ Address gaps in this order:
 3. **Restic restore drill** — proves that backups are usable, not merely present.
 4. **Vaultwarden recovery** — protects a high-value credential store.
 5. **PeerTube media recovery** — connects database, media storage, and public playback verification.
-6. **Media-stack recovery** — covers Radarr, Sonarr, Recyclarr, and Autobrr as a coordinated group.
-7. **Public-site and Homepage recovery** — defines simple, repeatable content and endpoint verification.
+6. **Public-site and Homepage recovery** — defines simple, repeatable content and endpoint verification.
 
 ## Verification standard
 
@@ -76,6 +75,7 @@ A service is not recovered until its functional checks pass, its monitoring is h
 
 ## Related documentation
 
+- [Media-stack recovery matrix](media-stack-recovery.md)
 - `docs/runbooks/alert-runbook-map.md`
 - `docs/runbooks/host-compromise-recovery.md`
 - `docs/runbooks/sops-secret-compromise.md`

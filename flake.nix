@@ -121,6 +121,7 @@
 
       desktopModules = [
         ./modules/features/baloo-portal-compat.nix
+        ./modules/features/streamdeck.nix
 
         {
           programs.appimage = {

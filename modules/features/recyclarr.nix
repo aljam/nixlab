@@ -9,7 +9,8 @@ let
   cfg = config.modules.features.recyclarr;
 in
 {
-  options.modules.features.recyclarr.enable = lib.mkEnableOption "Recyclarr configuration synchronization";
+  options.modules.features.recyclarr.enable =
+    lib.mkEnableOption "Recyclarr configuration synchronization";
 
   config = lib.mkIf cfg.enable {
     roles.security.systemdHardenedServices = [ "recyclarr" ];

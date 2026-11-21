@@ -29,7 +29,7 @@ Desktop conveniences and host-local development features are out of scope unless
 | Service | Host(s) | Existing coverage | Status | Gap and follow-up |
 |---|---|---|---|---|
 | PostgreSQL | `r820` | [PostgreSQL restore drill](postgresql-restore-drill.md); PostgreSQL reachability and TLS alerts | Covered | Maintain the restore drill and validate it during recovery exercises. |
-| pgAdmin | `r820` | PostgreSQL recovery is adjacent | Gap | Determine whether pgAdmin state is disposable or backed up; document recovery and administrative-access verification. |
+| pgAdmin | `r820` | SOPS-managed password; loopback-only administrative service; PostgreSQL recovery is adjacent | Covered | pgAdmin state is disposable. After a host rebuild, redeploy pgAdmin, restore its SOPS-managed password, and recreate administrative connections as needed. Do not treat pgAdmin state as a recovery-point objective. |
 | Matrix Synapse | `r730xd` | [Matrix recovery matrix](matrix-recovery-matrix.md); client and federation reachability alerts; Matrix secret rotation runbook | Covered | Maintain the recovery matrix and validate it during recovery exercises. |
 | MatrixRTC / LiveKit | `r730xd` | [Matrix recovery matrix](matrix-recovery-matrix.md) RTC recovery section; RTC reachability alert | Covered | Maintain the RTC recovery procedure and validate it during recovery exercises. |
 | Vaultwarden | `r730xd`, `r820` | Vaultwarden restore drill (`checks.x86_64-linux.vaultwarden-restore-drill`); SOPS secret compromise playbook | Covered | Maintain the restore drill and validate it during recovery exercises. |
@@ -48,14 +48,30 @@ Desktop conveniences and host-local development features are out of scope unless
 | Loki | Monitoring host | Loki restore drill (`checks.x86_64-linux.loki-restore-drill`); [Monitoring outage response](monitoring-outage.md) | Covered | Maintain the restore drill and monitoring outage procedure; validate them during recovery exercises. |
 | ntfy relay | Monitoring host | [Monitoring outage response](monitoring-outage.md); alert-delivery validation | Covered | Maintain the monitoring outage procedure and validate it during recovery exercises. |
 
+## pgAdmin recovery
+
+pgAdmin is loopback-only administrative tooling for PostgreSQL. Its persistent state is disposable and is not a recovery-point objective.
+
+After a host rebuild or pgAdmin state loss:
+
+1. Deploy the authorized NixOS revision.
+2. Confirm the SOPS-managed `pgadmin_password` is deployed with the expected ownership and permissions.
+3. Start `pgadmin.service`.
+4. Confirm pgAdmin listens only on `127.0.0.1:5050`.
+5. Confirm that pgAdmin is not exposed through HAProxy or the public Homepage.
+6. Authenticate with the recovered SOPS-managed password.
+7. Recreate required PostgreSQL server connections and administrative settings.
+8. Confirm PostgreSQL remains reachable with `sslmode=verify-full`.
+
+Do not restore pgAdmin state over a newer deployment. If pgAdmin state is unavailable, recreate it rather than treating its loss as a PostgreSQL recovery failure.
+
 ## Prioritized follow-up
 
 Address gaps in this order:
 
-1. **pgAdmin recovery** — determines whether administrative state is disposable or requires backup and recovery coverage.
-2. **Radio recovery** — defines stream and source recovery, listener verification, and dependency order.
-3. **NAS mount recovery** — defines mount recovery, credential-rotation effects, and data-access verification.
-4. **ZFS / Sanoid recovery** — defines pool import, snapshot verification, and recovery-point validation.
+1. **Radio recovery** — defines stream and source recovery, listener verification, and dependency order.
+2. **NAS mount recovery** — defines mount recovery, credential-rotation effects, and data-access verification.
+3. **ZFS / Sanoid recovery** — defines pool import, snapshot verification, and recovery-point validation.
 
 ## Verification standard
 

@@ -65,13 +65,12 @@ done
 printf 'Running SOPS recipient policy audit...\n'
 python3 scripts/check-sops-recipients.py
 
+recipient="$(python3 scripts/sops_policy.py --host "$host" --recipient)" || \
+  fail "could not resolve SOPS recipient for host: $host"
+
 mapfile -t allowed_files < <(python3 scripts/sops_policy.py --host "$host" --files)
-
-recipient_line="$(grep -E "^[[:space:]]*-[[:space:]]*&${host}[[:space:]]" .sops.yaml)" || \
-  fail "no SOPS recipient alias found for host: $host"
-
-recipient="$(printf '%s\n' "$recipient_line" | awk '{print $3}')"
-[[ -n "$recipient" ]] || fail "could not resolve SOPS recipient for host: $host"
+((${#allowed_files[@]} > 0)) || \
+  fail "no secret files are authorized for host: $host"
 
 printf 'Host: %s\n' "$host"
 printf 'Recipient: %s\n' "$recipient"

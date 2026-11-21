@@ -262,6 +262,10 @@
           pkgs = nixpkgs.legacyPackages.${system};
         };
 
+        public-service-recovery-drill = import ./tests/public-service-recovery-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
         monitoring-coverage = import ./tests/monitoring-coverage.nix {
           pkgs = nixpkgs.legacyPackages.${system};
           hosts = self.nixosConfigurations;
@@ -285,7 +289,83 @@
           pkgs = nixpkgs.legacyPackages.${system};
         };
 
+        loki-restore-drill = import ./tests/loki-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        alertmanager-restore-drill = import ./tests/alertmanager-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        prometheus-restore-drill = import ./tests/prometheus-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        grafana-restore-drill = import ./tests/grafana-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        radio-restore-drill = import ./tests/radio-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        shoko-restore-drill = import ./tests/shoko-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        jellyseerr-restore-drill = import ./tests/jellyseerr-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        prowlarr-restore-drill = import ./tests/prowlarr-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        bazarr-restore-drill = import ./tests/bazarr-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        lidarr-restore-drill = import ./tests/lidarr-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        sonarr-radarr-restore-drill = import ./tests/sonarr-radarr-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        qbittorrent-restore-drill = import ./tests/qbittorrent-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        media-stack-restore-drill = import ./tests/media-stack-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        jellyfin-restore-drill = import ./tests/jellyfin-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        homepage-restore-drill = import ./tests/homepage-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
         postgresql-database-isolation = import ./tests/postgresql-database-isolation.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        postgresql-restore-drill = import ./tests/postgresql-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        matrix-restore-drill = import ./tests/matrix-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        vaultwarden-restore-drill = import ./tests/vaultwarden-restore-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
+        peertube-restore-drill = import ./tests/peertube-restore-drill.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };
 

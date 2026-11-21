@@ -42,7 +42,7 @@ Desktop conveniences and host-local development features are out of scope unless
 | Homepage | `r730xd` | Homepage restore drill (`checks.x86_64-linux.homepage-restore-drill`) | Covered | Maintain the restore drill and validate it during recovery exercises. |
 | Static site | `r730xd` | [Public-service recovery matrix](public-service-recovery-matrix.md); public-service recovery drill (`checks.x86_64-linux.public-service-recovery-drill`) | Covered | Maintain the public-service recovery procedure and validate it during recovery exercises. |
 | Restic backups | Multiple | [Restic restore drill](restic-restore-drill.md); backup failure and staleness alerts; backup documentation | Covered | Maintain the restore drill and validate it during recovery exercises. |
-| NAS mounts | `navi`, `oryx` | SOPS secret compromise playbook | Partial | Define mount recovery, credential-rotation effects, and data-access verification. |
+| NAS mounts | `navi`, `oryx` | Declarative CIFS mount; SOPS-managed NAS credentials; manual remount after credential rotation | Covered | Verify NAS reachability, deploy the SOPS-managed credential, mount `/mnt/share`, validate read/write access, and remount after credential rotation. |
 | ZFS / Sanoid | Server hosts | Backup and disk-health alerts | Partial | Define pool import, snapshot verification, and recovery-point validation. |
 | Grafana | Monitoring host | [Monitoring outage response](monitoring-outage.md) | Covered | Maintain the monitoring outage procedure and validate it during recovery exercises. |
 | Loki | Monitoring host | Loki restore drill (`checks.x86_64-linux.loki-restore-drill`); [Monitoring outage response](monitoring-outage.md) | Covered | Maintain the restore drill and monitoring outage procedure; validate them during recovery exercises. |
@@ -86,12 +86,28 @@ After a host rebuild, media-storage recovery, or Radio outage:
 
 Do not treat Icecast logs as a recovery-point objective. If the music library is unavailable, recover it before attempting to validate the stream.
 
+## NAS mount recovery
+
+NAS mounts use a declarative CIFS configuration and SOPS-managed credentials. The NAS is the authoritative storage system; the local mount is a client-side access path.
+
+After a host rebuild, NAS outage, credential rotation, or mount failure:
+
+1. Confirm the NAS is reachable at its configured fleet address.
+2. Confirm the SOPS-managed `nas-credentials` secret is deployed with the expected ownership and permissions.
+3. Confirm `/mnt/share` is mounted.
+4. Confirm the mount uses the expected CIFS device and options.
+5. Confirm a representative file can be read from the share.
+6. Confirm a representative file can be created, modified, or removed in an approved test location.
+7. Confirm dependent workloads can access the share with the expected ownership and permissions.
+8. If credentials were rotated, remount `/mnt/share` deliberately after confirming that active workloads will not be disrupted.
+
+Do not restart or remount the share automatically after credential rotation. The configuration intentionally requires a manual remount to avoid disrupting active workloads.
+
 ## Prioritized follow-up
 
 Address gaps in this order:
 
-1. **NAS mount recovery** — defines mount recovery, credential-rotation effects, and data-access verification.
-2. **ZFS / Sanoid recovery** — defines pool import, snapshot verification, and recovery-point validation.
+1. **ZFS / Sanoid recovery** — defines pool import, snapshot verification, and recovery-point validation.
 
 ## Verification standard
 

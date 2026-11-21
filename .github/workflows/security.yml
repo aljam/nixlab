@@ -141,18 +141,8 @@ jobs:
         run: python3 scripts/check-sops-usage.py
 
   sops-recovery-drill:
-    name: Validate SOPS recovery drill for ${{ matrix.host }}
+    name: Validate SOPS recovery drill for all hosts
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        host:
-          - navi
-          - oryx
-          - r730
-          - r730xd
-          - r820
-
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -161,7 +151,7 @@ jobs:
         run: bash -n scripts/sops-recovery-drill.sh
 
       - name: Run non-decrypting recovery drill
-        run: bash scripts/sops-recovery-drill.sh --host "${{ matrix.host }}"
+        run: bash scripts/sops-recovery-drill.sh --all
 
   security-invariants:
     name: Check repository security invariants

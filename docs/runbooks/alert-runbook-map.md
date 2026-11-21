@@ -66,6 +66,18 @@ An alert is a detection signal, not a diagnosis. Confirm the affected host, serv
 | `PostgreSQLCertificateExpiringSoon` | warning | Verify automated certificate renewal and ensure the replacement certificate will deploy before expiry. |
 | `PostgreSQLCertificateExpiringCritical` | critical | Renew and deploy the PostgreSQL certificate immediately; verify TLS afterward. |
 
+## Media stack
+
+Use [docs/runbooks/media-stack-recovery.md](media-stack-recovery.md) when a media-stack service fails or an integration between its components fails.
+
+| Alert or condition | Initial response |
+|---|---|
+| `SystemdUnitFailed` affecting qBittorrent, Radarr, Sonarr, Lidarr, Bazarr, Prowlarr, Seerr, Shoko, Jellyfin, Autobrr, or Recyclarr | Identify the failed unit, then follow the media-stack recovery matrix. |
+| `CriticalServiceFailed` affecting a media-stack service | Identify the failed critical unit, then follow the media-stack recovery matrix. |
+| qBittorrent download-path, storage, or swarm-connectivity failure | Verify the media mount, qBittorrent state, and TCP/UDP port 6881; follow the media-stack recovery matrix. |
+| Radarr, Sonarr, Lidarr, Bazarr, Prowlarr, Seerr, or Autobrr integration failure | Verify the upstream dependency and API credentials; follow the media-stack recovery matrix. |
+| Recyclarr synchronization failure | Verify Radarr availability and the SOPS-managed `radarr_api_key`; follow the media-stack recovery matrix. |
+
 ## Drift and security
 
 | Alert | Severity | Initial response |
@@ -92,6 +104,7 @@ Preserve evidence before rebuilding or replacing the host. Do not assume that a 
 
 ## Related documentation
 
+- [Media-stack recovery matrix](media-stack-recovery.md)
 - `docs/runbooks/incident-severity.md`
 - `docs/runbooks/monitoring-outage.md`
 - `docs/runbooks/host-compromise-recovery.md`

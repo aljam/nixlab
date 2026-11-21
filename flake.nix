@@ -285,6 +285,10 @@
           nixpkgs.legacyPackages.${system}.testers.runNixOSTest
             ./tests/servarr-media-access.nix;
 
+        host-rebuild-recovery-drill = import ./tests/host-rebuild-recovery-drill.nix {
+          pkgs = nixpkgs.legacyPackages.${system};
+        };
+
         loki-restore-drill = import ./tests/loki-restore-drill.nix {
           pkgs = nixpkgs.legacyPackages.${system};
         };

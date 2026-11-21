@@ -1,3 +1,5 @@
+# Owns live validation of public HAProxy endpoints, including HTTP status,
+# HSTS, TLS protocol policy, and certificate expiry.
 name: Edge security
 
 on:

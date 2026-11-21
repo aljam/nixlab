@@ -1,3 +1,5 @@
+# Owns scheduled vulnerability scanning of third-party container images used
+# by the fleet. It does not scan repository dependencies or public endpoints.
 name: Image security
 
 on:

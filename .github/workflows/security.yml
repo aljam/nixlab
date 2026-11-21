@@ -22,16 +22,6 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  action-pinning:
-    name: Require SHA-pinned GitHub Actions
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Check action pinning
-        run: python3 scripts/check-action-pins.py
-
   gitleaks:
     name: Scan tracked files and Git history
     runs-on: ubuntu-latest
@@ -48,24 +38,27 @@ jobs:
         with:
           args: detect --source . --redact --verbose
 
-  ssh-key-hygiene:
-    name: Require descriptive SSH key comments
+  security-invariants:
+    name: Check repository security invariants
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Check SSH key comments
+      - name: Install hash-locked audit dependencies
+        run: |
+          python3 -m pip install \
+            --disable-pip-version-check \
+            --require-hashes \
+            -r requirements-security.txt
+
+      - name: Require SHA-pinned GitHub Actions
+        run: python3 scripts/check-action-pins.py
+
+      - name: Require descriptive SSH key comments
         run: python3 scripts/check-ssh-key-comments.py
 
-  sops-policy:
-    name: Require explicit SOPS rules
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Check SOPS creation rules
+      - name: Require explicit SOPS rules
         run: |
           python3 - <<'PY'
           import pathlib
@@ -108,52 +101,20 @@ jobs:
               )
           PY
 
-  sops-recipients:
-    name: Audit SOPS recipients
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Check SOPS recipient policy
+      - name: Audit SOPS recipients
         run: python3 scripts/check-sops-recipients.py
 
-  sops-file-consistency:
-    name: Validate SOPS file and host policy
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Install hash-locked audit dependencies
-        run: |
-          python3 -m pip install \
-            --disable-pip-version-check \
-            --require-hashes \
-            -r requirements-security.txt
-
-      - name: Check SOPS file and host policy
+      - name: Validate SOPS file and host policy
         run: python3 scripts/check-sops-file-consistency.py
 
-  sops-usage:
-    name: Validate SOPS secret usage
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Check SOPS secret usage
+      - name: Validate SOPS secret usage
         run: python3 scripts/check-sops-usage.py
 
-  sops-host-usage:
-    name: Enforce SOPS host authorization
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Check SOPS host usage
+      - name: Enforce SOPS host authorization
         run: python3 scripts/check-sops-host-usage.py
+
+      - name: Check security invariants
+        run: python3 scripts/check-security-invariants.py
 
   sops-recovery-drill:
     name: Validate SOPS recovery drill for all hosts
@@ -167,19 +128,6 @@ jobs:
 
       - name: Run non-decrypting recovery drill
         run: bash scripts/sops-recovery-drill.sh --all
-
-  security-invariants:
-    name: Check repository security invariants
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
-
-      - name: Check security invariants
-        run: python3 scripts/check-security-invariants.py
 
   nix:
     name: Evaluate Nix checks

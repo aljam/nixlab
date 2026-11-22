@@ -35,7 +35,7 @@ in
         layout = {
           "Media & Requests" = {
             style = "row";
-            columns = 3;
+            columns = 4;
           };
 
           "Downloads" = {
@@ -63,6 +63,7 @@ in
             (mkLink "Jellyfin" "jellyfin" "Media Streaming" "jellyfin.png")
             (mkLink "Seerr" "seerr" "Media Requests" "seerr.png")
             (mkLink "PeerTube" "peertube" "Self-hosted Video" "peertube.png")
+            (mkLink "Radio" "radio" "Internet Radio" "radio.png")
           ];
         }
 
@@ -83,7 +84,7 @@ in
           "Identity / communication" = [
             (mkLink "Vaultwarden" "vault" "Password Manager" "vaultwarden.png")
             (mkLink "Matrix" "matrix" "Chat" "matrix.png")
-            (mkLink "Matrix RTC" "matrix-rtc" "Voice & Video" "matrix.png")
+            (mkLink "Matrix RTC" "rtc" "Voice & Video" "matrix.png")
           ];
         }
 

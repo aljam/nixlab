@@ -69,4 +69,6 @@
   };
 
   services.nixlab.grafana.lokiUrl = "http://${config.networking.fleet.r730xd.ip}:3100";
+
+  modules.features.disk-health.enable = true;
 }

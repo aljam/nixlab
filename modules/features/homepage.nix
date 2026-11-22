@@ -35,7 +35,7 @@ in
         layout = {
           "Media & Requests" = {
             style = "row";
-            columns = 3;
+            columns = 4;
           };
 
           "Downloads" = {
@@ -63,6 +63,7 @@ in
             (mkLink "Jellyfin" "jellyfin" "Media Streaming" "jellyfin.png")
             (mkLink "Seerr" "seerr" "Media Requests" "seerr.png")
             (mkLink "PeerTube" "peertube" "Self-hosted Video" "peertube.png")
+            (mkLink "Radio" "radio" "Internet Radio" "radio.png")
           ];
         }
 
@@ -73,7 +74,6 @@ in
             (mkLink "Prowlarr" "prowlarr" "Indexer Management" "prowlarr.png")
             (mkLink "Bazarr" "bazarr" "Bazarr Subtitles" "bazarr.png")
             (mkLink "Lidarr" "lidarr" "Music Automation" "lidarr.png")
-            (mkLink "qBittorrent" "qbittorrent" "Torrent Client" "qbittorrent.png")
             (mkLink "Autobrr" "autobrr" "Release Automation" "autobrr.png")
             (mkLink "Recyclarr" "recyclarr" "Sonarr/Radarr Quality Profiles" "recyclarr.png")
           ];
@@ -83,7 +83,7 @@ in
           "Identity / communication" = [
             (mkLink "Vaultwarden" "vault" "Password Manager" "vaultwarden.png")
             (mkLink "Matrix" "matrix" "Chat" "matrix.png")
-            (mkLink "Matrix RTC" "matrix-rtc" "Voice & Video" "matrix.png")
+            (mkLink "Matrix RTC" "rtc" "Voice & Video" "matrix.png")
           ];
         }
 

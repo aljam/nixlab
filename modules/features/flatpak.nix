@@ -40,5 +40,13 @@
         ELECTRON_OZONE_PLATFORM_HINT = "auto";
       };
     };
+
+    # OpenDeck fails under the system-wide X11-only override;
+    # force its native Wayland socket instead.
+    "me.amankhanna.opendeck" = {
+      context.sockets = [
+        "wayland"
+      ];
+    };
   };
 }

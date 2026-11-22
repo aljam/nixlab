@@ -69,6 +69,7 @@ in
 
     severity = mkOption {
       type = types.enum [
+        "info"
         "warning"
         "critical"
       ];

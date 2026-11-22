@@ -434,6 +434,11 @@
       };
 
       checks.${system} = {
+        alert-routing = import ./tests/alert-routing.nix {
+          pkgs = pkgs;
+          hosts = self.nixosConfigurations;
+        };
+
         nftables-input-rules = import ./tests/nftables-input-rules.nix {
           pkgs = pkgs;
           hosts = self.nixosConfigurations;

@@ -7,8 +7,10 @@ let
   cfg = config.modules.features.homepage;
 
   mkLink = name: service: description: icon: {
-    inherit name description icon;
-    href = "https://${service}.derezzed.info";
+    ${name} = {
+      inherit description icon;
+      href = "https://${service}.derezzed.info";
+    };
   };
 in
 {
@@ -53,7 +55,8 @@ in
         };
       };
 
-      # The NixOS Homepage module expects a list of service groups.
+      # The NixOS Homepage module expects a list of service groups. Each
+      # service must be keyed by its display name.
       services = [
         {
           "Media & Requests" = [

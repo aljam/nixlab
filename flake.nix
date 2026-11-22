@@ -1,1 +1,1 @@
-FULL_UPDATED_FLAKE_NIX_WITH_features.streamdeck.enable=true
+FULL_CORRECTED_FLAKE_NIX_CONTENT

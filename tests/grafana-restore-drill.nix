@@ -9,11 +9,16 @@ pkgs.testers.nixosTest {
     services.grafana = {
       enable = true;
       dataDir = "/var/lib/grafana-restore";
-      addr = "127.0.0.1";
-      port = 3001;
       openFirewall = false;
 
-      settings.security.secret_key = "$__file{/etc/grafana-secret-key}";
+      settings = {
+        server = {
+          http_addr = "127.0.0.1";
+          http_port = 3001;
+        };
+
+        security.secret_key = "$__file{/etc/grafana-secret-key}";
+      };
     };
 
     environment.systemPackages = with pkgs; [

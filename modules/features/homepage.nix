@@ -15,6 +15,9 @@ in
   options.modules.features.homepage.enable = lib.mkEnableOption "Homepage dashboard";
 
   config = lib.mkIf cfg.enable {
+    # Allow the pfSense HAProxy gateway to reach the dashboard backend.
+    networking.proxyBackendPorts = [ 8082 ];
+
     services.homepage-dashboard = {
       enable = true;
 
@@ -57,7 +60,7 @@ in
           (mkLink "Sonarr" "sonarr" "TV Automation" "sonarr.png")
           (mkLink "Radarr" "radarr" "Movie Automation" "radarr.png")
           (mkLink "Prowlarr" "prowlarr" "Indexer Management" "prowlarr.png")
-          (mkLink "Bazarr" "bazarr" "Subtitles" "bazarr.png")
+          (mkLink "Bazarr" "bazarr" "Bazarr Subtitles" "bazarr.png")
           (mkLink "Lidarr" "lidarr" "Music Automation" "lidarr.png")
           (mkLink "qBittorrent" "qbittorrent" "Torrent Client" "qbittorrent.png")
           (mkLink "Autobrr" "autobrr" "Release Automation" "autobrr.png")

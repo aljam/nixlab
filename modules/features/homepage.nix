@@ -90,8 +90,6 @@ in
         {
           "Monitoring" = [
             (mkLink "Grafana" "grafana" "Dashboards" "grafana.png")
-            (mkLink "Prometheus" "prometheus" "Metrics" "prometheus.png")
-            (mkLink "Alertmanager" "alertmanager" "Alerts" "alertmanager.png")
           ];
         }
       ];

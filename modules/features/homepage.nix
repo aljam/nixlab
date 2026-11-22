@@ -21,6 +21,10 @@ in
     services.homepage-dashboard = {
       enable = true;
 
+      # Homepage rejects requests with an unlisted Host header. Allow the
+      # public HAProxy hostname and the direct LAN backend address.
+      allowedHosts = "home.derezzed.info,192.168.1.2:8082";
+
       settings = {
         title = "Derezzed";
         theme = "dark";

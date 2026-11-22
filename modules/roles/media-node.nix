@@ -17,6 +17,8 @@
     ../features/peertube.nix
   ];
 
+  modules.features.homepage.enable = true;
+
   # Media user and group
   users.users.media = {
     description = "Media services user";

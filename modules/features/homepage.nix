@@ -74,7 +74,6 @@ in
             (mkLink "Prowlarr" "prowlarr" "Indexer Management" "prowlarr.png")
             (mkLink "Bazarr" "bazarr" "Bazarr Subtitles" "bazarr.png")
             (mkLink "Lidarr" "lidarr" "Music Automation" "lidarr.png")
-            (mkLink "qBittorrent" "qbittorrent" "Torrent Client" "qbittorrent.png")
             (mkLink "Autobrr" "autobrr" "Release Automation" "autobrr.png")
             (mkLink "Recyclarr" "recyclarr" "Sonarr/Radarr Quality Profiles" "recyclarr.png")
           ];

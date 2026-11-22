@@ -133,6 +133,8 @@
         ./modules/features/hyprland.nix
 
         {
+          features.streamdeck.enable = true;
+
           programs.appimage = {
             enable = true;
             binfmt = true;

@@ -53,36 +53,45 @@ in
         };
       };
 
-      services = {
-        "Media & Requests" = [
-          (mkLink "Jellyfin" "jellyfin" "Media Streaming" "jellyfin.png")
-          (mkLink "Seerr" "seerr" "Media Requests" "seerr.png")
-          (mkLink "PeerTube" "peertube" "Self-hosted Video" "peertube.png")
-        ];
+      # The NixOS Homepage module expects a list of service groups.
+      services = [
+        {
+          "Media & Requests" = [
+            (mkLink "Jellyfin" "jellyfin" "Media Streaming" "jellyfin.png")
+            (mkLink "Seerr" "seerr" "Media Requests" "seerr.png")
+            (mkLink "PeerTube" "peertube" "Self-hosted Video" "peertube.png")
+          ];
+        }
 
-        "Downloads" = [
-          (mkLink "Sonarr" "sonarr" "TV Automation" "sonarr.png")
-          (mkLink "Radarr" "radarr" "Movie Automation" "radarr.png")
-          (mkLink "Prowlarr" "prowlarr" "Indexer Management" "prowlarr.png")
-          (mkLink "Bazarr" "bazarr" "Bazarr Subtitles" "bazarr.png")
-          (mkLink "Lidarr" "lidarr" "Music Automation" "lidarr.png")
-          (mkLink "qBittorrent" "qbittorrent" "Torrent Client" "qbittorrent.png")
-          (mkLink "Autobrr" "autobrr" "Release Automation" "autobrr.png")
-          (mkLink "Recyclarr" "recyclarr" "Sonarr/Radarr Quality Profiles" "recyclarr.png")
-        ];
+        {
+          "Downloads" = [
+            (mkLink "Sonarr" "sonarr" "TV Automation" "sonarr.png")
+            (mkLink "Radarr" "radarr" "Movie Automation" "radarr.png")
+            (mkLink "Prowlarr" "prowlarr" "Indexer Management" "prowlarr.png")
+            (mkLink "Bazarr" "bazarr" "Bazarr Subtitles" "bazarr.png")
+            (mkLink "Lidarr" "lidarr" "Music Automation" "lidarr.png")
+            (mkLink "qBittorrent" "qbittorrent" "Torrent Client" "qbittorrent.png")
+            (mkLink "Autobrr" "autobrr" "Release Automation" "autobrr.png")
+            (mkLink "Recyclarr" "recyclarr" "Sonarr/Radarr Quality Profiles" "recyclarr.png")
+          ];
+        }
 
-        "Identity / communication" = [
-          (mkLink "Vaultwarden" "vault" "Password Manager" "vaultwarden.png")
-          (mkLink "Matrix" "matrix" "Chat" "matrix.png")
-          (mkLink "Matrix RTC" "matrix-rtc" "Voice & Video" "matrix.png")
-        ];
+        {
+          "Identity / communication" = [
+            (mkLink "Vaultwarden" "vault" "Password Manager" "vaultwarden.png")
+            (mkLink "Matrix" "matrix" "Chat" "matrix.png")
+            (mkLink "Matrix RTC" "matrix-rtc" "Voice & Video" "matrix.png")
+          ];
+        }
 
-        "Monitoring" = [
-          (mkLink "Grafana" "grafana" "Dashboards" "grafana.png")
-          (mkLink "Prometheus" "prometheus" "Metrics" "prometheus.png")
-          (mkLink "Alertmanager" "alertmanager" "Alerts" "alertmanager.png")
-        ];
-      };
+        {
+          "Monitoring" = [
+            (mkLink "Grafana" "grafana" "Dashboards" "grafana.png")
+            (mkLink "Prometheus" "prometheus" "Metrics" "prometheus.png")
+            (mkLink "Alertmanager" "alertmanager" "Alerts" "alertmanager.png")
+          ];
+        }
+      ];
     };
   };
 }

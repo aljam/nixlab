@@ -19,4 +19,6 @@
   environment.systemPackages = with pkgs; [
     cudatoolkit
   ];
+
+  modules.features.disk-health.enable = true;
 }

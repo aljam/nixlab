@@ -23,7 +23,7 @@ in
 
       # Homepage rejects requests with an unlisted Host header. Allow the
       # public HAProxy hostname and the direct LAN backend address.
-      allowedHosts = "homepage.derezzed.info,192.168.1.2:8082";
+      allowedHosts = "home.derezzed.info,192.168.1.2:8082";
 
       settings = {
         title = "Derezzed";

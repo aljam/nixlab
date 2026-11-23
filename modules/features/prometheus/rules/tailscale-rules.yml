@@ -1,15 +1,6 @@
 groups:
   - name: nixlab-tailscale
     rules:
-      - alert: TailscaleDaemonDown
-        expr: nixlab_tailscale_up == 0
-        for: 5m
-        labels:
-          severity: critical
-        annotations:
-          summary: "Tailscale daemon is unavailable"
-          description: "Host {{ $labels.instance }} cannot export Tailscale status."
-
       - alert: TailscaleStatusDown
         expr: nixlab_tailscale_up == 0
         for: 5m
@@ -17,7 +8,7 @@ groups:
           severity: critical
         annotations:
           summary: "Tailscale status is down"
-          description: "Host {{ $labels.instance }} reports that Tailscale is down."
+          description: "Host {{ $labels.instance }} reports that Tailscale is down or its status cannot be exported."
 
       - alert: TailscaleAddressMissing
         expr: nixlab_tailscale_address_configured == 0

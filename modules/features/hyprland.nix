@@ -24,4 +24,13 @@
   };
 
   services.desktopManager.plasma6.enable = lib.mkDefault true;
+
+  xdg.portal.config.hyprland.default = [
+    "hyprland"
+    "gtk"
+  ];
+
+  environment.sessionVariables = {
+    NIXOS_OZONE_WL = "1";
+  };
 }

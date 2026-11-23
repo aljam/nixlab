@@ -58,7 +58,10 @@ let
   ];
 
   tailscaleAlertChecks = map (
-    alert: check (lib.elem alert.severity severities) "Tailscale alert ${alert.name} uses an unroutable severity: ${alert.severity}"
+    alert:
+    check
+      (lib.elem alert.severity severities)
+      "Tailscale alert ${alert.name} uses an unroutable severity: ${alert.severity}"
   ) tailscaleAlerts;
 
   checks = [

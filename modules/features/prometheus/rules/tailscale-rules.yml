@@ -10,23 +10,14 @@ groups:
           summary: "Tailscale status is down"
           description: "Host {{ $labels.instance }} reports that Tailscale is down or its status cannot be exported."
 
-      - alert: TailscaleAddressMissing
-        expr: nixlab_tailscale_address_configured == 0
+      - alert: TailscaleDegraded
+        expr: nixlab_tailscale_address_configured == 0 or nixlab_tailscale_peer_online == 0
         for: 10m
-        labels:
-          severity: critical
-        annotations:
-          summary: "Tailscale address is missing"
-          description: "Host {{ $labels.instance }} does not have a Tailscale address."
-
-      - alert: TailscaleNoOnlinePeers
-        expr: nixlab_tailscale_peer_online == 0
-        for: 15m
         labels:
           severity: warning
         annotations:
-          summary: "No Tailscale peers are online"
-          description: "Host {{ $labels.instance }} reports no online Tailscale peers."
+          summary: "Tailscale connectivity is degraded"
+          description: "Host {{ $labels.instance }} has no Tailscale address or no online peers."
 
       - alert: TailscaleServiceUnreachable
         expr: probe_success{network="tailscale"} == 0

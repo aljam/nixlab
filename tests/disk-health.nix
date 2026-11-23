@@ -7,20 +7,17 @@ let
 
   enabledHosts = lib.filterAttrs (
     _: value:
-    lib.attrByPath
-      [
-        "config"
-        "modules"
-        "features"
-        "disk-health"
-        "enable"
-      ]
-      false
-      value
+    lib.attrByPath [
+      "config"
+      "modules"
+      "features"
+      "disk-health"
+      "enable"
+    ] false value
   ) hosts;
 in
 pkgs.runCommand "disk-health-config-check" { } ''
-  ${lib.concatStringsSep "\n" (
+  ${lib.concatStringsSep "\\n" (
     lib.mapAttrsToList (
       hostname: value:
       let

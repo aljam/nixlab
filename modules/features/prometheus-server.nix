@@ -124,6 +124,27 @@ let
       relabel_configs = blackboxRelabelConfigs;
     }
   ];
+
+  # Services are probed from the Prometheus host through the pfSense Tailscale
+  # subnet route. Targets use normal LAN addresses; no service targets are
+  # enabled until they are explicitly configured.
+  tailscaleBlackboxScrapeJob = {
+    job_name = "blackbox-tailscale";
+    metrics_path = "/probe";
+    params = {
+      module = [ "http_2xx" ];
+    };
+
+    static_configs = map (service: {
+      targets = [ service.url ];
+      labels = {
+        instance = service.name;
+        network = "tailscale";
+      };
+    }) cfg.tailscaleServices;
+
+    relabel_configs = blackboxRelabelConfigs;
+  };
 in
 {
   options.modules.features.prometheus-server = {
@@ -137,6 +158,30 @@ in
       type = lib.types.bool;
       default = true;
       description = "Whether to configure Blackbox probes for public HTTPS endpoints. Disable in isolated NixOS VM tests, which have no DNS or Internet access.";
+    };
+
+    tailscaleServices = lib.mkOption {
+      type = lib.types.listOf (lib.types.submodule {
+        options = {
+          name = lib.mkOption {
+            type = lib.types.str;
+            description = "Service name used as the Prometheus instance label.";
+          };
+
+          url = lib.mkOption {
+            type = lib.types.str;
+            description = "URL probed through the pfSense Tailscale subnet route.";
+          };
+
+          module = lib.mkOption {
+            type = lib.types.str;
+            default = "http_2xx";
+            description = "Blackbox exporter probe module.";
+          };
+        };
+      });
+      default = [ ];
+      description = "Services probed through the pfSense Tailscale subnet route.";
     };
   };
 
@@ -240,6 +285,7 @@ in
           relabel_configs = blackboxRelabelConfigs;
         }
       ]
+      ++ lib.optionals (cfg.tailscaleServices != [ ]) [ tailscaleBlackboxScrapeJob ]
       ++ lib.optionals cfg.enablePublicEndpointProbes publicBlackboxScrapeJobs
       ++ lib.optionals (cfg.postgresCaFile != null) [
         {

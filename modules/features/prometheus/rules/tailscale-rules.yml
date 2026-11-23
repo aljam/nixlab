@@ -27,3 +27,21 @@ groups:
         annotations:
           summary: "No Tailscale peers are online"
           description: "Host {{ $labels.instance }} reports no online Tailscale peers."
+
+      - alert: TailscaleServiceUnreachable
+        expr: probe_success{network="tailscale"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Tailscale service is unreachable"
+          description: "The service at {{ $labels.instance }} could not be reached through the pfSense Tailscale subnet route."
+
+      - alert: TailscaleProbeMissing
+        expr: absent(probe_success{network="tailscale"})
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No Tailscale reachability probes are reporting"
+          description: "Prometheus is not receiving results from any Tailscale service probes."

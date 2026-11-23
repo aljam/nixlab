@@ -116,7 +116,9 @@ let
     name = "ntfy-${severity}";
     webhook_configs = [
       {
-        url = "http://127.0.0.1:${toString relayPort}/alerts?priority=${severityPolicy.${severity}.priority}&tags=${severityPolicy.${severity}.tags}";
+        url = "http://127.0.0.1:${toString relayPort}/alerts?priority=${
+          severityPolicy.${severity}.priority
+        }&tags=${severityPolicy.${severity}.tags}";
         send_resolved = true;
       }
     ];

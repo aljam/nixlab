@@ -9,9 +9,7 @@ let
   primaryDomain = config.networking.domains.primary;
   matrixUrl = "https://matrix.${primaryDomain}";
   rtcUrl = "https://rtc.${primaryDomain}";
-  physicalHosts = lib.filter (host:
-    builtins.hasAttr host config.networking.fleet
-  ) [
+  physicalHosts = lib.filter (host: builtins.hasAttr host config.networking.fleet) [
     "navi"
     "oryx"
     "r730"

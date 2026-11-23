@@ -20,12 +20,10 @@ let
   # Only navi and oryx run tailscaled directly. They consume the pfSense
   # subnet route for 192.168.1.0/24. Filter against the available fleet so
   # isolated monitoring tests do not reference hosts they do not define.
-  tailscaleHealthHosts = lib.filter
-    (host: builtins.hasAttr host config.networking.fleet)
-    [
-      "navi"
-      "oryx"
-    ];
+  tailscaleHealthHosts = lib.filter (host: builtins.hasAttr host config.networking.fleet) [
+    "navi"
+    "oryx"
+  ];
 
   # Every Blackbox probe sends the original target to the loopback exporter
   # and preserves it as the Prometheus instance label.
@@ -164,25 +162,27 @@ in
     };
 
     tailscaleServices = lib.mkOption {
-      type = lib.types.listOf (lib.types.submodule {
-        options = {
-          name = lib.mkOption {
-            type = lib.types.str;
-            description = "Service name used as the Prometheus instance label.";
-          };
+      type = lib.types.listOf (
+        lib.types.submodule {
+          options = {
+            name = lib.mkOption {
+              type = lib.types.str;
+              description = "Service name used as the Prometheus instance label.";
+            };
 
-          url = lib.mkOption {
-            type = lib.types.str;
-            description = "URL probed through the pfSense Tailscale subnet route.";
-          };
+            url = lib.mkOption {
+              type = lib.types.str;
+              description = "URL probed through the pfSense Tailscale subnet route.";
+            };
 
-          module = lib.mkOption {
-            type = lib.types.str;
-            default = "http_2xx";
-            description = "Blackbox exporter probe module.";
+            module = lib.mkOption {
+              type = lib.types.str;
+              default = "http_2xx";
+              description = "Blackbox exporter probe module.";
+            };
           };
-        };
-      });
+        }
+      );
       default = [ ];
       description = "Services probed through the pfSense Tailscale subnet route.";
     };

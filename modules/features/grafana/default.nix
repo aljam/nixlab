@@ -26,9 +26,7 @@ let
     builtins.readFile ./assets/server-inventory.json
   );
 
-  tailscaleDashboard = pkgs.writeTextDir "tailscale.json" (
-    builtins.readFile ./assets/tailscale.json
-  );
+  tailscaleDashboard = pkgs.writeTextDir "tailscale.json" (builtins.readFile ./assets/tailscale.json);
 in
 {
   options.services.nixlab.grafana.lokiUrl = lib.mkOption {

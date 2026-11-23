@@ -15,6 +15,21 @@
     config.common.default = [ "gtk" ];
   };
 
-  # Fallback used by rfd when the portal backend is unavailable.
-  environment.systemPackages = [ pkgs.zenity ];
+  # Required for Wayland screen sharing, capture, and desktop privilege prompts.
+  security.polkit.enable = true;
+
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
+
+  environment.systemPackages = with pkgs; [
+    wl-clipboard
+    wl-clip-persist
+    grim
+    slurp
+    zenity
+  ];
 }

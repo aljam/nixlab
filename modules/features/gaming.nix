@@ -15,7 +15,10 @@
     enable = true;
   };
 
-  programs.gamescope.enable = true;
+  programs.gamescope = {
+    enable = true;
+    enableWsi = true;
+  };
   programs.steam = {
     enable = true;
     remotePlay.openFirewall = true;
@@ -26,7 +29,16 @@
       nur.repos.vladexa.proton-cachyos
     ];
     protontricks.enable = true;
+    gamescopeSession.enable = true;
+    gamescopeSession.args = [
+      "--hdr-enabled"
+      "--mangoapp"
+    ];
   };
+
+  environment.systemPackages = with pkgs; [
+    mangohud
+  ];
 
   programs.gamemode.settings.general.renice = 10;
   boot.kernel.sysctl = {
@@ -38,4 +50,5 @@
   hardware.xpadneo.enable = true; # Xbox controllers over BT
   programs.gamescope.capSysNice = true;
 
+  hardware.graphics.enable32Bit = true;
 }

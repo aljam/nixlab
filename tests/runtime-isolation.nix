@@ -34,6 +34,8 @@ let
     exporter = "192.168.1.30";
     monitor = "192.168.1.31";
     unused = "192.168.1.32";
+    navi = "192.168.1.33";
+    oryx = "192.168.1.34";
   };
 
   staticAddress = ip: {
@@ -154,6 +156,8 @@ let
             networking.interfaces.eth1.ipv4.addresses = [ (staticAddress monitoringIps.monitor) ];
 
             networking.fleet = lib.mkForce {
+              navi.ip = monitoringIps.navi;
+              oryx.ip = monitoringIps.oryx;
               r730.ip = monitoringIps.exporter;
               r730xd.ip = monitoringIps.monitor;
               r820.ip = monitoringIps.unused;
@@ -369,7 +373,6 @@ let
 
       testScript = ''
         start_all()
-
         database.wait_for_unit("nftables.service")
         database.wait_for_unit("postgresql.service")
 

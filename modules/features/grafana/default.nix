@@ -25,6 +25,10 @@ let
   serverInventoryDashboard = pkgs.writeTextDir "server-inventory.json" (
     builtins.readFile ./assets/server-inventory.json
   );
+
+  tailscaleDashboard = pkgs.writeTextDir "tailscale.json" (
+    builtins.readFile ./assets/tailscale.json
+  );
 in
 {
   options.services.nixlab.grafana.lokiUrl = lib.mkOption {
@@ -143,6 +147,14 @@ in
             name = "NixLab server inventory";
             options = {
               path = serverInventoryDashboard;
+              foldersFromFilesStructure = false;
+            };
+          }
+
+          {
+            name = "NixLab Tailscale";
+            options = {
+              path = tailscaleDashboard;
               foldersFromFilesStructure = false;
             };
           }

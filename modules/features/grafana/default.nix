@@ -9,8 +9,6 @@
 let
   grafanaPort = config.services.grafana.settings.server.http_port or 3000;
   grafanaExposed = lib.elem grafanaPort config.networking.proxyBackendPorts;
-  # Grafana's section name is the single attribute "auth.anonymous", not the
-  # nested path auth.anonymous.
   grafanaAnonymous = config.services.grafana.settings."auth.anonymous".enabled or false;
   grafanaSignup = config.services.grafana.settings.users.allow_sign_up or false;
 
@@ -22,6 +20,10 @@ let
 
   diskHealthDashboard = pkgs.writeTextDir "disk-health.json" (
     builtins.readFile ./assets/disk-health.json
+  );
+
+  serverInventoryDashboard = pkgs.writeTextDir "server-inventory.json" (
+    builtins.readFile ./assets/server-inventory.json
   );
 in
 {
@@ -136,6 +138,14 @@ in
               foldersFromFilesStructure = false;
             };
           }
+
+          {
+            name = "NixLab server inventory";
+            options = {
+              path = serverInventoryDashboard;
+              foldersFromFilesStructure = false;
+            };
+          }
         ];
       };
     };
@@ -147,9 +157,6 @@ in
     networking.proxyBackendPorts = [ 3000 ];
 
     assertions = [
-      # Grafana is the internet-facing monitoring dashboard. When exposed
-      # through the HAProxy backend allowlist, it must require authentication
-      # and must not permit self-registration.
       {
         assertion = !grafanaExposed || !grafanaAnonymous;
         message = "Grafana must disable anonymous access when exposed through the HAProxy backend allowlist.";

@@ -10,6 +10,8 @@ let
   matrixUrl = "https://matrix.${primaryDomain}";
   rtcUrl = "https://rtc.${primaryDomain}";
   physicalHosts = [
+    "navi"
+    "oryx"
     "r730"
     "r730xd"
     "r820"

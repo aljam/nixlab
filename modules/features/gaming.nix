@@ -15,7 +15,10 @@
     enable = true;
   };
 
-  programs.gamescope.enable = true;
+  programs.gamescope = {
+    enable = true;
+    enableWsi = true;
+  };
   programs.steam = {
     enable = true;
     remotePlay.openFirewall = true;
@@ -27,6 +30,10 @@
     ];
     protontricks.enable = true;
     gamescopeSession.enable = true;
+    gamescopeSession.args = [
+      "--hdr-enabled"
+      "--mangoapp"
+    ];
   };
 
   programs.mangohud.enable = true;

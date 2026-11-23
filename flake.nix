@@ -403,6 +403,11 @@
       };
 
       checks.${system} = {
+        power-profiles = import ./tests/power-profiles.nix {
+          pkgs = pkgs;
+          hosts = self.nixosConfigurations;
+        };
+
         disk-health = import ./tests/disk-health.nix {
           pkgs = pkgs;
           hosts = self.nixosConfigurations;

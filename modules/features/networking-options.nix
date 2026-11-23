@@ -21,8 +21,12 @@ let
   };
 
   fleet = {
-    navi = { };
-    oryx = { };
+    navi = {
+      ip = "100.105.143.108";
+    };
+    oryx = {
+      ip = "100.83.220.18";
+    };
     r820 = {
       ip = "${subnets.lan}.4";
     };
@@ -49,6 +53,7 @@ let
   allowedIpPrefixes = [
     "${subnets.lan}."
     "${subnets.nas}."
+    "100."
   ];
 
   invalidIps = lib.filter (ip: !lib.any (prefix: lib.hasPrefix prefix ip) allowedIpPrefixes) fleetIps;

@@ -1,10 +1,11 @@
 {
+  lib,
   ...
 }:
 
 {
   # Intel thermal management for sustained gaming workloads.
-  services.thermald.enable = true;
+  services.thermald.enable = lib.mkForce true;
 
   # Keep the NVIDIA driver resident and retain the existing PRIME sync power posture.
   hardware.nvidia = {

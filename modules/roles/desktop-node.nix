@@ -64,8 +64,10 @@
   programs.gen1recomp = {
     enable = true;
 
-    # Replace this with the hash returned by nix store prefetch-file.
-    hash = "sha256-lj9oPiWmrNPvNyYb6ZjZjZjZjZjZjZjZjZjZjZjZjZjZ=";
+    # Verified with:
+    # nix store prefetch-file --json \
+    #   'https://github.com/bryanthaboi/gen1recomp/releases/download/v0.2.57/gen1recomp-0.2.57.love'
+    hash = "sha256-lj9oPiWmrNPvNyYb+GbEmrdfqn00jzwxQfbXVoTg+40=";
   };
 
   # Desktops and laptops get the local libvirt GUI.

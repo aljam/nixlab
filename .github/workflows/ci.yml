@@ -37,28 +37,13 @@ jobs:
         run: |
           set -euo pipefail
 
-          echo "=== before formatter ==="
-          git status --short
-          sha256sum tests/alert-routing.nix
-          git --no-pager diff -- tests/alert-routing.nix
-
           if ! nix fmt -- --ci; then
-            echo "=== formatter failed ==="
-
-            echo "=== after first formatter run ==="
-            git status --short
-            sha256sum tests/alert-routing.nix
-            git --no-pager diff -- tests/alert-routing.nix
-
             nix fmt
 
-            echo "=== after fallback formatter run ==="
-            git status --short
-            sha256sum tests/alert-routing.nix
-            git --no-pager diff --unified=3 -- . ':(exclude)flake.lock'
+            diff_output="$(git --no-pager diff --unified=3 -- . ':(exclude)flake.lock')"
 
             echo "::error::Nix files are not formatted. Run 'nix fmt' locally. Formatting diff:"
-            printf '%s\n' "$(git --no-pager diff --unified=3 -- . ':(exclude)flake.lock')"
+            printf '%s\n' "$diff_output"
             exit 1
           fi
 

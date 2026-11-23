@@ -174,50 +174,48 @@ in
       };
     };
 
-    services.prometheus.ruleGroups = [
-      {
-        name = "disk-health";
-        rules = [
-          {
-            alert = "DiskSmartFailure";
-            expr = "disk_health_smart_status == 0";
-            for = "10m";
-            labels = {
-              severity = "critical";
-            };
-            annotations = {
-              summary = "SMART health check failed";
-              description = "SMART reports an unhealthy or unresponsive disk on {{ $labels.device }}.";
-            };
-          }
+    services.prometheus.rules = [
+      ''
+        groups:
+          - name: disk-health
+            rules:
+              - alert: DiskSmartFailure
+                expr: disk_health_smart_status == 0
+                for: 10m
+                labels:
+                  severity: critical
+                annotations:
+                  summary: SMART health check failed
+                  description: SMART reports an unhealthy or unresponsive disk on {{ $labels.device }}.
+      ''
 
-          {
-            alert = "ZfsPoolDegraded";
-            expr = "disk_health_zfs_pool_state > 0";
-            for = "5m";
-            labels = {
-              severity = "critical";
-            };
-            annotations = {
-              summary = "ZFS pool is not fully healthy";
-              description = "ZFS pool {{ $labels.pool }} is in a non-online state.";
-            };
-          }
+      ''
+        groups:
+          - name: disk-health
+            rules:
+              - alert: ZfsPoolDegraded
+                expr: disk_health_zfs_pool_state > 0
+                for: 5m
+                labels:
+                  severity: critical
+                annotations:
+                  summary: ZFS pool is not fully healthy
+                  description: ZFS pool {{ $labels.pool }} is in a non-online state.
+      ''
 
-          {
-            alert = "ZfsDataErrors";
-            expr = "disk_health_zfs_scrub_errors > 0";
-            for = "5m";
-            labels = {
-              severity = "critical";
-            };
-            annotations = {
-              summary = "ZFS pool reports data errors";
-              description = ''ZFS pool {{ $labels.pool }} reports errors other than "No known data errors".'';
-            };
-          }
-        ];
-      }
+      ''
+        groups:
+          - name: disk-health
+            rules:
+              - alert: ZfsDataErrors
+                expr: disk_health_zfs_scrub_errors > 0
+                for: 5m
+                labels:
+                  severity: critical
+                annotations:
+                  summary: ZFS pool reports data errors
+                  description: 'ZFS pool {{ $labels.pool }} reports errors other than "No known data errors".'
+      ''
     ];
   };
 }

@@ -68,6 +68,10 @@ let
   '';
 in
 {
+  imports = [
+    ./node-exporter.nix
+  ];
+
   options.modules.features.disk-health = {
     enable = lib.mkEnableOption "SMART and ZFS disk-health monitoring";
 

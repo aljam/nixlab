@@ -407,6 +407,11 @@
           pkgs = pkgs;
           hosts = self.nixosConfigurations;
         };
+        
+        disk-health = import ./tests/disk-health.nix {
+          pkgs = pkgs;
+          hosts = self.nixosConfigurations;
+        };
 
         nftables-input-rules = import ./tests/nftables-input-rules.nix {
           pkgs = pkgs;

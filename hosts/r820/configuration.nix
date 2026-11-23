@@ -15,6 +15,10 @@
     #../../modules/roles/mail-node.nix
   ];
 
+  environment.systemPackages = with pkgs; [
+    smartmontools
+  ];
+
   modules.features.postgres = {
     enable = true;
     listenAddress = config.networking.fleet.r820.ip;

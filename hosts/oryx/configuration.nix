@@ -2,9 +2,11 @@
   lib,
   ...
 }:
+
 {
   imports = [
     ./hardware-configuration.nix
+    ./gaming.nix
     ../../modules/roles/desktop-node.nix
     ../../modules/hardware/system76-laptop.nix
     ../../modules/features/power-profiles.nix

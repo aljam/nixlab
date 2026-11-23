@@ -26,14 +26,29 @@ let
     "info"
   ];
 
-  hasRoute =
+  severityRoute =
     severity:
-    lib.any (route: lib.elem "severity=\"${severity}\"" route.matchers) alertConfig.route.routes;
+    lib.findSingle (
+      route: lib.elem "severity=\"${severity}\"" route.matchers
+    ) null null alertConfig.route.routes;
 
   check = condition: message: if condition then true else throw message;
 
   severityChecks = map (
-    severity: check (hasRoute severity) "Alertmanager is missing route for severity: ${severity}"
+    severity:
+    check
+    (severityRoute severity != null)
+    "Alertmanager is missing route for severity: ${severity}"
+  ) severities;
+
+  routingPolicyChecks = map (
+    severity:
+    let
+      route = severityRoute severity;
+    in
+    check
+    (route != null && route.repeat_interval != null && route.group_wait != null)
+    "Alertmanager severity route for ${severity} is missing notification policy"
   ) severities;
 
   tailscaleRulesFile = ../modules/features/prometheus/rules/tailscale-rules.yml;
@@ -59,7 +74,9 @@ let
 
   tailscaleAlertChecks = map (
     alert:
-    check (lib.elem alert.severity severities) "Tailscale alert ${alert.name} uses an unroutable severity: ${alert.severity}"
+    check
+    (lib.elem alert.severity severities)
+    "Tailscale alert ${alert.name} uses an unroutable severity: ${alert.severity}"
   ) tailscaleAlerts;
 
   checks = [
@@ -69,6 +86,7 @@ let
     receiver: check (lib.elem receiver receiverNames) "Alertmanager is missing receiver: ${receiver}"
   ) expectedReceivers
   ++ severityChecks
+  ++ routingPolicyChecks
   ++ tailscaleAlertChecks;
 in
 pkgs.runCommand "alert-routing-check"

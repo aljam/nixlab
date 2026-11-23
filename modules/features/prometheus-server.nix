@@ -17,6 +17,13 @@ let
     "r820"
   ];
 
+  # Only navi and oryx run tailscaled directly. They consume the pfSense
+  # subnet route for 192.168.1.0/24.
+  tailscaleHealthHosts = [
+    "navi"
+    "oryx"
+  ];
+
   # Every Blackbox probe sends the original target to the loopback exporter
   # and preserves it as the Prometheus instance label.
   blackboxRelabelConfigs = [
@@ -156,6 +163,7 @@ in
         ./prometheus/rules/prometheus-rules.yml
         ./prometheus/rules/drift-rules.yml
         ./prometheus/rules/host-baseline-rules.yml
+        ./prometheus/rules/tailscale-rules.yml
       ];
 
       # Alertmanager comes from ./prometheus-alerts.nix, which must be imported
@@ -198,6 +206,18 @@ in
               host = host;
             };
           }) physicalHosts;
+        }
+
+        {
+          job_name = "tailscaled";
+
+          static_configs = map (host: {
+            targets = [ "${config.networking.fleet.${host}.ip}:9100" ];
+            labels = {
+              instance = host;
+              host = host;
+            };
+          }) tailscaleHealthHosts;
         }
 
         {

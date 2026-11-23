@@ -71,8 +71,8 @@ in
   options.modules.features.tailscale-health = {
     enable = lib.mkOption {
       type = lib.types.bool;
-      default = true;
-      description = "Export Tailscale fleet-health metrics through node_exporter.";
+      default = false;
+      description = "Export local Tailscale daemon health metrics through node_exporter.";
     };
 
     interval = lib.mkOption {
@@ -84,7 +84,7 @@ in
 
   config = lib.mkIf cfg.enable {
     systemd.services.tailscale-health-export = {
-      description = "Export Tailscale fleet-health metrics";
+      description = "Export local Tailscale daemon health metrics";
       after = [ "tailscaled.service" ];
       wants = [ "tailscaled.service" ];
 
@@ -104,7 +104,7 @@ in
     };
 
     systemd.timers.tailscale-health-export = {
-      description = "Refresh Tailscale fleet-health metrics";
+      description = "Refresh local Tailscale daemon health metrics";
       wantedBy = [ "timers.target" ];
 
       timerConfig = {

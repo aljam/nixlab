@@ -26,7 +26,10 @@
       nur.repos.vladexa.proton-cachyos
     ];
     protontricks.enable = true;
+    gamescopeSession.enable = true;
   };
+
+  programs.mangohud.enable = true;
 
   programs.gamemode.settings.general.renice = 10;
   boot.kernel.sysctl = {
@@ -38,4 +41,5 @@
   hardware.xpadneo.enable = true; # Xbox controllers over BT
   programs.gamescope.capSysNice = true;
 
+  hardware.graphics.enable32Bit = true;
 }

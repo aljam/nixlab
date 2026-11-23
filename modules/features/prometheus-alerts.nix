@@ -5,7 +5,6 @@
   mkSecret,
   ...
 }:
-
 let
   relayPort = 9095;
 
@@ -107,15 +106,42 @@ in
         ];
         group_wait = "30s";
         group_interval = "5m";
-        repeat_interval = "4h";
+        repeat_interval = "24h";
 
         routes = [
           {
             receiver = "ntfy-critical";
             matchers = [ "severity=\"critical\"" ];
+            repeat_interval = "30m";
+            continue = false;
+          }
+
+          {
+            receiver = "ntfy-warning";
+            matchers = [ "severity=\"warning\"" ];
+            repeat_interval = "4h";
+            continue = false;
+          }
+
+          {
+            receiver = "ntfy-info";
+            matchers = [ "severity=\"info\"" ];
+            repeat_interval = "24h";
+            continue = false;
           }
         ];
       };
+
+      inhibit_rules = [
+        {
+          source_matchers = [ "severity=\"critical\"" ];
+          target_matchers = [ "severity=\"warning\"" ];
+          equal = [
+            "alertname"
+            "host"
+          ];
+        }
+      ];
 
       receivers = [
         {
@@ -133,6 +159,26 @@ in
           webhook_configs = [
             {
               url = "http://127.0.0.1:${toString relayPort}/alerts?priority=high";
+              send_resolved = true;
+            }
+          ];
+        }
+
+        {
+          name = "ntfy-warning";
+          webhook_configs = [
+            {
+              url = "http://127.0.0.1:${toString relayPort}/alerts?priority=default";
+              send_resolved = true;
+            }
+          ];
+        }
+
+        {
+          name = "ntfy-info";
+          webhook_configs = [
+            {
+              url = "http://127.0.0.1:${toString relayPort}/alerts?priority=low";
               send_resolved = true;
             }
           ];

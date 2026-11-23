@@ -403,6 +403,11 @@
       };
 
       checks.${system} = {
+        alert-routing = import ./tests/alert-routing.nix {
+          pkgs = pkgs;
+          hosts = self.nixosConfigurations;
+        };
+
         power-profiles = import ./tests/power-profiles.nix {
           pkgs = pkgs;
           hosts = self.nixosConfigurations;

@@ -58,7 +58,7 @@
 
     jobs.vaultwarden-data = {
       repository = "/var/lib/restic-backup/repo";
-      paths = [ "/var/lib/vaultwarden" ];
+      paths = [ "/var/lib/vaultwarden-data" ];
       schedule = "*-*-* 02:30:00";
       randomizedDelay = "15m";
     };
@@ -71,5 +71,34 @@
 
   services.nixlab.grafana.lokiUrl = "http://${config.networking.fleet.r730xd.ip}:3100";
 
-  modules.features.disk-health.enable = true;
+  modules.features.disk-health = {
+    enable = true;
+
+    devices = [
+      { path = "/dev/disk/by-id/wwn-0x5000c5007f451a73"; }
+      { path = "/dev/disk/by-id/wwn-0x5000c5008e99ea37"; }
+      { path = "/dev/disk/by-id/wwn-0x5000c50096e2ff63"; }
+      { path = "/dev/disk/by-id/wwn-0x5000c50096e321b3"; }
+      { path = "/dev/disk/by-id/wwn-0x5000c50096e325db"; }
+      { path = "/dev/disk/by-id/wwn-0x5000c50096e32813"; }
+      { path = "/dev/disk/by-id/wwn-0x5000c50096e32ea3"; }
+      { path = "/dev/disk/by-id/wwn-0x5000c50096e33a07"; }
+      { path = "/dev/disk/by-id/wwn-0x5000c50096e344bf"; }
+      { path = "/dev/disk/by-id/wwn-0x5000c50096e35663"; }
+      { path = "/dev/disk/by-id/wwn-0x5000c50096e367cf"; }
+      { path = "/dev/disk/by-id/wwn-0x5000c50096e375a7"; }
+      { path = "/dev/disk/by-id/wwn-0x5000c50096e38c1b"; }
+      { path = "/dev/disk/by-id/wwn-0x5000c50096e39893"; }
+      { path = "/dev/disk/by-id/wwn-0x5000cca07205e304"; }
+      { path = "/dev/disk/by-id/wwn-0x5000cca07206d234"; }
+      { path = "/dev/disk/by-id/wwn-0x5000cca07206d534"; }
+      { path = "/dev/disk/by-id/wwn-0x5000cca0720ab328"; }
+      { path = "/dev/disk/by-id/wwn-0x5000cca0720bd88c"; }
+      { path = "/dev/disk/by-id/wwn-0x5000cca0720c2ee8"; }
+      { path = "/dev/disk/by-id/wwn-0x5000cca0720ceedc"; }
+      { path = "/dev/disk/by-id/wwn-0x5000cca0720dc4cc"; }
+      { path = "/dev/disk/by-id/wwn-0x5000cca0720ddd40"; }
+      { path = "/dev/disk/by-id/wwn-0x5000cca0720dde80"; }
+    ];
+  };
 }

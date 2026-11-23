@@ -21,5 +21,18 @@
     cudatoolkit
   ];
 
-  modules.features.disk-health.enable = true;
+  modules.features.disk-health = {
+    enable = true;
+
+    devices = [
+      { path = "/dev/disk/by-id/wwn-0x5000c5007dd3fee3"; }
+      { path = "/dev/disk/by-id/wwn-0x5000c5007dd70cb7"; }
+      { path = "/dev/disk/by-id/wwn-0x5000c5007de11ecb"; }
+      { path = "/dev/disk/by-id/wwn-0x5000c5007f119817"; }
+      { path = "/dev/disk/by-id/wwn-0x5000c5007f1268cb"; }
+      { path = "/dev/disk/by-id/wwn-0x5000c5007f138ae3"; }
+      { path = "/dev/disk/by-id/wwn-0x5000c5008f0364e3"; }
+      { path = "/dev/disk/by-id/wwn-0x5000c5008f0517e3"; }
+    ];
+  };
 }

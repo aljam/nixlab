@@ -21,7 +21,6 @@
     ../features/systemd-hardening.nix
     ../features/audit-logging.nix
     ../features/automatic-updates.nix
-    ../features/tailscale-health.nix
   ];
 
   options.networking.servicesBindAddress = lib.mkOption {
@@ -80,8 +79,6 @@
       enable = lib.mkDefault true;
       lokiUrl = lib.mkDefault "http://${config.networking.fleet.r730xd.ip}:3100/loki/api/v1/push";
     };
-
-    modules.features.tailscale-health.enable = true;
 
     nixpkgs.config.allowUnfree = true;
 

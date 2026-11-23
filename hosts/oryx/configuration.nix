@@ -3,6 +3,7 @@
     ./hardware-configuration.nix
     ../../modules/roles/desktop-node.nix
     ../../modules/hardware/system76-laptop.nix
+    ../../modules/features/power-profiles.nix
   ];
 
   # Allow Nix builds, including NixOS VM integration tests, to use KVM.

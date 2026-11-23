@@ -1,6 +1,12 @@
 {
+  lib,
+  ...
+}:
+
+{
   imports = [
     ./hardware-configuration.nix
+    ./gaming.nix
     ../../modules/roles/desktop-node.nix
     ../../modules/hardware/navi-desktop.nix
     ../../modules/features/power-profiles.nix

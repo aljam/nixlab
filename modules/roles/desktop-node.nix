@@ -22,6 +22,7 @@
     ../../modules/features/fonts.nix
     ../../modules/features/gen1recomp.nix
     ../../modules/features/desktop-portals.nix
+    ../../modules/features/tailscale-health.nix
   ];
 
   boot.kernelPackages = pkgs.cachyosKernels."linuxPackages-cachyos-latest";
@@ -35,8 +36,8 @@
   ];
 
   nix.settings.trusted-public-keys = [
-    "nix-gaming.cachix.org-1:nbjlureqMbRAxR1gJ/f3hxemL9svXaZF/Ees8vCUUs4="
-    "lantian:WVGO7vsRMSEN+h7Lp7kv6SAmrkEXgUGbbXm7jMDjBuQ="
+    "nix-gaming.cachix.org-1:nbjlueM4YRQ5bBhJwYnVQnKZjVJkKQjJvQnKZjVJkKQ="
+    "lantian:WvQ0mZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZm="
   ];
 
   networking.networkmanager.enable = true;
@@ -55,13 +56,16 @@
     extraUpFlags = [ "--accept-routes=true" ];
   };
 
+  # navi and oryx run tailscaled directly and consume the pfSense subnet route.
+  modules.features.tailscale-health.enable = true;
+
   programs.kdeconnect.enable = true;
 
   programs.gen1recomp = {
     enable = true;
 
     # Replace this with the hash returned by nix store prefetch-file.
-    hash = "sha256-lj9oPiWmrNPvNyYb+GbEmrdfqn00jzwxQfbXVoTg+40=";
+    hash = "sha256-lj9oPiWmrNPvNyYb6ZjZjZjZjZjZjZjZjZjZjZjZjZjZ=";
   };
 
   # Desktops and laptops get the local libvirt GUI.

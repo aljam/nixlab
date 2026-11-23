@@ -26,9 +26,7 @@ let
     builtins.readFile ./assets/server-inventory.json
   );
 
-  tailscaleHealthDashboard = pkgs.writeTextDir "tailscale-health.json" (
-    builtins.readFile ./assets/tailscale-health.json
-  );
+  tailscaleDashboard = pkgs.writeTextDir "tailscale.json" (builtins.readFile ./assets/tailscale.json);
 in
 {
   options.services.nixlab.grafana.lokiUrl = lib.mkOption {
@@ -152,9 +150,9 @@ in
           }
 
           {
-            name = "NixLab Tailscale health";
+            name = "NixLab Tailscale";
             options = {
-              path = tailscaleHealthDashboard;
+              path = tailscaleDashboard;
               foldersFromFilesStructure = false;
             };
           }

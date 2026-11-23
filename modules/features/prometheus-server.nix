@@ -17,6 +17,14 @@ let
     "r820"
   ];
 
+  # Only navi and oryx run tailscaled directly. They consume the pfSense
+  # subnet route for 192.168.1.0/24. Filter against the available fleet so
+  # isolated monitoring tests do not reference hosts they do not define.
+  tailscaleHealthHosts = lib.filter (host: builtins.hasAttr host config.networking.fleet) [
+    "navi"
+    "oryx"
+  ];
+
   # Every Blackbox probe sends the original target to the loopback exporter
   # and preserves it as the Prometheus instance label.
   blackboxRelabelConfigs = [
@@ -117,6 +125,27 @@ let
       relabel_configs = blackboxRelabelConfigs;
     }
   ];
+
+  # Services are probed from the Prometheus host through the pfSense Tailscale
+  # subnet route. Targets use normal LAN addresses; no service targets are
+  # enabled until they are explicitly configured.
+  tailscaleBlackboxScrapeJob = {
+    job_name = "blackbox-tailscale";
+    metrics_path = "/probe";
+    params = {
+      module = [ "http_2xx" ];
+    };
+
+    static_configs = map (service: {
+      targets = [ service.url ];
+      labels = {
+        instance = service.name;
+        network = "tailscale";
+      };
+    }) cfg.tailscaleServices;
+
+    relabel_configs = blackboxRelabelConfigs;
+  };
 in
 {
   options.modules.features.prometheus-server = {
@@ -130,6 +159,32 @@ in
       type = lib.types.bool;
       default = true;
       description = "Whether to configure Blackbox probes for public HTTPS endpoints. Disable in isolated NixOS VM tests, which have no DNS or Internet access.";
+    };
+
+    tailscaleServices = lib.mkOption {
+      type = lib.types.listOf (
+        lib.types.submodule {
+          options = {
+            name = lib.mkOption {
+              type = lib.types.str;
+              description = "Service name used as the Prometheus instance label.";
+            };
+
+            url = lib.mkOption {
+              type = lib.types.str;
+              description = "URL probed through the pfSense Tailscale subnet route.";
+            };
+
+            module = lib.mkOption {
+              type = lib.types.str;
+              default = "http_2xx";
+              description = "Blackbox exporter probe module.";
+            };
+          };
+        }
+      );
+      default = [ ];
+      description = "Services probed through the pfSense Tailscale subnet route.";
     };
   };
 
@@ -202,6 +257,18 @@ in
         }
 
         {
+          job_name = "tailscaled";
+
+          static_configs = map (host: {
+            targets = [ "${config.networking.fleet.${host}.ip}:9100" ];
+            labels = {
+              instance = host;
+              host = host;
+            };
+          }) tailscaleHealthHosts;
+        }
+
+        {
           job_name = "blackbox-postgres";
           metrics_path = "/probe";
           params = {
@@ -221,6 +288,7 @@ in
           relabel_configs = blackboxRelabelConfigs;
         }
       ]
+      ++ lib.optionals (cfg.tailscaleServices != [ ]) [ tailscaleBlackboxScrapeJob ]
       ++ lib.optionals cfg.enablePublicEndpointProbes publicBlackboxScrapeJobs
       ++ lib.optionals (cfg.postgresCaFile != null) [
         {

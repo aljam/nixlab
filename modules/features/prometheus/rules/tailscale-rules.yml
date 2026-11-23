@@ -1,45 +1,38 @@
 groups:
-  - name: tailscale-health
+  - name: nixlab-tailscale
     rules:
-      - alert: TailscaleDown
+      - alert: TailscaleStatusDown
         expr: nixlab_tailscale_up == 0
         for: 5m
         labels:
           severity: critical
         annotations:
-          summary: "Tailscale is down on {{ $labels.instance }}"
-          description: >-
-            The Tailscale health exporter could not collect status on
-            {{ $labels.instance }}.
+          summary: "Tailscale status is down"
+          description: "Host {{ $labels.instance }} reports that Tailscale is down or its status cannot be exported."
 
-      - alert: TailscaleAddressMissing
-        expr: nixlab_tailscale_address_configured == 0
+      - alert: TailscaleDegraded
+        expr: nixlab_tailscale_address_configured == 0 or nixlab_tailscale_peer_online == 0
         for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Tailscale connectivity is degraded"
+          description: "Host {{ $labels.instance }} has no Tailscale address or no online peers."
+
+      - alert: TailscaleServiceUnreachable
+        expr: probe_success{network="tailscale"} == 0
+        for: 5m
         labels:
           severity: critical
         annotations:
-          summary: "Tailscale address missing on {{ $labels.instance }}"
-          description: >-
-            {{ $labels.instance }} does not report a configured Tailscale
-            address.
+          summary: "Tailscale service is unreachable"
+          description: "The service at {{ $labels.instance }} could not be reached through the pfSense Tailscale subnet route."
 
-      - alert: TailscaleNoOnlinePeers
-        expr: nixlab_tailscale_peer_online == 0
-        for: 15m
+      - alert: TailscaleProbeMissing
+        expr: absent(probe_success{network="tailscale"})
+        for: 10m
         labels:
           severity: warning
         annotations:
-          summary: "No online Tailscale peers on {{ $labels.instance }}"
-          description: >-
-            {{ $labels.instance }} reports no online Tailscale peers.
-
-      - alert: TailscaleExporterStale
-        expr: time() - node_textfile_scrape_timestamp_seconds{file="tailscale-health.prom"} > 300
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "Tailscale metrics are stale on {{ $labels.instance }}"
-          description: >-
-            The Tailscale health exporter has not refreshed metrics recently
-            on {{ $labels.instance }}.
+          summary: "No Tailscale reachability probes are reporting"
+          description: "Prometheus is not receiving results from any Tailscale service probes."

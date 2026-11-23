@@ -35,7 +35,8 @@ let
   check = condition: message: if condition then true else throw message;
 
   severityChecks = map (
-    severity: check (severityRoute severity != null) "Alertmanager is missing route for severity: ${severity}"
+    severity:
+    check (severityRoute severity != null) "Alertmanager is missing route for severity: ${severity}"
   ) severities;
 
   routingPolicyChecks = map (
@@ -70,7 +71,8 @@ let
   ];
 
   tailscaleAlertChecks = map (
-    alert: check (lib.elem alert.severity severities) "Tailscale alert ${alert.name} uses an unroutable severity: ${alert.severity}"
+    alert:
+    check (lib.elem alert.severity severities) "Tailscale alert ${alert.name} uses an unroutable severity: ${alert.severity}"
   ) tailscaleAlerts;
 
   checks = [

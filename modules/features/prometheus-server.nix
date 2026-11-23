@@ -9,7 +9,7 @@ let
   primaryDomain = config.networking.domains.primary;
   matrixUrl = "https://matrix.${primaryDomain}";
   rtcUrl = "https://rtc.${primaryDomain}";
-  physicalHosts = [
+  physicalHosts = lib.filter (host: builtins.hasAttr host config.networking.fleet) [
     "navi"
     "oryx"
     "r730"
@@ -156,6 +156,7 @@ in
         ./prometheus/rules/prometheus-rules.yml
         ./prometheus/rules/drift-rules.yml
         ./prometheus/rules/host-baseline-rules.yml
+        ./prometheus/rules/tailscale-rules.yml
       ];
 
       # Alertmanager comes from ./prometheus-alerts.nix, which must be imported

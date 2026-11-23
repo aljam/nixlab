@@ -17,6 +17,8 @@
     ../../modules/features/networking-tools.nix
     ../../modules/features/developer-tools.nix
     ../../modules/features/gaming.nix
+    ../../modules/features/gaming-performance.nix
+    ../../modules/features/power-profiles.nix
     ../../modules/features/libvirt.nix
     ../../modules/features/flatpak.nix
     ../../modules/features/fonts.nix
@@ -26,19 +28,6 @@
   ];
 
   boot.kernelPackages = pkgs.cachyosKernels."linuxPackages-cachyos-latest";
-
-  # Binary caches for desktop software and the CachyOS kernel, in addition to
-  # the fleet-wide ones in modules/features/nix-cache.nix.
-  nix.settings.substituters = [
-    "https://nix-gaming.cachix.org"
-    "https://hyprland.cachix.org"
-    "https://cache.lantian.pub/lantian"
-  ];
-
-  nix.settings.trusted-public-keys = [
-    "nix-gaming.cachix.org-1:nbjlueM4YRQ5bBhJwYnVQnKZjVJkKQjJvQnKZjVJkKQ="
-    "lantian:WvQ0mZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZm="
-  ];
 
   networking.networkmanager.enable = true;
 
@@ -60,6 +49,11 @@
   modules.features.tailscale-health.enable = true;
 
   programs.kdeconnect.enable = true;
+
+  # Opt in per desktop host after validating thermals and battery impact.
+  modules.features.gaming-performance.enable = false;
+
+  modules.features.power-profiles.enable = true;
 
   programs.gen1recomp = {
     enable = true;

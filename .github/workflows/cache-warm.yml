@@ -1,0 +1,61 @@
+name: Cache warm
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cache-warm
+  cancel-in-progress: false
+
+jobs:
+  warm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        host: [navi, oryx, r820, r730, r730xd]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/ghcup
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          df -h
+
+      - uses: cachix/install-nix-action@3dc140bfc76c49fbd4dd958429132e3746bcb086 # v31.11.5
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866 # v17
+        with:
+          name: aljam
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          extraPullNames: nix-community,nix-gaming,hyprland
+          useDaemon: false
+
+      - name: Build host
+        id: build
+        run: |
+          path="$(nix build \
+            --no-link \
+            --print-out-paths \
+            --print-build-logs \
+            ".#nixosConfigurations.${{ matrix.host }}.config.system.build.toplevel")"
+          echo "path=$path" >> "$GITHUB_OUTPUT"
+
+      - name: Push closure to aljam cache
+        env:
+          BUILD_PATH: ${{ steps.build.outputs.path }}
+        run: |
+          set -euo pipefail
+          nix path-info --recursive "$BUILD_PATH" | cachix push aljam

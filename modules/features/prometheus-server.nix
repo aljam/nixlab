@@ -18,11 +18,14 @@ let
   ];
 
   # Only navi and oryx run tailscaled directly. They consume the pfSense
-  # subnet route for 192.168.1.0/24.
-  tailscaleHealthHosts = [
-    "navi"
-    "oryx"
-  ];
+  # subnet route for 192.168.1.0/24. Filter against the available fleet so
+  # isolated monitoring tests do not reference hosts they do not define.
+  tailscaleHealthHosts = lib.filter
+    (host: builtins.hasAttr host config.networking.fleet)
+    [
+      "navi"
+      "oryx"
+    ];
 
   # Every Blackbox probe sends the original target to the loopback exporter
   # and preserves it as the Prometheus instance label.

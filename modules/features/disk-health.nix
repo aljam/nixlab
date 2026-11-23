@@ -24,7 +24,7 @@ let
       local metric="$1"
       local labels="$2"
       local value="$3"
-      printf '%s%s %s\n' "$metric" "$labels" "$value" >> "$tmp"
+      printf '%s%s %s\\n' "$metric" "$labels" "$value" >> "$tmp"
     }
 
     for device in $DEVICES; do
@@ -34,10 +34,10 @@ let
         smart_status=0
       fi
 
-      add_metric disk_health_smart_status "{device=\"$device\"}" "$smart_status"
+      add_metric disk_health_smart_status "{device=\\\"$device\\\"}" "$smart_status"
     done
 
-    while IFS=$'\t' read -r pool health; do
+    while IFS=$'\\t' read -r pool health; do
       case "$health" in
         ONLINE) pool_state=0 ;;
         DEGRADED) pool_state=1 ;;
@@ -45,7 +45,7 @@ let
         *) pool_state=3 ;;
       esac
 
-      add_metric disk_health_zfs_pool_state "{pool=\"$pool\"}" "$pool_state"
+      add_metric disk_health_zfs_pool_state "{pool=\\\"$pool\\\"}" "$pool_state"
 
       if zpool status "$pool" | grep -q 'No known data errors'; then
         scrub_errors=0
@@ -53,7 +53,7 @@ let
         scrub_errors=1
       fi
 
-      add_metric disk_health_zfs_scrub_errors "{pool=\"$pool\"}" "$scrub_errors"
+      add_metric disk_health_zfs_scrub_errors "{pool=\\\"$pool\\\"}" "$scrub_errors"
     done < <(zpool list -H -o name,health)
 
     mv "$tmp" "$output"
@@ -176,33 +176,33 @@ in
         rules = [
           {
             alert = "DiskSmartFailure";
-            expr = ''disk_health_smart_status == 0'';
+            expr = "disk_health_smart_status == 0";
             for = "10m";
             labels = {
               severity = "critical";
             };
             annotations = {
               summary = "SMART health check failed";
-              description = ''SMART reports an unhealthy or unresponsive disk on {{ $labels.device }}.'';
+              description = "SMART reports an unhealthy or unresponsive disk on {{ $labels.device }}.";
             };
           }
 
           {
             alert = "ZfsPoolDegraded";
-            expr = ''disk_health_zfs_pool_state > 0'';
+            expr = "disk_health_zfs_pool_state > 0";
             for = "5m";
             labels = {
               severity = "critical";
             };
             annotations = {
               summary = "ZFS pool is not fully healthy";
-              description = ''ZFS pool {{ $labels.pool }} is in a non-online state.'';
+              description = "ZFS pool {{ $labels.pool }} is in a non-online state.";
             };
           }
 
           {
             alert = "ZfsDataErrors";
-            expr = ''disk_health_zfs_scrub_errors > 0'';
+            expr = "disk_health_zfs_scrub_errors > 0";
             for = "5m";
             labels = {
               severity = "critical";

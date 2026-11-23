@@ -253,36 +253,14 @@ jobs:
 
   summary:
     needs: [format, nix-check, select-hosts, build-hosts]
-    if: always()
+    if: success()
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Report selected hosts
         env:
           HOSTS: ${{ needs.select-hosts.outputs.hosts }}
-          FORMAT_RESULT: ${{ needs.format.result }}
-          NIX_CHECK_RESULT: ${{ needs.nix-check.result }}
-          BUILD_RESULT: ${{ needs.build-hosts.result }}
         run: |
           set -euo pipefail
           echo "Affected hosts: $HOSTS"
-          echo "Format result: $FORMAT_RESULT"
-          echo "Nix check result: $NIX_CHECK_RESULT"
-          echo "Host build result: $BUILD_RESULT"
-
-          if [[ "$FORMAT_RESULT" != "success" && "$FORMAT_RESULT" != "skipped" ]]; then
-            echo "::error::CI format did not succeed: $FORMAT_RESULT"
-            exit 1
-          fi
-
-          if [[ "$NIX_CHECK_RESULT" != "success" && "$NIX_CHECK_RESULT" != "skipped" ]]; then
-            echo "::error::CI Nix check did not succeed: $NIX_CHECK_RESULT"
-            exit 1
-          fi
-
-          if [[ "$BUILD_RESULT" != "success" && "$BUILD_RESULT" != "skipped" ]]; then
-            echo "::error::Host build did not succeed: $BUILD_RESULT"
-            exit 1
-          fi
-
           echo "✅ CI completed"

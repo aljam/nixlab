@@ -27,15 +27,26 @@ let
       printf '%s%s %s\\n' "$metric" "$labels" "$value" >> "$tmp"
     }
 
-    for device in $DEVICES; do
-      if ${smartctl} --health --json "$device" | ${jq} -e '.smart_status.passed == true' >/dev/null; then
+    while IFS=$'\\t' read -r device_type device_path; do
+      type_args=""
+      if [[ "$device_type" != "-" ]]; then
+        type_args="-d $device_type"
+      fi
+
+      if ${smartctl} --health --json $type_args "$device_path" | ${jq} -e '.smart_status.passed == true' >/dev/null; then
         smart_status=1
       else
         smart_status=0
       fi
 
-      add_metric disk_health_smart_status "{device=\\\"$device\\\"}" "$smart_status"
-    done
+      if [[ "$device_type" != "-" ]]; then
+        device_label="$device_type"
+      else
+        device_label="$device_path"
+      fi
+
+      add_metric disk_health_smart_status "{device=\\\"$device_label\\\"}" "$smart_status"
+    done < <(printf '%s\\n' "$DEVICES")
 
     while IFS=$'\\t' read -r pool health; do
       case "$health" in
@@ -62,10 +73,19 @@ let
   smartSelfTest = pkgs.writers.writeBash "smart-self-test" ''
     set -euo pipefail
 
-    for device in $DEVICES; do
-      ${smartctl} -t short "$device"
-    done
+    while IFS=$'\\t' read -r device_type device_path; do
+      type_args=""
+      if [[ "$device_type" != "-" ]]; then
+        type_args="-d $device_type"
+      fi
+
+      ${smartctl} -t short $type_args "$device_path"
+    done < <(printf '%s\\n' "$DEVICES")
   '';
+
+  deviceEnvironment = lib.concatMapStringsSep "\\n" (device:
+    "${if device.type != null then device.type else "-"}\\t${device.path}"
+  ) cfg.devices;
 in
 {
   imports = [
@@ -76,10 +96,30 @@ in
     enable = lib.mkEnableOption "SMART and ZFS disk-health monitoring";
 
     devices = lib.mkOption {
-      type = with lib.types; listOf str;
+      type = with lib.types;
+        listOf (submodule {
+          options = {
+            path = lib.mkOption {
+              type = str;
+              description = ''
+                Device path passed to smartctl, for example `/dev/disk/by-id/...`
+                or `/dev/bus/0` for a MegaRAID controller.
+              '';
+            };
+
+            type = lib.mkOption {
+              type = nullOr str;
+              default = null;
+              description = ''
+                Optional smartctl device type passed with `-d`, for example
+                `megaraid,0`. Leave null for automatically detected devices.
+              '';
+            };
+          };
+        });
       default = [ ];
       description = ''
-        Block devices to monitor with smartctl, for example `/dev/disk/by-id/...`.
+        Block devices to monitor with smartctl.
         Leave empty to monitor only ZFS pools.
       '';
     };
@@ -123,7 +163,7 @@ in
         Group = "root";
 
         Environment = [
-          "DEVICES=${lib.concatStringsSep " " cfg.devices}"
+          "DEVICES=${deviceEnvironment}"
         ];
 
         NoNewPrivileges = true;
@@ -153,7 +193,7 @@ in
         ExecStart = "${smartSelfTest}";
 
         Environment = [
-          "DEVICES=${lib.concatStringsSep " " cfg.devices}"
+          "DEVICES=${deviceEnvironment}"
         ];
 
         NoNewPrivileges = true;

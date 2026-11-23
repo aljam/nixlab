@@ -20,11 +20,21 @@ let
     "ntfy-info"
   ];
 
+  severities = [
+    "critical"
+    "warning"
+    "info"
+  ];
+
   hasRoute =
     severity:
     lib.any (route: lib.elem "severity=\"${severity}\"" route.matchers) alertConfig.route.routes;
 
   check = condition: message: if condition then true else throw message;
+
+  severityChecks = map (
+    severity: check (hasRoute severity) "Alertmanager is missing route for severity: ${severity}"
+  ) severities;
 
   checks = [
     (check (alertHosts != { }) "No host enables Alertmanager; cannot validate alert routing.")
@@ -32,13 +42,7 @@ let
   ++ map (
     receiver: check (lib.elem receiver receiverNames) "Alertmanager is missing receiver: ${receiver}"
   ) expectedReceivers
-  ++
-  map (severity: check (hasRoute severity) "Alertmanager is missing route for severity: ${severity}")
-  [
-    "critical"
-    "warning"
-    "info"
-  ];
+  ++ severityChecks;
 in
 pkgs.runCommand "alert-routing-check" { } ''
   touch $out

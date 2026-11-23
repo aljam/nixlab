@@ -83,8 +83,8 @@ let
     done < <(printf '%s\\n' "$DEVICES")
   '';
 
-  deviceEnvironment = lib.concatMapStringsSep "\\n" (device:
-    "${if device.type != null then device.type else "-"}\\t${device.path}"
+  deviceEnvironment = lib.concatMapStringsSep "\\n" (
+    device: "${if device.type != null then device.type else "-"}\\t${device.path}"
   ) cfg.devices;
 in
 {
@@ -96,7 +96,8 @@ in
     enable = lib.mkEnableOption "SMART and ZFS disk-health monitoring";
 
     devices = lib.mkOption {
-      type = with lib.types;
+      type =
+        with lib.types;
         listOf (submodule {
           options = {
             path = lib.mkOption {

@@ -10,6 +10,15 @@ groups:
           summary: "Tailscale daemon is unavailable"
           description: "Host {{ $labels.instance }} cannot export Tailscale status."
 
+      - alert: TailscaleStatusDown
+        expr: nixlab_tailscale_up == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Tailscale status is down"
+          description: "Host {{ $labels.instance }} reports that Tailscale is down."
+
       - alert: TailscaleAddressMissing
         expr: nixlab_tailscale_address_configured == 0
         for: 10m

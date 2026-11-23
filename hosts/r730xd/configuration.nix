@@ -18,6 +18,7 @@
     ../../modules/features/drift-monitoring.nix
     ../../modules/features/loki.nix
     ../../modules/features/restic-backup.nix
+    ../../modules/features/disk-health.nix
   ];
 
   boot.kernelParams = [ "zfs.zfs_arc_max=6871947636" ];
@@ -69,4 +70,6 @@
   };
 
   services.nixlab.grafana.lokiUrl = "http://${config.networking.fleet.r730xd.ip}:3100";
+
+  modules.features.disk-health.enable = true;
 }

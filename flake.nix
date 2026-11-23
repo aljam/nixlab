@@ -338,37 +338,6 @@
               esac
             done
 
-            if (( ''${#hosts[@]} == 0 )); then
-              hosts=("''${known_hosts[@]}")
-            fi
-
-            for host in "''${hosts[@]}"; do
-              valid=0
-              for known in "''${known_hosts[@]}"; do
-                if [[ "$host" == "$known" ]]; then
-                  valid=1
-                  break
-                fi
-              done
-
-              if (( valid == 0 )); then
-                echo "Unknown deploy host: $host" >&2
-                usage
-                exit 3
-              fi
-            done
-
-            rev="$(git rev-parse origin/main)"
-
-            if [[ ! "$rev" =~ ^[0-9a-f]{40}$ ]]; then
-              echo "Refusing to check status: unable to resolve a full commit SHA." >&2
-              exit 3
-            fi
-
-            up_to_date=0
-            out_of_date=0
-            unreachable=0
-
             if [[ "$output" == "json" ]]; then
               printf '{"revision":"%s","hosts":[' "$rev"
             elif [[ "$output" == "human" ]]; then
@@ -434,6 +403,11 @@
       };
 
       checks.${system} = {
+        disk-health = import ./tests/disk-health.nix {
+          pkgs = pkgs;
+          hosts = self.nixosConfigurations;
+        };
+
         nftables-input-rules = import ./tests/nftables-input-rules.nix {
           pkgs = pkgs;
           hosts = self.nixosConfigurations;

@@ -19,6 +19,10 @@ let
   );
 
   lokiDashboard = pkgs.writeTextDir "loki.json" (builtins.readFile ./assets/loki.json);
+
+  diskHealthDashboard = pkgs.writeTextDir "disk-health.json" (
+    builtins.readFile ./assets/disk-health.json
+  );
 in
 {
   options.services.nixlab.grafana.lokiUrl = lib.mkOption {
@@ -121,6 +125,14 @@ in
             name = "NixLab logs";
             options = {
               path = lokiDashboard;
+              foldersFromFilesStructure = false;
+            };
+          }
+
+          {
+            name = "NixLab disk health";
+            options = {
+              path = diskHealthDashboard;
               foldersFromFilesStructure = false;
             };
           }

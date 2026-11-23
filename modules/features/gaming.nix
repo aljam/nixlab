@@ -36,7 +36,9 @@
     ];
   };
 
-  programs.mangohud.enable = true;
+  environment.systemPackages = with pkgs; [
+    mangohud
+  ];
 
   programs.gamemode.settings.general.renice = 10;
   boot.kernel.sysctl = {

@@ -18,6 +18,7 @@
     ../../modules/features/drift-monitoring.nix
     ../../modules/features/loki.nix
     ../../modules/features/restic-backup.nix
+    ../../modules/features/disk-health.nix
   ];
 
   boot.kernelParams = [ "zfs.zfs_arc_max=6871947636" ];

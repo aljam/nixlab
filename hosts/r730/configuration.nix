@@ -12,6 +12,7 @@
     ../../modules/roles/server-core.nix
     ../../modules/roles/storage-node.nix
     ../../modules/features/nvidia-headless.nix
+    ../../modules/features/disk-health.nix
   ];
 
   networking.hostId = "acccc16e"; # Required for ZFS

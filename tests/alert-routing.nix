@@ -79,8 +79,8 @@ pkgs.runCommand "alert-routing-check"
   }
   ''
     for alert in TailscaleStatusDown TailscaleDegraded TailscaleServiceUnreachable TailscaleProbeMissing; do
-      grep -q "alert: ${alert}" "$tailscaleRulesFile" || {
-        echo "Missing Tailscale alert: ${alert}" >&2
+      grep -q "alert: ''${alert}" "$tailscaleRulesFile" || {
+        echo "Missing Tailscale alert: ''${alert}" >&2
         exit 1
       }
     done

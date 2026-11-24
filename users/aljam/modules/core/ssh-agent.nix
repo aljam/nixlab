@@ -10,9 +10,61 @@
 
     settings."*".AddKeysToAgent = "yes";
 
-    matchBlocks."192.168.1.*" = {
-      identityFile = "~/.ssh/nixlab_deploy";
-      identitiesOnly = true;
+    matchBlocks = {
+      r820 = {
+        host = "r820";
+        hostName = "192.168.1.4";
+        user = "aljam";
+        identityFile = "~/.ssh/id_ed25519";
+        identitiesOnly = true;
+      };
+
+      r730 = {
+        host = "r730";
+        hostName = "192.168.1.3";
+        user = "aljam";
+        identityFile = "~/.ssh/id_ed25519";
+        identitiesOnly = true;
+      };
+
+      r730xd = {
+        host = "r730xd";
+        hostName = "192.168.1.2";
+        user = "aljam";
+        identityFile = "~/.ssh/id_ed25519";
+        identitiesOnly = true;
+      };
+
+      navi = {
+        host = "navi";
+        hostName = "navi";
+        user = "aljam";
+        identityFile = "~/.ssh/id_ed25519";
+        identitiesOnly = true;
+      };
+
+      oryx = {
+        host = "oryx";
+        hostName = "oryx";
+        user = "aljam";
+        identityFile = "~/.ssh/id_ed25519";
+        identitiesOnly = true;
+      };
+
+      brayd = {
+        host = "brayd";
+        hostName = "2.25.165.52";
+        user = "aljam";
+        identityFile = "~/.ssh/id_ed25519";
+        identitiesOnly = true;
+      };
+
+      deploy-hosts = {
+        host = "navi oryx r820 r730 r730xd";
+        user = "deploy";
+        identityFile = "~/.ssh/nixlab_deploy";
+        identitiesOnly = true;
+      };
     };
   };
 

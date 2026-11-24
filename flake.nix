@@ -83,10 +83,7 @@
         let
           value = builtins.getEnv "NIXLAB_DEPLOY_KEY";
         in
-        if value == "" then
-          "${builtins.getEnv "HOME"}/.ssh/nixlab_deploy"
-        else
-          value;
+        if value == "" then "${builtins.getEnv "HOME"}/.ssh/nixlab_deploy" else value;
 
       mkHost =
         {

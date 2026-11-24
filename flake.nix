@@ -46,7 +46,6 @@
 
     nur = {
       url = "github:nix-community/NUR";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
@@ -328,7 +327,6 @@
                   exit 0
                   ;;
                 --*)
-                  echo "Unknown option: $arg" >&2
                   usage
                   exit 3
                   ;;
@@ -389,11 +387,11 @@
               echo "Summary: $up_to_date up-to-date, $out_of_date out-of-date, $unreachable unreachable"
             fi
 
-            if (( unreachable > 0 )); then
+            if [[ "$unreachable" > 0 ]]; then
               exit 2
             fi
 
-            if (( out_of_date > 0 )); then
+            if [[ "$out_of_date" > 0 ]]; then
               exit 1
             fi
 
@@ -414,6 +412,11 @@
         };
 
         disk-health = import ./tests/disk-health.nix {
+          pkgs = pkgs;
+          hosts = self.nixosConfigurations;
+        };
+
+        backup-assurance = import ./tests/backup-assurance.nix {
           pkgs = pkgs;
           hosts = self.nixosConfigurations;
         };

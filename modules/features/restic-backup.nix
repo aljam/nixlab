@@ -261,9 +261,7 @@ let
         exec 9>${lib.escapeShellArg lockFile}
         flock 9
 
-        restic check \\
-          ${commonArgs} \\
-          --read-data-subset=${lib.escapeShellArg job.verifyDataSubset}
+        restic check ${commonArgs} --read-data-subset=${lib.escapeShellArg job.verifyDataSubset}
 
         write_result_metrics 1 "$(($(date +%s) - start_time))" "$(date +%s)"
         trap - ERR
@@ -320,9 +318,7 @@ let
         }
         trap cleanup EXIT
 
-        restic restore latest \\
-          ${commonArgs} \\
-          --target "$restore_dir"
+        restic restore latest ${commonArgs} --target "$restore_dir"
 
         ${pathChecks}
 

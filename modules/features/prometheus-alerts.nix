@@ -31,23 +31,33 @@ let
                 parsed = urllib.parse.urlparse(self.path)
                 query = urllib.parse.parse_qs(parsed.query)
                 priority = query.get("priority", ["default"])[0]
+                tags = query.get("tags", [""])[0]
 
                 for alert in payload.get("alerts", []):
                     labels = alert.get("labels", {})
                     annotations = alert.get("annotations", {})
                     title = labels.get("alertname", "Prometheus alert")
+                    severity = labels.get("severity", "info")
 
                     if alert.get("status") == "resolved":
                         title = "RESOLVED: " + title
 
                     body = annotations.get("description", "")
+                    if severity:
+                        body = f"Severity: {severity}\n\n{body}".strip()
+
+                    headers = {
+                        "X-Title": title,
+                        "X-Priority": priority,
+                    }
+
+                    if tags:
+                        headers["X-Tags"] = tags
+
                     request = urllib.request.Request(
                         NTFY_URL,
                         data=body.encode("utf-8"),
-                        headers={
-                            "X-Title": title,
-                            "X-Priority": priority,
-                        },
+                        headers=headers,
                         method="POST",
                     )
                     urllib.request.urlopen(request, timeout=10).read()
@@ -68,6 +78,51 @@ let
         ("127.0.0.1", int(sys.argv[1])), Handler
     ).serve_forever()
   '';
+
+  severityPolicy = {
+    critical = {
+      priority = "high";
+      tags = "rotating_light,skull";
+      groupWait = "0s";
+      groupInterval = "5m";
+      repeatInterval = "30m";
+    };
+    warning = {
+      priority = "default";
+      tags = "warning";
+      groupWait = "2m";
+      groupInterval = "15m";
+      repeatInterval = "4h";
+    };
+    info = {
+      priority = "low";
+      tags = "information_source";
+      groupWait = "10m";
+      groupInterval = "1h";
+      repeatInterval = "24h";
+    };
+  };
+
+  mkSeverityRoute = severity: {
+    receiver = "ntfy-${severity}";
+    matchers = [ "severity=\"${severity}\"" ];
+    group_wait = severityPolicy.${severity}.groupWait;
+    group_interval = severityPolicy.${severity}.groupInterval;
+    repeat_interval = severityPolicy.${severity}.repeatInterval;
+    continue = false;
+  };
+
+  mkSeverityReceiver = severity: {
+    name = "ntfy-${severity}";
+    webhook_configs = [
+      {
+        url = "http://127.0.0.1:${toString relayPort}/alerts?priority=${
+          severityPolicy.${severity}.priority
+        }&tags=${severityPolicy.${severity}.tags}";
+        send_resolved = true;
+      }
+    ];
+  };
 in
 {
   # Alertmanager uses a dynamic user by default, which is unavailable while
@@ -108,27 +163,10 @@ in
         group_interval = "5m";
         repeat_interval = "24h";
 
-        routes = [
-          {
-            receiver = "ntfy-critical";
-            matchers = [ "severity=\"critical\"" ];
-            repeat_interval = "30m";
-            continue = false;
-          }
-
-          {
-            receiver = "ntfy-warning";
-            matchers = [ "severity=\"warning\"" ];
-            repeat_interval = "4h";
-            continue = false;
-          }
-
-          {
-            receiver = "ntfy-info";
-            matchers = [ "severity=\"info\"" ];
-            repeat_interval = "24h";
-            continue = false;
-          }
+        routes = map mkSeverityRoute [
+          "critical"
+          "warning"
+          "info"
         ];
       };
 
@@ -153,36 +191,11 @@ in
             }
           ];
         }
-
-        {
-          name = "ntfy-critical";
-          webhook_configs = [
-            {
-              url = "http://127.0.0.1:${toString relayPort}/alerts?priority=high";
-              send_resolved = true;
-            }
-          ];
-        }
-
-        {
-          name = "ntfy-warning";
-          webhook_configs = [
-            {
-              url = "http://127.0.0.1:${toString relayPort}/alerts?priority=default";
-              send_resolved = true;
-            }
-          ];
-        }
-
-        {
-          name = "ntfy-info";
-          webhook_configs = [
-            {
-              url = "http://127.0.0.1:${toString relayPort}/alerts?priority=low";
-              send_resolved = true;
-            }
-          ];
-        }
+      ]
+      ++ map mkSeverityReceiver [
+        "critical"
+        "warning"
+        "info"
       ];
     };
   };

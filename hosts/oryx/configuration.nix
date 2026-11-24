@@ -18,4 +18,9 @@
 
   modules.features.power-profiles.enable = true;
   services.power-profiles-daemon.enable = lib.mkForce true;
+
+  networking.firewall.extraInputRules = ''
+    # Allow the Prometheus host to scrape node exporter.
+    ip saddr 192.168.1.2 tcp dport 9100 accept
+  '';
 }

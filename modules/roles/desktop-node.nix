@@ -52,6 +52,12 @@
   # navi and oryx run tailscaled directly and consume the pfSense subnet route.
   modules.features.tailscale-health.enable = true;
 
+  modules.features.restic-backup.enable = true;
+  modules.features.restic-backup.jobs.home-directories = {
+    repository = "/var/lib/restic-backup/repo";
+    paths = [ "/home" ];
+  };
+
   programs.kdeconnect.enable = true;
 
   modules.features.power-profiles.enable = true;

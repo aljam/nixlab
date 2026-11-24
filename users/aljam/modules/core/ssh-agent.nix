@@ -62,8 +62,41 @@
         identitiesOnly = true;
       };
 
-      deploy-hosts = {
-        host = "navi oryx r820 r730 r730xd";
+      deploy-navi = {
+        host = "deploy-navi";
+        hostname = "navi";
+        user = "deploy";
+        identityFile = "~/.ssh/nixlab_deploy";
+        identitiesOnly = true;
+      };
+
+      deploy-oryx = {
+        host = "deploy-oryx";
+        hostname = "oryx";
+        user = "deploy";
+        identityFile = "~/.ssh/nixlab_deploy";
+        identitiesOnly = true;
+      };
+
+      deploy-r820 = {
+        host = "deploy-r820";
+        hostname = "192.168.1.4";
+        user = "deploy";
+        identityFile = "~/.ssh/nixlab_deploy";
+        identitiesOnly = true;
+      };
+
+      deploy-r730 = {
+        host = "deploy-r730";
+        hostname = "192.168.1.3";
+        user = "deploy";
+        identityFile = "~/.ssh/nixlab_deploy";
+        identitiesOnly = true;
+      };
+
+      deploy-r730xd = {
+        host = "deploy-r730xd";
+        hostname = "192.168.1.2";
         user = "deploy";
         identityFile = "~/.ssh/nixlab_deploy";
         identitiesOnly = true;

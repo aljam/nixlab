@@ -115,6 +115,7 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
+            home-manager.backupFileExtension = "hm-backup";
             home-manager.users.aljam = import ./users/aljam/home.nix;
             home-manager.extraSpecialArgs = {
               inherit inputs stablePackages hostname;

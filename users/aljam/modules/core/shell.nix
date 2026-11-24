@@ -6,8 +6,6 @@
 }:
 
 {
-  home.packages = [ pkgs.keychain ];
-
   assertions = [
     {
       assertion = !(lib.hasInfix "SSH_AUTH_SOCK=" config.programs.fish.interactiveShellInit);
@@ -19,8 +17,6 @@
     enable = true;
     interactiveShellInit = ''
       set -g fish_greeting ""
-
-      eval (keychain --eval --quiet ~/.ssh/nixlab_deploy | string collect)
     '';
     shellAliases = {
       ls = "eza --icons";

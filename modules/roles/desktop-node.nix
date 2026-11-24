@@ -25,6 +25,7 @@
     ../../modules/features/gen1recomp.nix
     ../../modules/features/desktop-portals.nix
     ../../modules/features/tailscale-health.nix
+    ../../modules/features/node-exporter.nix
     ../../modules/features/restic-backup.nix
     ../../modules/features/backup-assurance.nix
   ];

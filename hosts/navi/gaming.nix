@@ -4,6 +4,8 @@
 }:
 
 {
+  modules.features.gaming-performance.enable = true;
+
   programs.gamemode = {
     enable = true;
 

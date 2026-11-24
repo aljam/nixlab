@@ -9,16 +9,7 @@ let
 in
 {
   options.modules.features.gaming-performance = {
-    enable = lib.mkEnableOption "opt-in gaming performance tuning";
-
-    cpuGovernor = lib.mkOption {
-      type = lib.types.enum [
-        "performance"
-        "schedutil"
-      ];
-      default = "performance";
-      description = "CPU governor applied when a compatible CPU frequency driver is present.";
-    };
+    enable = lib.mkEnableOption "vendor-agnostic gaming performance tuning";
   };
 
   config = lib.mkIf cfg.enable {
@@ -41,11 +32,5 @@ in
         };
       };
     };
-
-    services.udev.extraRules = ''
-      # Prefer the configured CPU governor when a compatible cpufreq driver
-      # exposes it. This is harmless on systems without scaling_governor.
-      ACTION=="add", SUBSYSTEM=="cpu", TEST=="cpufreq/scaling_governor", ATTR{cpufreq/scaling_governor}="${cfg.cpuGovernor}"
-    '';
   };
 }

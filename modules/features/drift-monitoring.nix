@@ -34,11 +34,9 @@ let
     deployment_age=$((now_epoch - activation_epoch))
     generation="$(basename "$(readlink -f /run/current-system)" | sed 's/^system-//')"
 
-    cat >> "$tmp" <<EOF
-     nixlab_deployment_activation_timestamp_seconds $activation_epoch
-     nixlab_deployment_age_seconds $deployment_age
-     nixlab_deployment_generation{generation="$generation"} 1
-     EOF
+    echo "nixlab_deployment_activation_timestamp_seconds $activation_epoch" >> "$tmp"
+    echo "nixlab_deployment_age_seconds $deployment_age" >> "$tmp"
+    echo 'nixlab_deployment_generation{generation="'"$generation"'"} 1' >> "$tmp"
 
     failed_critical_units=0
 

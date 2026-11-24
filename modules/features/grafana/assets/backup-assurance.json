@@ -1,0 +1,22 @@
+{
+  "id": null,
+  "uid": "backup-assurance",
+  "title": "Backup Assurance",
+  "schemaVersion": 39,
+  "version": 1,
+  "tags": ["backup", "restic"],
+  "timezone": "browser",
+  "refresh": "1m",
+  "time": {"from": "now-7d", "to": "now"},
+  "templating": {"list": []},
+  "panels": [
+    {"id":1,"title":"Latest backup result","type":"stat","datasource":{"type":"prometheus","uid":"prometheus"},"gridPos":{"x":0,"y":0,"w":8,"h":6},"fieldConfig":{"defaults":{"noValue":"No metrics","mappings":[{"type":"value","options":{"0":{"text":"Failed / not yet succeeded","color":"red"},"1":{"text":"Succeeded","color":"green"}}}]},"overrides":[]},"options":{"colorMode":"background","graphMode":"none","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false}},"targets":[{"expr":"nixlab_restic_backup_last_result","instant":true,"legendFormat":"{{instance}} / {{job}}","refId":"A"}]},
+    {"id":2,"title":"Latest verification result","type":"stat","datasource":{"type":"prometheus","uid":"prometheus"},"gridPos":{"x":8,"y":0,"w":8,"h":6},"fieldConfig":{"defaults":{"noValue":"No metrics","mappings":[{"type":"value","options":{"0":{"text":"Failed / not yet succeeded","color":"red"},"1":{"text":"Succeeded","color":"green"}}}]},"overrides":[]},"options":{"colorMode":"background","graphMode":"none","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false}},"targets":[{"expr":"nixlab_restic_verify_last_result","instant":true,"legendFormat":"{{instance}} / {{job}}","refId":"A"}]},
+    {"id":3,"title":"Latest restore-test result","type":"stat","datasource":{"type":"prometheus","uid":"prometheus"},"gridPos":{"x":16,"y":0,"w":8,"h":6},"fieldConfig":{"defaults":{"noValue":"No metrics","mappings":[{"type":"value","options":{"0":{"text":"Failed / not yet succeeded","color":"red"},"1":{"text":"Succeeded","color":"green"}}}]},"overrides":[]},"options":{"colorMode":"background","graphMode":"none","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false}},"targets":[{"expr":"nixlab_restic_restore_test_last_result","instant":true,"legendFormat":"{{instance}} / {{job}}","refId":"A"}]},
+    {"id":4,"title":"Backup age","description":"Only previously successful jobs are shown. Zero timestamps mean never succeeded, not an epoch-old backup.","type":"timeseries","datasource":{"type":"prometheus","uid":"prometheus"},"gridPos":{"x":0,"y":6,"w":8,"h":8},"fieldConfig":{"defaults":{"unit":"s","min":0},"overrides":[]},"targets":[{"expr":"time() - (nixlab_restic_backup_last_success_timestamp_seconds > 0)","legendFormat":"{{instance}} / {{job}}","refId":"A"}]},
+    {"id":5,"title":"Verification age","type":"timeseries","datasource":{"type":"prometheus","uid":"prometheus"},"gridPos":{"x":8,"y":6,"w":8,"h":8},"fieldConfig":{"defaults":{"unit":"s","min":0},"overrides":[]},"targets":[{"expr":"time() - (nixlab_restic_verify_last_success_timestamp_seconds > 0)","legendFormat":"{{instance}} / {{job}}","refId":"A"}]},
+    {"id":6,"title":"Restore-test age","type":"timeseries","datasource":{"type":"prometheus","uid":"prometheus"},"gridPos":{"x":16,"y":6,"w":8,"h":8},"fieldConfig":{"defaults":{"unit":"s","min":0},"overrides":[]},"targets":[{"expr":"time() - (nixlab_restic_restore_test_last_success_timestamp_seconds > 0)","legendFormat":"{{instance}} / {{job}}","refId":"A"}]},
+    {"id":7,"title":"Job durations","type":"timeseries","datasource":{"type":"prometheus","uid":"prometheus"},"gridPos":{"x":0,"y":14,"w":24,"h":8},"fieldConfig":{"defaults":{"unit":"s","min":0},"overrides":[]},"targets":[{"expr":"nixlab_restic_backup_duration_seconds","legendFormat":"Backup {{instance}} / {{job}}","refId":"A"},{"expr":"nixlab_restic_verify_duration_seconds","legendFormat":"Verify {{instance}} / {{job}}","refId":"B"},{"expr":"nixlab_restic_restore_test_duration_seconds","legendFormat":"Restore {{instance}} / {{job}}","refId":"C"}]},
+    {"id":8,"title":"Job assurance metrics","description":"One row per host, job, and metric; success timestamps are Unix seconds, results are 0/1. Missing metrics are unknown, not healthy.","type":"table","datasource":{"type":"prometheus","uid":"prometheus"},"gridPos":{"x":0,"y":22,"w":24,"h":10},"fieldConfig":{"defaults":{"noValue":"Unknown"},"overrides":[]},"options":{"showHeader":true},"targets":[{"expr":"{__name__=~\"nixlab_restic_(backup|verify|restore_test)_(last_result|last_success_timestamp_seconds)\"}","format":"table","instant":true,"refId":"A"}]}
+  ]
+}

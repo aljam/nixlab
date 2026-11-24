@@ -29,6 +29,8 @@ let
   tailscaleDashboard = pkgs.writeTextDir "tailscale.json" (builtins.readFile ./assets/tailscale.json);
 in
 {
+  imports = [ ./backup-assurance.nix ];
+
   options.services.nixlab.grafana.lokiUrl = lib.mkOption {
     type = lib.types.nullOr lib.types.str;
     default = null;

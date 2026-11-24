@@ -330,10 +330,6 @@
                   exit 0
                   ;;
                 --*)
-                  usage
-                  exit 3
-                  ;;
-                *)
                   hosts+=("$arg")
                   ;;
               esac
@@ -374,7 +370,7 @@
                   first=0
                   ;;
                 human)
-                  printf '%-12s %-12s %s\\n' "$host" "$status" "''${running:--}"
+                  printf '%-12s %-12s %s\\n' "Host" "Status" "Running revision"
                   ;;
               esac
             done
@@ -450,6 +446,8 @@
           pkgs = pkgs;
           test = "monitoring-health";
         };
+
+        nix-gc-observability = pkgs.testers.runNixOSTest ./tests/nix-gc-observability.nix;
 
         postgresql-auth = import ./tests/runtime-isolation.nix {
           pkgs = pkgs;

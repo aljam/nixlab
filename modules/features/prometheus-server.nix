@@ -234,6 +234,7 @@ in
         ./prometheus/rules/host-baseline-rules.yml
         ./prometheus/rules/tailscale-rules.yml
         ./prometheus/rules/haproxy-rules.yml
+        ./prometheus/rules/nix-gc-rules.yml
       ];
 
       # Alertmanager comes from ./prometheus-alerts.nix, which must be imported

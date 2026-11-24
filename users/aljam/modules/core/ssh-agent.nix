@@ -13,7 +13,7 @@
     matchBlocks = {
       r820 = {
         host = "r820";
-        hostName = "192.168.1.4";
+        hostname = "192.168.1.4";
         user = "aljam";
         identityFile = "~/.ssh/id_ed25519";
         identitiesOnly = true;
@@ -21,7 +21,7 @@
 
       r730 = {
         host = "r730";
-        hostName = "192.168.1.3";
+        hostname = "192.168.1.3";
         user = "aljam";
         identityFile = "~/.ssh/id_ed25519";
         identitiesOnly = true;
@@ -29,7 +29,7 @@
 
       r730xd = {
         host = "r730xd";
-        hostName = "192.168.1.2";
+        hostname = "192.168.1.2";
         user = "aljam";
         identityFile = "~/.ssh/id_ed25519";
         identitiesOnly = true;
@@ -37,7 +37,7 @@
 
       navi = {
         host = "navi";
-        hostName = "navi";
+        hostname = "navi";
         user = "aljam";
         identityFile = "~/.ssh/id_ed25519";
         identitiesOnly = true;
@@ -45,7 +45,7 @@
 
       oryx = {
         host = "oryx";
-        hostName = "oryx";
+        hostname = "oryx";
         user = "aljam";
         identityFile = "~/.ssh/id_ed25519";
         identitiesOnly = true;
@@ -53,7 +53,7 @@
 
       brayd = {
         host = "brayd";
-        hostName = "2.25.165.52";
+        hostname = "2.25.165.52";
         user = "aljam";
         identityFile = "~/.ssh/id_ed25519";
         identitiesOnly = true;

@@ -1,1 +1,1 @@
-The complete module payload from the immediately preceding call_external_tool request: it renames the service and timer to nixlab-nix-gc, sets Unit to nixlab-nix-gc.service, and uses "${wrapper}/bin/nixlab-gc" for ExecStart.
+FULL CORRECTED MODULE: same complete Nix module as previously prepared, with service and timer renamed to nixlab-nix-gc, timer Unit set to nixlab-nix-gc.service, and ExecStart set to "${wrapper}/bin/nixlab-gc".

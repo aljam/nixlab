@@ -80,7 +80,7 @@
     Service = {
       Type = "simple";
       Environment = "SSH_AUTH_SOCK=%t/ssh-agent.socket";
-      ExecStart = "${lib.getExe pkgs.openssh}/bin/ssh-agent -D -a %t/ssh-agent.socket";
+      ExecStart = "${lib.getExe' pkgs.openssh "ssh-agent"} -D -a %t/ssh-agent.socket";
       Restart = "on-failure";
       RestartSec = 5;
     };

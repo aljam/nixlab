@@ -27,6 +27,10 @@ let
   );
 
   tailscaleDashboard = pkgs.writeTextDir "tailscale.json" (builtins.readFile ./assets/tailscale.json);
+
+  fleetCurrencyDashboard = pkgs.writeTextDir "fleet-currency.json" (
+    builtins.readFile ./assets/fleet-currency.json
+  );
 in
 {
   imports = [ ./backup-assurance.nix ];
@@ -155,6 +159,14 @@ in
             name = "NixLab Tailscale";
             options = {
               path = tailscaleDashboard;
+              foldersFromFilesStructure = false;
+            };
+          }
+
+          {
+            name = "NixLab deployment freshness";
+            options = {
+              path = fleetCurrencyDashboard;
               foldersFromFilesStructure = false;
             };
           }

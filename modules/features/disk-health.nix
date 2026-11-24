@@ -218,7 +218,7 @@ in
     services.prometheus.rules = [
       ''
         groups:
-          - name: disk-health
+          - name: disk-health-smart
             rules:
               - alert: DiskSmartFailure
                 expr: disk_health_smart_status == 0
@@ -228,11 +228,8 @@ in
                 annotations:
                   summary: SMART health check failed
                   description: SMART reports an unhealthy or unresponsive disk on {{ $labels.device }}.
-      ''
 
-      ''
-        groups:
-          - name: disk-health
+          - name: disk-health-zfs-state
             rules:
               - alert: ZfsPoolDegraded
                 expr: disk_health_zfs_pool_state > 0
@@ -242,11 +239,8 @@ in
                 annotations:
                   summary: ZFS pool is not fully healthy
                   description: ZFS pool {{ $labels.pool }} is in a non-online state.
-      ''
 
-      ''
-        groups:
-          - name: disk-health
+          - name: disk-health-zfs-errors
             rules:
               - alert: ZfsDataErrors
                 expr: disk_health_zfs_scrub_errors > 0

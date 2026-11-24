@@ -1,21 +1,7 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
+{ config, pkgs, lib, ... }:
 
 {
   home.packages = [ pkgs.keychain ];
-
-  home.file.".config/fish/config.fish" = {
-    force = true;
-    text = ''
-      set -g fish_greeting ""
-
-      eval (keychain --eval --quiet ~/.ssh/nixlab_deploy | string collect)
-    '';
-  };
 
   assertions = [
     {

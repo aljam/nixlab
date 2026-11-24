@@ -8,7 +8,7 @@ import json
 
 POLICY = {
     "secrets/common.yaml": {"aljam", "navi", "oryx", "r730", "r730xd", "r820"},
-    "secrets/backups.yaml": {"aljam", "r730xd", "r820"},
+    "secrets/backups.yaml": {"aljam", "navi", "oryx", "r730xd", "r820"},
     "secrets/nas.yaml": {"aljam", "navi", "oryx"},
     "secrets/database.yaml": {"aljam", "r820"},
     "secrets/matrix.yaml": {"aljam", "r730xd", "r820"},
@@ -73,7 +73,3 @@ def main() -> None:
 
     for path in files_for_host(args.host):
         print(path)
-
-
-if __name__ == "__main__":
-    main()

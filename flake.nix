@@ -106,6 +106,7 @@
       commonModules =
         { hostname }:
         [
+          ./modules/features/nix-gc
           ./modules/roles/common.nix
           ./modules/features/deploy-user.nix
 
@@ -124,6 +125,18 @@
 
           {
             roles.security.deployUser.enable = true;
+          }
+
+          {
+            modules.features.nix-gc = {
+              enable = true;
+              schedule = "Sun 03:00";
+
+              retention = {
+                generations = 4;
+                age = "14 days";
+              };
+            };
           }
         ];
 
@@ -389,6 +402,8 @@
       };
 
       checks.${system} = {
+        nix-gc-policy = pkgs.testers.runNixOSTest ./tests/nix-gc-policy.nix;
+
         alert-routing = import ./tests/alert-routing.nix {
           pkgs = pkgs;
           hosts = self.nixosConfigurations;

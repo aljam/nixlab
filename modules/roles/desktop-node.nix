@@ -17,6 +17,8 @@
     ../../modules/features/networking-tools.nix
     ../../modules/features/developer-tools.nix
     ../../modules/features/gaming.nix
+    ../../modules/features/gaming-performance.nix
+    ../../modules/features/power-profiles.nix
     ../../modules/features/libvirt.nix
     ../../modules/features/flatpak.nix
     ../../modules/features/fonts.nix
@@ -60,6 +62,11 @@
   modules.features.tailscale-health.enable = true;
 
   programs.kdeconnect.enable = true;
+
+  # Opt in per desktop host after validating thermals and battery impact.
+  modules.features.gaming-performance.enable = false;
+
+  modules.features.power-profiles.enable = true;
 
   programs.gen1recomp = {
     enable = true;

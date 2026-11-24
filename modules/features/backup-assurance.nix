@@ -101,8 +101,8 @@ in
         message = "modules.features.backup-assurance requires modules.features.restic-backup.";
       }
       {
-        assertion = config.modules.features.node-exporter.enable;
-        message = "modules.features.backup-assurance requires modules.features.node-exporter.";
+        assertion = config.services.prometheus.exporters.node.enable;
+        message = "modules.features.backup-assurance requires the Prometheus node exporter.";
       }
     ];
 

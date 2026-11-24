@@ -10,6 +10,7 @@
     ./modules/core/shell.nix
     ./modules/core/nvim.nix
     ./modules/core/packages.nix
+    ./modules/core/ssh-agent.nix
   ];
 
   programs.home-manager.enable = true;

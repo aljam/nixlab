@@ -10,6 +10,7 @@
     ../../modules/roles/desktop-node.nix
     ../../modules/hardware/system76-laptop.nix
     ../../modules/features/power-profiles.nix
+    ../../users/aljam/modules/features/deploy-keychain.nix
   ];
 
   # Allow Nix builds, including NixOS VM integration tests, to use KVM.

@@ -10,6 +10,7 @@
     ../../modules/roles/desktop-node.nix
     ../../modules/hardware/navi-desktop.nix
     ../../modules/features/power-profiles.nix
+    ../../users/aljam/modules/features/deploy-keychain.nix
   ];
 
   programs.corectrl.enable = true; # AMD Overclocking/Undervolting

@@ -251,13 +251,10 @@ in
         message = "modules.features.restic-replication requires the Prometheus node exporter.";
       }
     ]
-    ++ lib.mapAttrsToList (
-      name: job:
-      {
-        assertion = job.destinationRepository != null;
-        message = "Restic replication job ${name} requires a destinationRepository.";
-      }
-    ) cfg.jobs;
+    ++ lib.mapAttrsToList (name: job: {
+      assertion = job.destinationRepository != null;
+      message = "Restic replication job ${name} requires a destinationRepository.";
+    }) cfg.jobs;
 
     roles.security.systemdHardenedServices = lib.concatMap (name: [
       "restic-replication-${name}"

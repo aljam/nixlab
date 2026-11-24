@@ -17,27 +17,21 @@
     ../../modules/features/networking-tools.nix
     ../../modules/features/developer-tools.nix
     ../../modules/features/gaming.nix
+    ../../modules/features/gaming-performance.nix
+    ../../modules/features/power-profiles.nix
     ../../modules/features/libvirt.nix
     ../../modules/features/flatpak.nix
     ../../modules/features/fonts.nix
     ../../modules/features/gen1recomp.nix
     ../../modules/features/desktop-portals.nix
+    ../../modules/features/tailscale-health.nix
+    ../../modules/features/reverse-proxy-backends.nix
+    ../../modules/features/node-exporter.nix
+    ../../modules/features/restic-backup.nix
+    ../../modules/features/backup-assurance.nix
   ];
 
   boot.kernelPackages = pkgs.cachyosKernels."linuxPackages-cachyos-latest";
-
-  # Binary caches for desktop software and the CachyOS kernel, in addition to
-  # the fleet-wide ones in modules/features/nix-cache.nix.
-  nix.settings.substituters = [
-    "https://nix-gaming.cachix.org"
-    "https://hyprland.cachix.org"
-    "https://cache.lantian.pub/lantian"
-  ];
-
-  nix.settings.trusted-public-keys = [
-    "nix-gaming.cachix.org-1:nbjlureqMbRAxR1gJ/f3hxemL9svXaZF/Ees8vCUUs4="
-    "lantian:WVGO7vsRMSEN+h7Lp7kv6SAmrkEXgUGbbXm7jMDjBuQ="
-  ];
 
   networking.networkmanager.enable = true;
 
@@ -55,12 +49,25 @@
     extraUpFlags = [ "--accept-routes=true" ];
   };
 
+  # navi and oryx run tailscaled directly and consume the pfSense subnet route.
+  modules.features.tailscale-health.enable = true;
+
+  modules.features.restic-backup.enable = true;
+  modules.features.restic-backup.jobs.home-directories = {
+    repository = "/var/lib/restic-backup/repo";
+    paths = [ "/home" ];
+  };
+
   programs.kdeconnect.enable = true;
+
+  modules.features.power-profiles.enable = true;
 
   programs.gen1recomp = {
     enable = true;
 
-    # Replace this with the hash returned by nix store prefetch-file.
+    # Verified with:
+    # nix store prefetch-file --json \
+    #   'https://github.com/bryanthaboi/gen1recomp/releases/download/v0.2.57/gen1recomp-0.2.57.love'
     hash = "sha256-lj9oPiWmrNPvNyYb+GbEmrdfqn00jzwxQfbXVoTg+40=";
   };
 

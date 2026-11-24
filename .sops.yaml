@@ -85,6 +85,8 @@ creation_rules:
     key_groups:
       - age:
           - *aljam
+          - *navi
+          - *oryx
           - *r730xd
           - *r820
 

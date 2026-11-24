@@ -86,8 +86,8 @@ pkgs.testers.nixosTest {
           timeout=180,
         )
         parsed = json.loads(output)
-        assert parsed.get("id"), output
-        assert parsed.get("serverName"), output
+        assert parsed.get("Id") or parsed.get("id"), output
+        assert parsed.get("ServerName") or parsed.get("serverName"), output
 
     with subtest("representative Jellyfin state is backed up"):
         # Stop Jellyfin before copying its state so the backup captures a
@@ -155,8 +155,7 @@ pkgs.testers.nixosTest {
           "mv /var/lib/jellyfin-restored/data /var/lib/jellyfin-restore/data"
         )
         jellyfin.succeed(
-          "mv /var/lib/jellyfin-restored/config "
-          "/var/lib/jellyfin-restore/config"
+          "mv /var/lib/jellyfin-restored/config /var/lib/jellyfin-restore/config"
         )
 
         jellyfin.succeed(

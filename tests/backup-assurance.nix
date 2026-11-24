@@ -82,8 +82,7 @@ pkgs.runCommand "backup-assurance-config-check"
     inherit dashboardFile;
   }
   ''
-    ${pkgs.jq}/bin/jq -e '.uid == "backup-assurance" and .title == "Backup Assurance"' \\
-      "$dashboardFile" >/dev/null
+    ${pkgs.jq}/bin/jq -e '.uid == "backup-assurance" and .title == "Backup Assurance"' "$dashboardFile" >/dev/null
 
     for metric in \\
       nixlab_restic_backup_last_result \\

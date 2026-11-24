@@ -216,15 +216,9 @@ let
 
         ${job.preBackupScript}
 
-        restic backup \\
-          ${commonArgs} \\
-          ${lib.concatMapStringsSep " \\\n          " (path: lib.escapeShellArg path) job.paths}
+        restic backup ${commonArgs} ${lib.concatMapStringsSep " " (path: lib.escapeShellArg path) job.paths}
 
-        restic forget \\
-          ${commonArgs} \\
-          --keep-daily ${toString job.retention.keepDaily} \\
-          --keep-weekly ${toString job.retention.keepWeekly} \\
-          --keep-monthly ${toString job.retention.keepMonthly}${lib.optionalString job.prune " --prune"}
+        restic forget ${commonArgs} --keep-daily ${toString job.retention.keepDaily} --keep-weekly ${toString job.retention.keepWeekly} --keep-monthly ${toString job.retention.keepMonthly}${lib.optionalString job.prune " --prune"}
 
         write_result_metrics 1 "$(($(date +%s) - start_time))" "$(date +%s)"
         trap - ERR

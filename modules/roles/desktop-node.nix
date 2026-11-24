@@ -25,6 +25,7 @@
     ../../modules/features/gen1recomp.nix
     ../../modules/features/desktop-portals.nix
     ../../modules/features/tailscale-health.nix
+    ../../modules/features/backup-assurance.nix
   ];
 
   boot.kernelPackages = pkgs.cachyosKernels."linuxPackages-cachyos-latest";

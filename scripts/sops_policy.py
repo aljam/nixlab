@@ -73,3 +73,7 @@ def main() -> None:
 
     for path in files_for_host(args.host):
         print(path)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,1 +1,500 @@
-# Local Restic backups.\n#\n# Each job runs as root because it may need to read protected application data\n# and create consistent dumps. It writes only to its dedicated state tree, lock\n# file, and node-exporter metrics directory.\n{\n  lib,\n  config,\n  pkgs,\n  mkSecret,\n  ...\n}:\n\nlet\n  cfg = config.modules.features.restic-backup;\n  backupUser = "restic-backup";\n  backupGroup = "restic-backup";\n  passwordFile = config.sops.secrets.restic-backup-password.path;\n  lockFile = "/run/restic-backup.lock";\n  cacheDirectory = "/var/lib/restic-backup/cache";\n  metricsDirectory = config.modules.features.node-exporter.textfileDirectory;\n\n  jobModule = {\n    options = {\n      repository = lib.mkOption {\n        type = lib.types.str;\n        description = "Restic repository used by this backup job.";\n      };\n\n      paths = lib.mkOption {\n        type = with lib.types; nonEmptyListOf str;\n        description = "Filesystem paths included in this backup job.";\n      };\n\n      preBackupScript = lib.mkOption {\n        type = lib.types.lines;\n        default = "";\n        description = "Commands run before `restic backup`. Use this to create consistent application dumps.";\n      };\n\n      prune = lib.mkOption {\n        type = lib.types.bool;\n        default = true;\n        description = ''\n          Whether to prune removed snapshots after applying retention.\n          Pruning can be expensive; disabling it lets `restic forget` mark\n          snapshots for later removal without rewriting repository data.\n        '';\n      };\n\n      runtimePackages = lib.mkOption {\n        type = with lib.types; listOf package;\n        default = [ ];\n        description = "Additional packages required by this job pre-backup script. Keep this limited to the packages actually needed.";\n      };\n\n      schedule = lib.mkOption {\n        type = lib.types.str;\n        default = "*-*-* 03:30:00";\n        description = "systemd timer calendar specification.";\n      };\n\n      randomizedDelay = lib.mkOption {\n        type = lib.types.str;\n        default = "*min";\n        description = "Random delay between scheduled runs.";\n      };\n\n      verifySchedule = lib.mkOption {\n        type = lib.types.str;\n        default = "Sun *-*-* 04:30:00";\n        description = "systemd timer calendar specification for repository integrity verification.";\n      };\n\n      verifyRandomizedDelay = lib.mkOption {\n        type = lib.types.str;\n        default = "*min";\n        description = "Random delay between scheduled verification runs.";\n      };\n\n      verifyDataSubset = lib.mkOption {\n        type = lib.types.str;\n        default = "";\n        description = "Fraction of repository data read during each integrity verification run.";\n      };\n\n      restoreSchedule = lib.mkOption {\n        type = lib.types.str;\n        default = "*-*-01 05:30:00";\n        description = "systemd timer calendar specification for the isolated restore test.";\n      };\n\n      restoreRandomizedDelay = lib.mkOption {\n        type = lib.types.str;\n        default = "*min";\n        description = "Random delay between scheduled restore-test runs.";\n      };\n\n      requires = lib.mkOption {\n        type = with lib.types; listOf str;\n        default = [ ];\n        description = "systemd units required by this backup job.";\n      };\n\n      after = lib.mkOption {\n        type = with lib.types; listOf str;\n        default = [ ];\n        description = "systemd units this backup job starts after.";\n      };\n\n      retention = {\n        keepDaily = lib.mkOption {\n          type = lib.types.ints.positive;\n          default = 7;\n        };\n\n        keepWeekly = lib.mkOption {\n          type = lib.types.ints.positive;\n          default = 4;\n        };\n\n        keepMonthly = lib.mkOption {\n          type = lib.types.ints.positive;\n          default = 6;\n        };\n      };\n    };\n  };\n\n  resticCommonArgs =\n    job:\n    "--repo ${lib.escapeShellArg job.repository} "\n    + "--password-file ${lib.escapeShellArg passwordFile}";\n\n  resultMetricHelpers = prefix: name: successTimestamp: ''\n    write_result_metrics() {\n      local result="$1"\n      local duration="$2"\n      local success_timestamp="$3"\n\n      cat > "$metric_tmp" <<EOF\n    # HELP nixlab_restic_${prefix}_last_success_timestamp_seconds Unix time of the last successful Restic ${prefix}.\n    # TYPE nixlab_restic_${prefix}_last_success_timestamp_seconds gauge\n    nixlab_restic_${prefix}_last_success_timestamp_seconds{job="${name}"} "$success_timestamp"\n\n    # HELP nixlab_restic_${prefix}_last_result Result of the latest Restic ${prefix}.\n    # TYPE nixlab_restic_${prefix}_last_result gauge\n    nixlab_restic_${prefix}_last_result{job="${name}"} "$result"\n\n    # HELP nixlab_restic_${prefix}_duration_seconds Duration of the latest Restic ${prefix}.\n    # TYPE nixlab_restic_${prefix}_duration_seconds gauge\n    nixlab_restic_${prefix}_duration_seconds{job="${name}"} "$duration"\n    EOF\n\n      install -o node-exporter -g node-exporter -m 0644 \\\\\n        "$metric_tmp" "$metric_file"\n      rm -f "$metric_tmp"\n    }\n\n    report_failure() {\n      write_result_metrics 0 "$(($(date +%s) - start_time))" "$success_timestamp"\n      exit 1\n    }\n  '';\n\n  backupScript =\n    name: job:\n    let\n      commonArgs = resticCommonArgs job;\n      metricFile = "${metricsDirectory}/restic-backup-${name}.prom";\n\n      initCommand =\n        if lib.hasPrefix "/" job.repository then\n          ''\n            if [[ ! -f ${lib.escapeShellArg job.repository}/config ]]; then\n              runuser -u ${backupUser} -- restic init \\\\\n                ${commonArgs}\n            fi\n          ''\n        else\n          "";\n    in\n    pkgs.writeShellApplication {\n      name = "restic-backup-${name}";\n      runtimeInputs = [\n        pkgs.restic\n        pkgs.util-linux\n        pkgs.coreutils\n      ]\n      ++ job.runtimePackages;\n      text = resultMetricHelpers "backup" name 0 + ''\n        set -euo pipefail\n\n        metric_file=${lib.escapeShellArg metricFile}\n        metric_tmp="${metricFile}.tmp"\n        success_timestamp=0\n        start_time=$(date +%s)\n\n        if [[ -s "$metric_file" ]]; then\n          success_timestamp="$(\n            awk '$1 == "nixlab_restic_backup_last_success_timestamp_seconds{job=\\\"${name}\\\"}" { print $2; exit }' \\\\\n              "$metric_file"\n          )"\n        fi\n\n        trap report_failure ERR\n\n        if [[ ! -s "$metric_file" ]]; then\n          write_result_metrics 0 0 0\n        fi\n\n        exec 9>${lib.escapeShellArg lockFile}\n        flock 9\n\n        ${initCommand}\n\n        ${job.preBackupScript}\n\n        restic backup \\\\\n          ${commonArgs} \\\\\n          ${lib.concatMapStringsSep " \\\\\n          " (path: lib.escapeShellArg path) job.paths}\n\n        restic forget \\\\\n          ${commonArgs} \\\\\n          --keep-daily ${toString job.retention.keepDaily} \\\\\n          --keep-weekly ${toString job.retention.keepWeekly} \\\\\n          --keep-monthly ${toString job.retention.keepMonthly}${lib.optionalString job.prune " --prune"}\n\n        write_result_metrics 1 "$(($(date +%s) - start_time))" "$(date +%s)"\n        trap - ERR\n      '';\n    };\n\n  verifyScript =\n    name: job:\n    let\n      commonArgs = resticCommonArgs job;\n      metricFile = "${metricsDirectory}/restic-verify-${name}.prom";\n    in\n    pkgs.writeShellApplication {\n      name = "restic-verify-${name}";\n      runtimeInputs = [\n        pkgs.restic\n        pkgs.util-linux\n        pkgs.coreutils\n      ];\n      text = resultMetricHelpers "verify" name 0 + ''\n        set -euo pipefail\n\n        metric_file=${lib.escapeShellArg metricFile}\n        metric_tmp="${metricFile}.tmp"\n        success_timestamp=0\n        start_time=$(date +%s)\n\n        if [[ -s "$metric_file" ]]; then\n          success_timestamp="$(\n            awk '$1 == "nixlab_restic_verify_last_success_timestamp_seconds{job=\\\"${name}\\\"}" { print $2; exit }' \\\\\n              "$metric_file"\n          )"\n        fi\n\n        trap report_failure ERR\n\n        if [[ ! -s "$metric_file" ]]; then\n          write_result_metrics 0 0 0\n        fi\n\n        exec 9>${lib.escapeShellArg lockFile}\n        flock 9\n\n        restic check \\\\\n          ${commonArgs} \\\\\n          --read-data-subset=${lib.escapeShellArg job.verifyDataSubset}\n\n        write_result_metrics 1 "$(($(date +%s) - start_time))" "$(date +%s)"\n        trap - ERR\n      '';\n    };\n\n  restoreTestScript =\n    name: job:\n    let\n      commonArgs = resticCommonArgs job;\n      metricFile = "${metricsDirectory}/restic-restore-test-${name}.prom";\n\n      pathChecks = lib.concatMapStringsSep "\\n" (path: ''\n        if [[ ! -e "$restore_dir/${lib.escapeShellArg (lib.removePrefix "/" path)}" ]]; then\n          echo "restic-restore-test-${name}: expected restored path missing: ${lib.escapeShellArg path}" >&2\n          exit 1\n        fi\n      '') job.paths;\n    in\n    pkgs.writeShellApplication {\n      name = "restic-restore-test-${name}";\n      runtimeInputs = [\n        pkgs.restic\n        pkgs.util-linux\n        pkgs.coreutils\n      ];\n      text = resultMetricHelpers "restore_test" name 0 + ''\n        set -euo pipefail\n\n        metric_file=${lib.escapeShellArg metricFile}\n        metric_tmp="${metricFile}.tmp"\n        success_timestamp=0\n        start_time=$(date +%s)\n\n        if [[ -s "$metric_file" ]]; then\n          success_timestamp="$(\n            awk '$1 == "nixlab_restic_restore_test_last_success_timestamp_seconds{job=\\\"${name}\\\"}" { print $2; exit }' \\\\\n              "$metric_file"\n          )"\n        fi\n\n        trap report_failure ERR\n\n        if [[ ! -s "$metric_file" ]]; then\n          write_result_metrics 0 0 0\n        fi\n\n        exec 9>${lib.escapeShellArg lockFile}\n        flock 9\n\n        restore_dir="$(mktemp -d "${lib.escapeShellArg cacheDirectory}/restore-test-${name}.XXXXXX")"\n        cleanup() {\n          rm -rf -- "$restore_dir"\n        }\n        trap cleanup EXIT\n\n        restic restore latest \\\\\n          ${commonArgs} \\\\\n          --target "$restore_dir"\n\n        ${pathChecks}\n\n        write_result_metrics 1 "$(($(date +%s) - start_time))" "$(date +%s)"\n        trap - ERR\n      '';\n    };\nin\n{\n\n  options.modules.features.restic-backup = {\n    enable = lib.mkEnableOption "local Restic backups";\n\n    jobs = lib.mkOption {\n      type = with lib.types; attrsOf (submodule jobModule);\n      default = { };\n      description = "Named local Restic backup jobs.";\n    };\n  };\n\n  config = lib.mkIf cfg.enable {\n    roles.security.systemdHardenedServices = lib.concatMap (name: [\n      "restic-backup-${name}"\n      "restic-verify-${name}"\n      "restic-restore-test-${name}"\n    ]) (lib.attrNames cfg.jobs);\n\n    users.groups.${backupGroup} = { };\n\n    users.users.${backupUser} = {\n      isSystemUser = true;\n      group = backupGroup;\n      home = "/var/lib/${backupUser}";\n      createHome = true;\n    };\n\n    sops.secrets.restic-backup-password = mkSecret {\n      name = "restic-backup-password";\n      sopsFile = ../../secrets/backups.yaml;\n      owner = backupUser;\n      group = backupGroup;\n    };\n\n    systemd.tmpfiles.rules = [\n      "d /var/lib/restic-backup 0711 restic-backup restic-backup - -"\n      "d /var/lib/restic-backup/cache 0700 restic-backup restic-backup - -"\n      "d /var/lib/restic-backup/postgresql 0730 postgres restic-backup - -"\n      "d /var/lib/restic-backup/repo 0700 restic-backup restic-backup - -"\n      # The units list the lock in ReadWritePaths, and systemd refuses to start\n      # a unit whose ReadWritePaths entry is missing. /run is empty after a\n      # reboot, so the lock must exist before the first job runs.\n      "f ${lockFile} 0600 root root - -"\n    ];\n\n    systemd.services = lib.mkMerge (\n      lib.mapAttrsToList (name: job: {\n        "restic-backup-${name}" = {\n          description = "Restic backup: ${name}";\n          requires = job.requires;\n          after = [ "sops-nix.service" ] ++ job.after;\n          # Deliberately no `wantedBy`: the timer below is the only trigger.\n          # A oneshot unit wanted by multi-user.target reruns on every boot and\n          # on every `nixos-rebuild switch`.\n\n          environment = {\n            RESTIC_CACHE_DIR = cacheDirectory;\n          };\n\n          serviceConfig = {\n            Type = "oneshot";\n            User = "root";\n            ExecStart = lib.getExe (backupScript name job);\n            # Pre-backup scripts may use `runuser` to execute application dumps\n            # as another user. `runuser` requires a privileged UID transition,\n            # which `NoNewPrivileges` forbids. Override the shared hardening\n            # default only for backup jobs; verification and restore tests do\n            # not use `runuser`.\n            NoNewPrivileges = false;\n            ReadWritePaths = [\n              "/var/lib/restic-backup"\n              "/run/restic-backup.lock"\n              metricsDirectory\n            ];\n          };\n        };\n\n        "restic-verify-${name}" = {\n          description = "Verify Restic repository integrity: ${name}";\n          requires = job.requires;\n          after = [ "sops-nix.service" ] ++ job.after;\n\n          environment = {\n            RESTIC_CACHE_DIR = cacheDirectory;\n          };\n\n          serviceConfig = {\n            Type = "oneshot";\n            User = "root";\n            ExecStart = lib.getExe (verifyScript name job);\n            ReadWritePaths = [\n              "/var/lib/restic-backup"\n              "/run/restic-backup.lock"\n              metricsDirectory\n            ];\n          };\n        };\n\n        "restic-restore-test-${name}" = {\n          description = "Validate Restic restore readiness: ${name}";\n          requires = job.requires;\n          after = [ "sops-nix.service" ] ++ job.after;\n\n          environment = {\n            RESTIC_CACHE_DIR = cacheDirectory;\n          };\n\n          serviceConfig = {\n            Type = "oneshot";\n            User = "root";\n            ExecStart = lib.getExe (restoreTestScript name job);\n            ReadWritePaths = [\n              "/var/lib/restic-backup"\n              "/run/restic-backup.lock"\n              metricsDirectory\n            ];\n          };\n        };\n      }) cfg.jobs\n    );\n\n    systemd.timers = lib.mkMerge (\n      lib.mapAttrsToList (name: job: {\n        "restic-backup-${name}" = {\n          description = "Run Restic backup: ${name}";\n          wantedBy = [ "timers.target" ];\n\n          timerConfig = {\n            OnCalendar = job.schedule;\n            Persistent = true;\n            RandomizedDelaySec = job.randomizedDelay;\n          };\n        };\n\n        "restic-verify-${name}" = {\n          description = "Verify Restic repository integrity: ${name}";\n          wantedBy = [ "timers.target" ];\n\n          timerConfig = {\n            OnCalendar = job.verifySchedule;\n            Persistent = true;\n            RandomizedDelaySec = job.verifyRandomizedDelay;\n          };\n        };\n\n        "restic-restore-test-${name}" = {\n          description = "Validate Restic restore readiness: ${name}";\n          wantedBy = [ "timers.target" ];\n\n          timerConfig = {\n            OnCalendar = job.restoreSchedule;\n            Persistent = true;\n            RandomizedDelaySec = job.restoreRandomizedDelay;\n          };\n        };\n      }) cfg.jobs\n    );\n  };\n}\n
+# Local Restic backups.
+#
+# Each job runs as root because it may need to read protected application data
+# and create consistent dumps. It writes only to its dedicated state tree, lock
+# file, and node-exporter metrics directory.
+{
+  lib,
+  config,
+  pkgs,
+  mkSecret,
+  ...
+}:
+
+let
+  cfg = config.modules.features.restic-backup;
+  backupUser = "restic-backup";
+  backupGroup = "restic-backup";
+  passwordFile = config.sops.secrets.restic-backup-password.path;
+  lockFile = "/run/restic-backup.lock";
+  cacheDirectory = "/var/lib/restic-backup/cache";
+  metricsDirectory = config.modules.features.node-exporter.textfileDirectory;
+
+  jobModule = {
+    options = {
+      repository = lib.mkOption {
+        type = lib.types.str;
+        description = "Restic repository used by this backup job.";
+      };
+
+      paths = lib.mkOption {
+        type = with lib.types; nonEmptyListOf str;
+        description = "Filesystem paths included in this backup job.";
+      };
+
+      preBackupScript = lib.mkOption {
+        type = lib.types.lines;
+        default = "";
+        description = "Commands run before `restic backup`. Use this to create consistent application dumps.";
+      };
+
+      prune = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = ''
+          Whether to prune removed snapshots after applying retention.
+          Pruning can be expensive; disabling it lets `restic forget` mark
+          snapshots for later removal without rewriting repository data.
+        '';
+      };
+
+      runtimePackages = lib.mkOption {
+        type = with lib.types; listOf package;
+        default = [ ];
+        description = "Additional packages required by this job pre-backup script. Keep this limited to the packages actually needed.";
+      };
+
+      schedule = lib.mkOption {
+        type = lib.types.str;
+        default = "*-*-* 03:30:00";
+        description = "systemd timer calendar specification.";
+      };
+
+      randomizedDelay = lib.mkOption {
+        type = lib.types.str;
+        default = "*min";
+        description = "Random delay between scheduled runs.";
+      };
+
+      verifySchedule = lib.mkOption {
+        type = lib.types.str;
+        default = "Sun *-*-* 04:30:00";
+        description = "systemd timer calendar specification for repository integrity verification.";
+      };
+
+      verifyRandomizedDelay = lib.mkOption {
+        type = lib.types.str;
+        default = "*min";
+        description = "Random delay between scheduled verification runs.";
+      };
+
+      verifyDataSubset = lib.mkOption {
+        type = lib.types.str;
+        default = "";
+        description = "Fraction of repository data read during each integrity verification run.";
+      };
+
+      restoreSchedule = lib.mkOption {
+        type = lib.types.str;
+        default = "*-*-01 05:30:00";
+        description = "systemd timer calendar specification for the isolated restore test.";
+      };
+
+      restoreRandomizedDelay = lib.mkOption {
+        type = lib.types.str;
+        default = "*min";
+        description = "Random delay between scheduled restore-test runs.";
+      };
+
+      requires = lib.mkOption {
+        type = with lib.types; listOf str;
+        default = [ ];
+        description = "systemd units required by this backup job.";
+      };
+
+      after = lib.mkOption {
+        type = with lib.types; listOf str;
+        default = [ ];
+        description = "systemd units this backup job starts after.";
+      };
+
+      retention = {
+        keepDaily = lib.mkOption {
+          type = lib.types.ints.positive;
+          default = 7;
+        };
+
+        keepWeekly = lib.mkOption {
+          type = lib.types.ints.positive;
+          default = 4;
+        };
+
+        keepMonthly = lib.mkOption {
+          type = lib.types.ints.positive;
+          default = 6;
+        };
+      };
+    };
+  };
+
+  resticCommonArgs =
+    job:
+    "--repo ${lib.escapeShellArg job.repository} "
+    + "--password-file ${lib.escapeShellArg passwordFile}";
+
+  resultMetricHelpers = prefix: name: successTimestamp: ''
+    write_result_metrics() {
+      local result="$1"
+      local duration="$2"
+      local success_timestamp="$3"
+
+      cat > "$metric_tmp" <<EOF
+    # HELP nixlab_restic_${prefix}_last_success_timestamp_seconds Unix time of the last successful Restic ${prefix}.
+    # TYPE nixlab_restic_${prefix}_last_success_timestamp_seconds gauge
+    nixlab_restic_${prefix}_last_success_timestamp_seconds{job="${name}"} "$success_timestamp"
+
+    # HELP nixlab_restic_${prefix}_last_result Result of the latest Restic ${prefix}.
+    # TYPE nixlab_restic_${prefix}_last_result gauge
+    nixlab_restic_${prefix}_last_result{job="${name}"} "$result"
+
+    # HELP nixlab_restic_${prefix}_duration_seconds Duration of the latest Restic ${prefix}.
+    # TYPE nixlab_restic_${prefix}_duration_seconds gauge
+    nixlab_restic_${prefix}_duration_seconds{job="${name}"} "$duration"
+    EOF
+
+      install -o node-exporter -g node-exporter -m 0644 \\
+        "$metric_tmp" "$metric_file"
+      rm -f "$metric_tmp"
+    }
+
+    report_failure() {
+      write_result_metrics 0 "$(($(date +%s) - start_time))" "$success_timestamp"
+      exit 1
+    }
+  '';
+
+  backupScript =
+    name: job:
+    let
+      commonArgs = resticCommonArgs job;
+      metricFile = "${metricsDirectory}/restic-backup-${name}.prom";
+
+      initCommand =
+        if lib.hasPrefix "/" job.repository then
+          ''
+            if [[ ! -f ${lib.escapeShellArg job.repository}/config ]]; then
+              runuser -u ${backupUser} -- restic init \\
+                ${commonArgs}
+            fi
+          ''
+        else
+          "";
+    in
+    pkgs.writeShellApplication {
+      name = "restic-backup-${name}";
+      runtimeInputs = [
+        pkgs.restic
+        pkgs.util-linux
+        pkgs.coreutils
+      ]
+      ++ job.runtimePackages;
+      text = resultMetricHelpers "backup" name 0 + ''
+        set -euo pipefail
+
+        metric_file=${lib.escapeShellArg metricFile}
+        metric_tmp="${metricFile}.tmp"
+        success_timestamp=0
+        start_time=$(date +%s)
+
+        if [[ -s "$metric_file" ]]; then
+          success_timestamp="$(
+            awk '$1 == "nixlab_restic_backup_last_success_timestamp_seconds{job=\"${name}\"}" { print $2; exit }' \\
+              "$metric_file"
+          )"
+        fi
+
+        trap report_failure ERR
+
+        if [[ ! -s "$metric_file" ]]; then
+          write_result_metrics 0 0 0
+        fi
+
+        exec 9>${lib.escapeShellArg lockFile}
+        flock 9
+
+        ${initCommand}
+
+        ${job.preBackupScript}
+
+        restic backup \\
+          ${commonArgs} \\
+          ${lib.concatMapStringsSep " \\\n          " (path: lib.escapeShellArg path) job.paths}
+
+        restic forget \\
+          ${commonArgs} \\
+          --keep-daily ${toString job.retention.keepDaily} \\
+          --keep-weekly ${toString job.retention.keepWeekly} \\
+          --keep-monthly ${toString job.retention.keepMonthly}${lib.optionalString job.prune " --prune"}
+
+        write_result_metrics 1 "$(($(date +%s) - start_time))" "$(date +%s)"
+        trap - ERR
+      '';
+    };
+
+  verifyScript =
+    name: job:
+    let
+      commonArgs = resticCommonArgs job;
+      metricFile = "${metricsDirectory}/restic-verify-${name}.prom";
+    in
+    pkgs.writeShellApplication {
+      name = "restic-verify-${name}";
+      runtimeInputs = [
+        pkgs.restic
+        pkgs.util-linux
+        pkgs.coreutils
+      ];
+      text = resultMetricHelpers "verify" name 0 + ''
+        set -euo pipefail
+
+        metric_file=${lib.escapeShellArg metricFile}
+        metric_tmp="${metricFile}.tmp"
+        success_timestamp=0
+        start_time=$(date +%s)
+
+        if [[ -s "$metric_file" ]]; then
+          success_timestamp="$(
+            awk '$1 == "nixlab_restic_verify_last_success_timestamp_seconds{job=\"${name}\"}" { print $2; exit }' \\
+              "$metric_file"
+          )"
+        fi
+
+        trap report_failure ERR
+
+        if [[ ! -s "$metric_file" ]]; then
+          write_result_metrics 0 0 0
+        fi
+
+        exec 9>${lib.escapeShellArg lockFile}
+        flock 9
+
+        restic check \\
+          ${commonArgs} \\
+          --read-data-subset=${lib.escapeShellArg job.verifyDataSubset}
+
+        write_result_metrics 1 "$(($(date +%s) - start_time))" "$(date +%s)"
+        trap - ERR
+      '';
+    };
+
+  restoreTestScript =
+    name: job:
+    let
+      commonArgs = resticCommonArgs job;
+      metricFile = "${metricsDirectory}/restic-restore-test-${name}.prom";
+
+      pathChecks = lib.concatMapStringsSep "\n" (path: ''
+        if [[ ! -e "$restore_dir/${lib.escapeShellArg (lib.removePrefix "/" path)}" ]]; then
+          echo "restic-restore-test-${name}: expected restored path missing: ${lib.escapeShellArg path}" >&2
+          exit 1
+        fi
+      '') job.paths;
+    in
+    pkgs.writeShellApplication {
+      name = "restic-restore-test-${name}";
+      runtimeInputs = [
+        pkgs.restic
+        pkgs.util-linux
+        pkgs.coreutils
+      ];
+      text = resultMetricHelpers "restore_test" name 0 + ''
+        set -euo pipefail
+
+        metric_file=${lib.escapeShellArg metricFile}
+        metric_tmp="${metricFile}.tmp"
+        success_timestamp=0
+        start_time=$(date +%s)
+
+        if [[ -s "$metric_file" ]]; then
+          success_timestamp="$(
+            awk '$1 == "nixlab_restic_restore_test_last_success_timestamp_seconds{job=\"${name}\"}" { print $2; exit }' \\
+              "$metric_file"
+          )"
+        fi
+
+        trap report_failure ERR
+
+        if [[ ! -s "$metric_file" ]]; then
+          write_result_metrics 0 0 0
+        fi
+
+        exec 9>${lib.escapeShellArg lockFile}
+        flock 9
+
+        restore_dir="$(mktemp -d "${lib.escapeShellArg cacheDirectory}/restore-test-${name}.XXXXXX")"
+        cleanup() {
+          rm -rf -- "$restore_dir"
+        }
+        trap cleanup EXIT
+
+        restic restore latest \\
+          ${commonArgs} \\
+          --target "$restore_dir"
+
+        ${pathChecks}
+
+        write_result_metrics 1 "$(($(date +%s) - start_time))" "$(date +%s)"
+        trap - ERR
+      '';
+    };
+in
+{
+
+  options.modules.features.restic-backup = {
+    enable = lib.mkEnableOption "local Restic backups";
+
+    jobs = lib.mkOption {
+      type = with lib.types; attrsOf (submodule jobModule);
+      default = { };
+      description = "Named local Restic backup jobs.";
+    };
+  };
+
+  config = lib.mkIf cfg.enable {
+    roles.security.systemdHardenedServices = lib.concatMap (name: [
+      "restic-backup-${name}"
+      "restic-verify-${name}"
+      "restic-restore-test-${name}"
+    ]) (lib.attrNames cfg.jobs);
+
+    users.groups.${backupGroup} = { };
+
+    users.users.${backupUser} = {
+      isSystemUser = true;
+      group = backupGroup;
+      home = "/var/lib/${backupUser}";
+      createHome = true;
+    };
+
+    sops.secrets.restic-backup-password = mkSecret {
+      name = "restic-backup-password";
+      sopsFile = ../../secrets/backups.yaml;
+      owner = backupUser;
+      group = backupGroup;
+    };
+
+    systemd.tmpfiles.rules = [
+      "d /var/lib/restic-backup 0711 restic-backup restic-backup - -"
+      "d /var/lib/restic-backup/cache 0700 restic-backup restic-backup - -"
+      "d /var/lib/restic-backup/postgresql 0730 postgres restic-backup - -"
+      "d /var/lib/restic-backup/repo 0700 restic-backup restic-backup - -"
+      # The units list the lock in ReadWritePaths, and systemd refuses to start
+      # a unit whose ReadWritePaths entry is missing. /run is empty after a
+      # reboot, so the lock must exist before the first job runs.
+      "f ${lockFile} 0600 root root - -"
+    ];
+
+    systemd.services = lib.mkMerge (
+      lib.mapAttrsToList (name: job: {
+        "restic-backup-${name}" = {
+          description = "Restic backup: ${name}";
+          requires = job.requires;
+          after = [ "sops-nix.service" ] ++ job.after;
+          # Deliberately no `wantedBy`: the timer below is the only trigger.
+          # A oneshot unit wanted by multi-user.target reruns on every boot and
+          # on every `nixos-rebuild switch`.
+
+          environment = {
+            RESTIC_CACHE_DIR = cacheDirectory;
+          };
+
+          serviceConfig = {
+            Type = "oneshot";
+            User = "root";
+            ExecStart = lib.getExe (backupScript name job);
+            # Pre-backup scripts may use `runuser` to execute application dumps
+            # as another user. `runuser` requires a privileged UID transition,
+            # which `NoNewPrivileges` forbids. Override the shared hardening
+            # default only for backup jobs; verification and restore tests do
+            # not use `runuser`.
+            NoNewPrivileges = false;
+            ReadWritePaths = [
+              "/var/lib/restic-backup"
+              "/run/restic-backup.lock"
+              metricsDirectory
+            ];
+          };
+        };
+
+        "restic-verify-${name}" = {
+          description = "Verify Restic repository integrity: ${name}";
+          requires = job.requires;
+          after = [ "sops-nix.service" ] ++ job.after;
+
+          environment = {
+            RESTIC_CACHE_DIR = cacheDirectory;
+          };
+
+          serviceConfig = {
+            Type = "oneshot";
+            User = "root";
+            ExecStart = lib.getExe (verifyScript name job);
+            ReadWritePaths = [
+              "/var/lib/restic-backup"
+              "/run/restic-backup.lock"
+              metricsDirectory
+            ];
+          };
+        };
+
+        "restic-restore-test-${name}" = {
+          description = "Validate Restic restore readiness: ${name}";
+          requires = job.requires;
+          after = [ "sops-nix.service" ] ++ job.after;
+
+          environment = {
+            RESTIC_CACHE_DIR = cacheDirectory;
+          };
+
+          serviceConfig = {
+            Type = "oneshot";
+            User = "root";
+            ExecStart = lib.getExe (restoreTestScript name job);
+            ReadWritePaths = [
+              "/var/lib/restic-backup"
+              "/run/restic-backup.lock"
+              metricsDirectory
+            ];
+          };
+        };
+      }) cfg.jobs
+    );
+
+    systemd.timers = lib.mkMerge (
+      lib.mapAttrsToList (name: job: {
+        "restic-backup-${name}" = {
+          description = "Run Restic backup: ${name}";
+          wantedBy = [ "timers.target" ];
+
+          timerConfig = {
+            OnCalendar = job.schedule;
+            Persistent = true;
+            RandomizedDelaySec = job.randomizedDelay;
+          };
+        };
+
+        "restic-verify-${name}" = {
+          description = "Verify Restic repository integrity: ${name}";
+          wantedBy = [ "timers.target" ];
+
+          timerConfig = {
+            OnCalendar = job.verifySchedule;
+            Persistent = true;
+            RandomizedDelaySec = job.verifyRandomizedDelay;
+          };
+        };
+
+        "restic-restore-test-${name}" = {
+          description = "Validate Restic restore readiness: ${name}";
+          wantedBy = [ "timers.target" ];
+
+          timerConfig = {
+            OnCalendar = job.restoreSchedule;
+            Persistent = true;
+            RandomizedDelaySec = job.restoreRandomizedDelay;
+          };
+        };
+      }) cfg.jobs
+    );
+  };
+}

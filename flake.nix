@@ -79,12 +79,6 @@
         lutris = pkgs-stable.lutris;
       };
 
-      deployKey =
-        let
-          value = builtins.getEnv "NIXLAB_DEPLOY_KEY";
-        in
-        if value == "" then "${builtins.getEnv "HOME"}/.ssh/nixlab_deploy" else value;
-
       mkHost =
         {
           hostname,
@@ -223,6 +217,7 @@
           program = "${pkgs.writeShellScript "deploy-all" ''
             set -euo pipefail
 
+            deployKey="''${NIXLAB_DEPLOY_KEY:-$HOME/.ssh/nixlab_deploy}"
             known_hosts=(${lib.concatStringsSep " " deployHosts})
 
             if [[ -n "$(git status --porcelain)" ]]; then
@@ -254,7 +249,7 @@
 
             for host in "''${hosts[@]}"; do
               echo "==> Deploying ''${host} @ ''${rev}"
-              ssh -i "''${deployKey}" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=10 "deploy@''${host}" "deploy-rebuild switch ''${rev}"
+              ssh -i "$deployKey" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=10 "deploy@''${host}" "deploy-rebuild switch ''${rev}"
             done
           ''}";
         };
@@ -310,6 +305,7 @@
           program = "${pkgs.writeShellScript "deploy-status" ''
             set -euo pipefail
 
+            deployKey="''${NIXLAB_DEPLOY_KEY:-$HOME/.ssh/nixlab_deploy}"
             known_hosts=(${lib.concatStringsSep " " deployHosts})
 
             usage() {
@@ -353,7 +349,7 @@
 
             first=1
             for host in "''${hosts[@]}"; do
-              if running="$(ssh -i "''${deployKey}" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=10 "deploy@''${host}" "nixos-version --configuration-revision" 2>/dev/null)"; then
+              if running="$(ssh -i "$deployKey" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=10 "deploy@''${host}" "nixos-version --configuration-revision" 2>/dev/null)"; then
                 if [[ "$running" == "$rev" ]]; then
                   status="up-to-date"
                   up_to_date=$((up_to_date + 1))
@@ -526,6 +522,10 @@
         };
 
         postgresql-database-isolation = import ./tests/postgresql-database-isolation.nix {
+          pkgs = pkgs;
+        };
+
+        postgresql-restore-drill = import ./tests/postgresql-restore-drill.nix {
           pkgs = pkgs;
         };
 

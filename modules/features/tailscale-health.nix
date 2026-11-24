@@ -7,8 +7,6 @@
 let
   cfg = config.modules.features.tailscale-health;
 
-  tailscaleBin = "${pkgs.tailscale}/bin/tailscale";
-
   tailscaleHealthExporter = pkgs.writers.writePython3 "tailscale-health-exporter" { } ''
     import json
     import os
@@ -27,14 +25,10 @@ let
         "nixlab_tailscale_peer_online 0",
     ]
 
-    tailscale_bin = (
-        "${tailscaleBin}"
-    )
-
     try:
         result = subprocess.run(
             [
-                tailscale_bin,
+                os.environ["TAILSCALE_BIN"],
                 "status",
                 "--json",
             ],
@@ -99,6 +93,7 @@ in
         ExecStart = "${tailscaleHealthExporter}";
         Environment = [
           "OUTPUT_FILE=/var/lib/node-exporter/textfile/tailscale-health.prom"
+          "TAILSCALE_BIN=${pkgs.tailscale}/bin/tailscale"
         ];
         User = "node-exporter";
         Group = "node-exporter";

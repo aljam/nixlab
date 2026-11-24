@@ -262,7 +262,7 @@
             known_hosts=(${lib.concatStringsSep " " deployHosts})
 
             if [[ -n "$(git status --porcelain)" ]]; then
-              echo "Refusing to plan: Git working tree is dirty." >&2
+              echo "Refusing to deploy: Git working tree is dirty." >&2
               echo "Commit or stash changes, then retry." >&2
               exit 1
             fi
@@ -270,13 +270,13 @@
             rev="$(git rev-parse HEAD)"
 
             if [[ ! "$rev" =~ ^[0-9a-f]{40}$ ]]; then
-              echo "Refusing to plan: unable to resolve a full commit SHA." >&2
+              echo "Refusing to deploy: unable to resolve a full commit SHA." >&2
               exit 1
             fi
 
             git fetch --quiet origin
             if [[ "$rev" != "$(git rev-parse origin/main)" ]]; then
-              echo "Refusing to plan: HEAD ($rev) is not the tip of origin/main" >&2
+              echo "Refusing to deploy: HEAD ($rev) is not the tip of origin/main" >&2
               exit 1
             fi
 
@@ -370,22 +370,11 @@
                     "$host" "$status" "$running"
                   first=0
                   ;;
-                quiet)
-                  printf '%s %s\\n' "$host" "$status"
-                  ;;
                 human)
                   printf '%-12s %-12s %s\\n' "$host" "$status" "''${running:--}"
                   ;;
               esac
             done
-
-            if [[ "$output" == "json" ]]; then
-              printf '],"summary":{"upToDate":%d,"outOfDate":%d,"unreachable":%d}}\\n' \\
-                "$up_to_date" "$out_of_date" "$unreachable"
-            elif [[ "$output" == "human" ]]; then
-              echo
-              echo "Summary: $up_to_date up-to-date, $out_of_date out-of-date, $unreachable unreachable"
-            fi
 
             if [[ "$unreachable" > 0 ]]; then
               exit 2
@@ -417,6 +406,11 @@
         };
 
         backup-assurance = import ./tests/backup-assurance.nix {
+          pkgs = pkgs;
+          hosts = self.nixosConfigurations;
+        };
+
+        restic-replication = import ./tests/restic-replication.nix {
           pkgs = pkgs;
           hosts = self.nixosConfigurations;
         };

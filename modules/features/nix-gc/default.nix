@@ -106,7 +106,7 @@ let
         | sort -n
     )
 
-    if (( ${#generations[@]} == 0 )); then
+    if (( ''${#generations[@]} == 0 )); then
       echo "No Nix system generations were found." >&2
       exit 1
     fi
@@ -115,8 +115,8 @@ let
     eligible_generations=()
     cutoff_time="$((started_at - $(date -d "-$retention_age" +%s)))"
 
-    for (( index = ${#generations[@]} - 1; index >= 0; index-- )); do
-      generation="${generations[index]}"
+    for (( index = ''${#generations[@]} - 1; index >= 0; index-- )); do
+      generation="''${generations[index]}"
       generation_path="$(readlink -f "$profile/$generation-link" 2>/dev/null || true)"
 
       if [[ -z "$generation_path" ]]; then
@@ -139,7 +139,7 @@ let
       fi
     done
 
-    if (( ${#eligible_generations[@]} == 0 )); then
+    if (( ''${#eligible_generations[@]} == 0 )); then
       finished_at="$(date +%s)"
       trap - ERR
       write_metrics 1 "$((finished_at - started_at))" "$finished_at"
@@ -148,7 +148,7 @@ let
     fi
 
     nix-env --profile "$profile" \
-      --delete-generations "${eligible_generations[*]}"
+      --delete-generations "''${eligible_generations[*]}"
 
     remaining_generations="$(
       find /nix/var/nix/profiles -maxdepth 1 -type l \

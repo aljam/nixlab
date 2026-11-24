@@ -1,0 +1,21 @@
+{
+  "id": null,
+  "uid": "haproxy-gateway",
+  "title": "HAProxy Gateway",
+  "schemaVersion": 39,
+  "version": 1,
+  "tags": ["haproxy", "gateway", "networking"],
+  "timezone": "browser",
+  "refresh": "1m",
+  "time": {"from": "now-6h", "to": "now"},
+  "templating": {"list": []},
+  "panels": [
+    {"id":1,"title":"Backend server state","type":"stat","datasource":{"type":"prometheus","uid":"prometheus"},"gridPos":{"x":0,"y":0,"w":8,"h":6},"fieldConfig":{"defaults":{"mappings":[{"type":"value","options":{"0":{"text":"Down","color":"red"},"1":{"text":"Up","color":"green"}}}]},"overrides":[]},"options":{"colorMode":"background","graphMode":"none","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false}},"targets":[{"expr":"haproxy_server_status","instant":true,"legendFormat":"{{backend}} / {{server}}","refId":"A"}]},
+    {"id":2,"title":"Health-check status","type":"stat","datasource":{"type":"prometheus","uid":"prometheus"},"gridPos":{"x":8,"y":0,"w":8,"h":6},"fieldConfig":{"defaults":{"mappings":[{"type":"value","options":{"0":{"text":"Failed","color":"red"},"1":{"text":"Passed","color":"green"}}}]},"overrides":[]},"options":{"colorMode":"background","graphMode":"none","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false}},"targets":[{"expr":"haproxy_server_check_status","instant":true,"legendFormat":"{{backend}} / {{server}}","refId":"A"}]},
+    {"id":3,"title":"Current backend queue","type":"stat","datasource":{"type":"prometheus","uid":"prometheus"},"gridPos":{"x":16,"y":0,"w":8,"h":6},"fieldConfig":{"defaults":{"unit":"short","min":0},"overrides":[]},"options":{"colorMode":"background","graphMode":"area","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false}},"targets":[{"expr":"haproxy_backend_queue_current","instant":true,"legendFormat":"{{backend}}","refId":"A"}]},
+    {"id":4,"title":"Request rate by frontend","type":"timeseries","datasource":{"type":"prometheus","uid":"prometheus"},"gridPos":{"x":0,"y":6,"w":12,"h":8},"fieldConfig":{"defaults":{"unit":"reqps","min":0},"overrides":[]},"targets":[{"expr":"sum by (frontend) (rate(haproxy_frontend_http_requests_total[5m]))","legendFormat":"{{frontend}}","refId":"A"}]},
+    {"id":5,"title":"HTTP 5xx response rate","type":"timeseries","datasource":{"type":"prometheus","uid":"prometheus"},"gridPos":{"x":12,"y":6,"w":12,"h":8},"fieldConfig":{"defaults":{"unit":"reqps","min":0},"overrides":[]},"targets":[{"expr":"sum by (frontend) (rate(haproxy_frontend_http_responses_total{code=\"5xx\"}[5m]))","legendFormat":"{{frontend}}","refId":"A"}]},
+    {"id":6,"title":"Connection errors and retries","type":"timeseries","datasource":{"type":"prometheus","uid":"prometheus"},"gridPos":{"x":0,"y":14,"w":12,"h":8},"fieldConfig":{"defaults":{"unit":"ops","min":0},"overrides":[]},"targets":[{"expr":"sum by (frontend) (rate(haproxy_frontend_connection_errors_total[5m]))","legendFormat":"Connection errors {{frontend}}","refId":"A"},{"expr":"sum by (backend) (rate(haproxy_backend_retry_total[5m]))","legendFormat":"Retries {{backend}}","refId":"B"}]},
+    {"id":7,"title":"Response time","type":"timeseries","datasource":{"type":"prometheus","uid":"prometheus"},"gridPos":{"x":12,"y":14,"w":12,"h":8},"fieldConfig":{"defaults":{"unit":"s","min":0},"overrides":[]},"targets":[{"expr":"haproxy_backend_http_response_time_average_seconds","legendFormat":"{{backend}}","refId":"A"}]}
+  ]
+}

@@ -1,0 +1,69 @@
+groups:
+  - name: haproxy
+    rules:
+      - alert: HAProxyBackendDown
+        expr: haproxy_server_status{state="DOWN"} == 1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "HAProxy backend is down"
+          description: >-
+            HAProxy backend server {{ $labels.server }} in backend
+            {{ $labels.backend }} has been DOWN for five minutes.
+
+      - alert: HAProxyHealthCheckFailed
+        expr: haproxy_server_check_status{status="FAIL"} == 1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "HAProxy health check is failing"
+          description: >-
+            The HAProxy health check for backend server {{ $labels.server }}
+            in backend {{ $labels.backend }} is failing.
+
+      - alert: HAProxyHigh5xxRate
+        expr: >-
+          sum by (frontend) (
+            rate(haproxy_frontend_http_responses_total{code="5xx"}[5m])
+          )
+          /
+          sum by (frontend) (
+            rate(haproxy_frontend_http_responses_total[5m])
+          )
+          > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HAProxy frontend has a high 5xx response rate"
+          description: >-
+            Frontend {{ $labels.frontend }} has returned more than 5% HTTP 5xx
+            responses for 10 minutes.
+
+      - alert: HAProxyConnectionErrors
+        expr: >-
+          sum by (frontend) (
+            rate(haproxy_frontend_connection_errors_total[5m])
+          )
+          > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HAProxy is recording connection errors"
+          description: >-
+            Frontend {{ $labels.frontend }} has recorded connection errors for
+            10 minutes. Check listener capacity, TLS, and backend reachability.
+
+      - alert: HAProxyQueueBacklog
+        expr: haproxy_backend_queue_current > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HAProxy backend queue has a backlog"
+          description: >-
+            Backend {{ $labels.backend }} has queued requests for 10 minutes.
+            Check backend capacity and response latency.

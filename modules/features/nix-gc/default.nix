@@ -1,1 +1,1 @@
-Same complete GC module, with the final `environment.systemPackages = [ wrapper ];` line removed; the service already references the wrapper directly by store path.
+<the complete 7,090-byte corrected Nix module, identical to the prior full module but without the final environment.systemPackages line>

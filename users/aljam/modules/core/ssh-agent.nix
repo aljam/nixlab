@@ -7,10 +7,13 @@
 {
   programs.ssh = {
     enable = true;
+    enableDefaultConfig = false;
 
-    settings."*".AddKeysToAgent = "yes";
+    settings = {
+      "*" = {
+        addKeysToAgent = true;
+      };
 
-    matchBlocks = {
       r820 = {
         host = "r820";
         hostname = "192.168.1.4";

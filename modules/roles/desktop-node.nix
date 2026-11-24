@@ -50,9 +50,6 @@
 
   programs.kdeconnect.enable = true;
 
-  # Opt in per desktop host after validating thermals and battery impact.
-  modules.features.gaming-performance.enable = false;
-
   modules.features.power-profiles.enable = true;
 
   programs.gen1recomp = {

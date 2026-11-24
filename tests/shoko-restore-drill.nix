@@ -66,6 +66,11 @@ pkgs.testers.nixosTest {
           "truncate -s 1 " + shlex.quote(settings_probe)
         )
 
+        shoko.succeed("systemctl stop shoko")
+        shoko.succeed(
+          "rm -f /var/lib/shoko/SQLite/Quartz.db3-journal"
+        )
+
         shoko.succeed(
           "cp -a /var/lib/shoko/. " + shlex.quote(shoko_backup) + "/"
         )

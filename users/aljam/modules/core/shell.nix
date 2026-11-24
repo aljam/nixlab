@@ -1,7 +1,23 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   home.packages = [ pkgs.keychain ];
+
+  home.file.".config/fish/config.fish" = {
+    force = true;
+    text = ''
+      set -g fish_greeting ""
+
+      eval (keychain --eval --quiet ~/.ssh/nixlab_deploy | string collect)
+    '';
+  };
+
+  assertions = [
+    {
+      assertion = !(lib.hasInfix "SSH_AUTH_SOCK=" config.programs.fish.interactiveShellInit);
+      message = "Fish configuration must not contain Bash-style SSH_AUTH_SOCK assignments; use Fish command substitution with keychain --eval instead.";
+    }
+  ];
 
   programs.fish = {
     enable = true;

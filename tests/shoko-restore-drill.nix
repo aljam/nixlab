@@ -1,1 +1,103 @@
-# Shoko restore drill.\n#\n# Validates the local recovery path for Shoko: create a representative\n# configuration/database backup, restore it into the service state directory,\n# restart Shoko, and verify its local HTTP API.\n#\n# The drill deliberately excludes production Shoko data, secrets, Restic\n# repositories, external integrations, and public access.\n{ pkgs }:\n\npkgs.testers.nixosTest {\n  name = "shoko-restore-drill";\n\n  nodes.shoko = { lib, ... }: {\n    services.shoko = {\n      enable = true;\n      openFirewall = false;\n    };\n\n    environment.systemPackages = with pkgs; [\n      curl\n      jq\n    ];\n  };\n\n  testScript = ''\n    import shlex\n\n    shoko.start()\n    shoko.wait_for_unit("multi-user.target", timeout=120)\n    shoko.wait_for_unit("shoko.service")\n    shoko.wait_for_open_port(8111)\n\n    backup_root = "/tmp/shoko-restore-drill"\n    shoko_backup = f"{backup_root}/shoko"\n\n    shoko.succeed(\n      "install -d -m 0700 -o root -g root " + shlex.quote(backup_root)\n    )\n\n    with subtest("Shoko local API is available before backup"):\n        shoko.succeed(\n          "curl --fail --silent --show-error --output /dev/null "\n          "http://127.0.0.1:8111/api/v3/Init/Status"\n        )\n\n    with subtest("representative Shoko state is backed up"):\n        shoko.succeed(\n          "install -d -m 0750 -o root -g root " + shlex.quote(shoko_backup)\n        )\n\n        database_probe = f"{shoko_backup}/ShokoServer.db"\n        settings_probe = f"{shoko_backup}/ShokoServer.json"\n\n        shoko.succeed(\n          "install -m 0640 /dev/null " + shlex.quote(database_probe)\n        )\n        shoko.succeed(\n          "truncate -s 1 " + shlex.quote(database_probe)\n        )\n\n        shoko.succeed(\n          "install -m 0640 /dev/null " + shlex.quote(settings_probe)\n        )\n        shoko.succeed(\n          "truncate -s 1 " + shlex.quote(settings_probe)\n        )\n\n        shoko.succeed("systemctl stop shoko")\n        shoko.succeed(\n          "rm -f /var/lib/shoko/SQLite/Quartz.db3-journal"\n        )\n\n        shoko.succeed(\n          "cp -a /var/lib/shoko/. " + shlex.quote(shoko_backup) + "/"\n        )\n\n    with subtest("Shoko state restores into the service state directory"):\n        shoko.succeed("systemctl stop shoko")\n        shoko.succeed(\n          "find /var/lib/shoko -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +"\n        )\n        shoko.succeed(\n          "cp -a " + shlex.quote(shoko_backup) + "/. /var/lib/shoko/"\n        )\n\n        shoko.succeed("test -s /var/lib/shoko/ShokoServer.db")\n        shoko.succeed("test -s /var/lib/shoko/ShokoServer.json")\n\n    with subtest("Shoko starts against restored state"):\n        shoko.succeed("systemctl start shoko")\n        shoko.wait_for_unit("shoko.service")\n        shoko.wait_for_open_port(8111)\n\n        shoko.succeed(\n          "curl --fail --silent --show-error --output /dev/null "\n          "http://127.0.0.1:8111/api/v3/Init/Status"\n        )\n\n    with subtest("temporary recovery artifacts are removed"):\n        shoko.succeed("rm -rf -- /tmp/shoko-restore-drill")\n  '';\n}\n
+# Shoko restore drill.
+#
+# Validates the local recovery path for Shoko: create a representative
+# configuration/database backup, restore it into the service state directory,
+# restart Shoko, and verify its local HTTP API.
+#
+# The drill deliberately excludes production Shoko data, secrets, Restic
+# repositories, external integrations, and public access.
+{ pkgs }:
+
+pkgs.testers.nixosTest {
+  name = "shoko-restore-drill";
+
+  nodes.shoko = { lib, ... }: {
+    services.shoko = {
+      enable = true;
+      openFirewall = false;
+    };
+
+    environment.systemPackages = with pkgs; [
+      curl
+      jq
+    ];
+  };
+
+  testScript = ''
+    import shlex
+
+    shoko.start()
+    shoko.wait_for_unit("multi-user.target", timeout=120)
+    shoko.wait_for_unit("shoko.service")
+    shoko.wait_for_open_port(8111)
+
+    backup_root = "/tmp/shoko-restore-drill"
+    shoko_backup = f"{backup_root}/shoko"
+
+    shoko.succeed(
+      "install -d -m 0700 -o root -g root " + shlex.quote(backup_root)
+    )
+
+    with subtest("Shoko local API is available before backup"):
+        shoko.succeed(
+          "curl --fail --silent --show-error --output /dev/null "
+          "http://127.0.0.1:8111/api/v3/Init/Status"
+        )
+
+    with subtest("representative Shoko state is backed up"):
+        shoko.succeed(
+          "install -d -m 0750 -o root -g root " + shlex.quote(shoko_backup)
+        )
+
+        database_probe = f"{shoko_backup}/ShokoServer.db"
+        settings_probe = f"{shoko_backup}/ShokoServer.json"
+
+        shoko.succeed(
+          "install -m 0640 /dev/null " + shlex.quote(database_probe)
+        )
+        shoko.succeed(
+          "truncate -s 1 " + shlex.quote(database_probe)
+        )
+
+        shoko.succeed(
+          "install -m 0640 /dev/null " + shlex.quote(settings_probe)
+        )
+        shoko.succeed(
+          "truncate -s 1 " + shlex.quote(settings_probe)
+        )
+
+        shoko.succeed("systemctl stop shoko")
+        shoko.succeed(
+          "rm -f /var/lib/shoko/SQLite/Quartz.db3-journal"
+        )
+
+        shoko.succeed(
+          "cp -a /var/lib/shoko/. " + shlex.quote(shoko_backup) + "/"
+        )
+
+    with subtest("Shoko state restores into the service state directory"):
+        shoko.succeed("systemctl stop shoko")
+        shoko.succeed(
+          "find /var/lib/shoko -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +"
+        )
+        shoko.succeed(
+          "cp -a " + shlex.quote(shoko_backup) + "/. /var/lib/shoko/"
+        )
+
+        shoko.succeed("test -s /var/lib/shoko/ShokoServer.db")
+        shoko.succeed("test -s /var/lib/shoko/ShokoServer.json")
+
+    with subtest("Shoko starts against restored state"):
+        shoko.succeed("systemctl start shoko")
+        shoko.wait_for_unit("shoko.service")
+        shoko.wait_for_open_port(8111)
+
+        shoko.succeed(
+          "curl --fail --silent --show-error --output /dev/null "
+          "http://127.0.0.1:8111/api/v3/Init/Status"
+        )
+
+    with subtest("temporary recovery artifacts are removed"):
+        shoko.succeed("rm -rf -- /tmp/shoko-restore-drill")
+  '';
+}

@@ -6,6 +6,8 @@
 {
   modules.features.gaming-performance.enable = true;
 
+  modules.features.backup-assurance.enable = true;
+
   # Intel thermal management for sustained gaming workloads.
   services.thermald.enable = lib.mkForce true;
 

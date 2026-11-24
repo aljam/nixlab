@@ -132,6 +132,37 @@ let
     "--repo ${lib.escapeShellArg job.repository} "
     + "--password-file ${lib.escapeShellArg passwordFile}";
 
+  resultMetricHelpers = prefix: name: successTimestamp: ''
+    write_result_metrics() {
+      local result="$1"
+      local duration="$2"
+      local success_timestamp="$3"
+
+      cat > "$metric_tmp" <<EOF
+    # HELP nixlab_restic_${prefix}_last_success_timestamp_seconds Unix time of the last successful Restic ${prefix}.
+    # TYPE nixlab_restic_${prefix}_last_success_timestamp_seconds gauge
+    nixlab_restic_${prefix}_last_success_timestamp_seconds{job="${name}"} "$success_timestamp"
+
+    # HELP nixlab_restic_${prefix}_last_result Result of the latest Restic ${prefix}.
+    # TYPE nixlab_restic_${prefix}_last_result gauge
+    nixlab_restic_${prefix}_last_result{job="${name}"} "$result"
+
+    # HELP nixlab_restic_${prefix}_duration_seconds Duration of the latest Restic ${prefix}.
+    # TYPE nixlab_restic_${prefix}_duration_seconds gauge
+    nixlab_restic_${prefix}_duration_seconds{job="${name}"} "$duration"
+    EOF
+
+      install -o node-exporter -g node-exporter -m 0644 \\
+        "$metric_tmp" "$metric_file"
+      rm -f "$metric_tmp"
+    }
+
+    report_failure() {
+      write_result_metrics 0 "$(($(date +%s) - start_time))" "$success_timestamp"
+      exit 1
+    }
+  '';
+
   backupScript =
     name: job:
     let
@@ -142,7 +173,7 @@ let
         if lib.hasPrefix "/" job.repository then
           ''
             if [[ ! -f ${lib.escapeShellArg job.repository}/config ]]; then
-              runuser -u ${backupUser} -- restic init \
+              runuser -u ${backupUser} -- restic init \\
                 ${commonArgs}
             fi
           ''
@@ -154,23 +185,28 @@ let
       runtimeInputs = [
         pkgs.restic
         pkgs.util-linux
+        pkgs.coreutils
       ]
       ++ job.runtimePackages;
-      text = ''
+      text = resultMetricHelpers "backup" name 0 + ''
         set -euo pipefail
 
         metric_file=${lib.escapeShellArg metricFile}
         metric_tmp="${metricFile}.tmp"
+        success_timestamp=0
+        start_time=$(date +%s)
+
+        if [[ -s "$metric_file" ]]; then
+          success_timestamp="$(
+            awk '$1 == "nixlab_restic_backup_last_success_timestamp_seconds{job=\"${name}\"}" { print $2; exit }' \\
+              "$metric_file"
+          )"
+        fi
+
+        trap report_failure ERR
 
         if [[ ! -s "$metric_file" ]]; then
-          cat > "$metric_tmp" <<EOF
-        # HELP nixlab_restic_backup_last_success_timestamp_seconds Unix time of the last successful Restic backup.
-        # TYPE nixlab_restic_backup_last_success_timestamp_seconds gauge
-        nixlab_restic_backup_last_success_timestamp_seconds{job="${name}"} 0
-        EOF
-          install -o node-exporter -g node-exporter -m 0644 \
-            "$metric_tmp" "$metric_file"
-          rm -f "$metric_tmp"
+          write_result_metrics 0 0 0
         fi
 
         exec 9>${lib.escapeShellArg lockFile}
@@ -180,25 +216,18 @@ let
 
         ${job.preBackupScript}
 
-        restic backup \
-          ${commonArgs} \
-          ${lib.concatMapStringsSep " \\
-          " (path: lib.escapeShellArg path) job.paths}
+        restic backup \\
+          ${commonArgs} \\
+          ${lib.concatMapStringsSep " \\\n          " (path: lib.escapeShellArg path) job.paths}
 
-        restic forget \
-          ${commonArgs} \
-          --keep-daily ${toString job.retention.keepDaily} \
-          --keep-weekly ${toString job.retention.keepWeekly} \
+        restic forget \\
+          ${commonArgs} \\
+          --keep-daily ${toString job.retention.keepDaily} \\
+          --keep-weekly ${toString job.retention.keepWeekly} \\
           --keep-monthly ${toString job.retention.keepMonthly}${lib.optionalString job.prune " --prune"}
 
-        cat > "$metric_tmp" <<EOF
-        # HELP nixlab_restic_backup_last_success_timestamp_seconds Unix time of the last successful Restic backup.
-        # TYPE nixlab_restic_backup_last_success_timestamp_seconds gauge
-        nixlab_restic_backup_last_success_timestamp_seconds{job="${name}"} $(date +%s)
-        EOF
-        install -o node-exporter -g node-exporter -m 0644 \
-          "$metric_tmp" "$metric_file"
-        rm -f "$metric_tmp"
+        write_result_metrics 1 "$(($(date +%s) - start_time))" "$(date +%s)"
+        trap - ERR
       '';
     };
 
@@ -215,27 +244,36 @@ let
         pkgs.util-linux
         pkgs.coreutils
       ];
-      text = ''
+      text = resultMetricHelpers "verify" name 0 + ''
         set -euo pipefail
 
         metric_file=${lib.escapeShellArg metricFile}
         metric_tmp="${metricFile}.tmp"
+        success_timestamp=0
+        start_time=$(date +%s)
+
+        if [[ -s "$metric_file" ]]; then
+          success_timestamp="$(
+            awk '$1 == "nixlab_restic_verify_last_success_timestamp_seconds{job=\"${name}\"}" { print $2; exit }' \\
+              "$metric_file"
+          )"
+        fi
+
+        trap report_failure ERR
+
+        if [[ ! -s "$metric_file" ]]; then
+          write_result_metrics 0 0 0
+        fi
 
         exec 9>${lib.escapeShellArg lockFile}
         flock 9
 
-        restic check \
-          ${commonArgs} \
+        restic check \\
+          ${commonArgs} \\
           --read-data-subset=${lib.escapeShellArg job.verifyDataSubset}
 
-        cat > "$metric_tmp" <<EOF
-        # HELP nixlab_restic_verify_last_success_timestamp_seconds Unix time of the last successful Restic repository integrity verification.
-        # TYPE nixlab_restic_verify_last_success_timestamp_seconds gauge
-        nixlab_restic_verify_last_success_timestamp_seconds{job="${name}"} $(date +%s)
-        EOF
-        install -o node-exporter -g node-exporter -m 0644 \
-          "$metric_tmp" "$metric_file"
-        rm -f "$metric_tmp"
+        write_result_metrics 1 "$(($(date +%s) - start_time))" "$(date +%s)"
+        trap - ERR
       '';
     };
 
@@ -259,11 +297,26 @@ let
         pkgs.util-linux
         pkgs.coreutils
       ];
-      text = ''
+      text = resultMetricHelpers "restore_test" name 0 + ''
         set -euo pipefail
 
         metric_file=${lib.escapeShellArg metricFile}
         metric_tmp="${metricFile}.tmp"
+        success_timestamp=0
+        start_time=$(date +%s)
+
+        if [[ -s "$metric_file" ]]; then
+          success_timestamp="$(
+            awk '$1 == "nixlab_restic_restore_test_last_success_timestamp_seconds{job=\"${name}\"}" { print $2; exit }' \\
+              "$metric_file"
+          )"
+        fi
+
+        trap report_failure ERR
+
+        if [[ ! -s "$metric_file" ]]; then
+          write_result_metrics 0 0 0
+        fi
 
         exec 9>${lib.escapeShellArg lockFile}
         flock 9
@@ -274,20 +327,14 @@ let
         }
         trap cleanup EXIT
 
-        restic restore latest \
-          ${commonArgs} \
+        restic restore latest \\
+          ${commonArgs} \\
           --target "$restore_dir"
 
         ${pathChecks}
 
-        cat > "$metric_tmp" <<EOF
-        # HELP nixlab_restic_restore_test_last_success_timestamp_seconds Unix time of the last successful isolated Restic restore test.
-        # TYPE nixlab_restic_restore_test_last_success_timestamp_seconds gauge
-        nixlab_restic_restore_test_last_success_timestamp_seconds{job="${name}"} $(date +%s)
-        EOF
-        install -o node-exporter -g node-exporter -m 0644 \
-          "$metric_tmp" "$metric_file"
-        rm -f "$metric_tmp"
+        write_result_metrics 1 "$(($(date +%s) - start_time))" "$(date +%s)"
+        trap - ERR
       '';
     };
 in

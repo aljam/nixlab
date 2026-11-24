@@ -123,6 +123,8 @@ let
     "secrets/radio.yaml" = [ "r730xd" ];
 
     "secrets/backups.yaml" = [
+      "navi"
+      "oryx"
       "r730xd"
       "r820"
     ];

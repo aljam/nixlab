@@ -25,6 +25,10 @@
     ../../modules/features/gen1recomp.nix
     ../../modules/features/desktop-portals.nix
     ../../modules/features/tailscale-health.nix
+    ../../modules/features/reverse-proxy-backends.nix
+    ../../modules/features/node-exporter.nix
+    ../../modules/features/restic-backup.nix
+    ../../modules/features/backup-assurance.nix
   ];
 
   boot.kernelPackages = pkgs.cachyosKernels."linuxPackages-cachyos-latest";
@@ -47,6 +51,12 @@
 
   # navi and oryx run tailscaled directly and consume the pfSense subnet route.
   modules.features.tailscale-health.enable = true;
+
+  modules.features.restic-backup.enable = true;
+  modules.features.restic-backup.jobs.home-directories = {
+    repository = "/var/lib/restic-backup/repo";
+    paths = [ "/home" ];
+  };
 
   programs.kdeconnect.enable = true;
 

@@ -146,6 +146,21 @@ let
 
     relabel_configs = blackboxRelabelConfigs;
   };
+
+  # HAProxy runs on pfSense, so its Prometheus endpoint is an externally
+  # configured scrape target rather than a NixOS-managed exporter.
+  haproxyScrapeJob = {
+    job_name = "haproxy";
+
+    static_configs = [
+      {
+        targets = [ cfg.haproxyScrapeTarget ];
+        labels = {
+          instance = "pfsense-haproxy";
+        };
+      }
+    ];
+  };
 in
 {
   options.modules.features.prometheus-server = {
@@ -159,6 +174,12 @@ in
       type = lib.types.bool;
       default = true;
       description = "Whether to configure Blackbox probes for public HTTPS endpoints. Disable in isolated NixOS VM tests, which have no DNS or Internet access.";
+    };
+
+    haproxyScrapeTarget = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "Internal HAProxy Prometheus metrics endpoint, such as 192.168.1.1:8404. When null, HAProxy scraping is omitted.";
     };
 
     tailscaleServices = lib.mkOption {
@@ -212,6 +233,7 @@ in
         ./prometheus/rules/drift-rules.yml
         ./prometheus/rules/host-baseline-rules.yml
         ./prometheus/rules/tailscale-rules.yml
+        ./prometheus/rules/haproxy-rules.yml
       ];
 
       # Alertmanager comes from ./prometheus-alerts.nix, which must be imported
@@ -288,6 +310,7 @@ in
           relabel_configs = blackboxRelabelConfigs;
         }
       ]
+      ++ lib.optionals (cfg.haproxyScrapeTarget != null) [ haproxyScrapeJob ]
       ++ lib.optionals (cfg.tailscaleServices != [ ]) [ tailscaleBlackboxScrapeJob ]
       ++ lib.optionals cfg.enablePublicEndpointProbes publicBlackboxScrapeJobs
       ++ lib.optionals (cfg.postgresCaFile != null) [

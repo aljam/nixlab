@@ -33,6 +33,8 @@
   # modules.features.prometheus-server.postgresCaFile =
   #   config.sops.secrets.pfsense-root-ca-prometheus.path;
 
+  modules.features.prometheus-server.haproxyScrapeTarget = "192.168.1.1:8404";
+
   modules.features.static-site.enable = true;
   modules.features.radio.enable = true;
   modules.features.radio-visualizer.enable = true;

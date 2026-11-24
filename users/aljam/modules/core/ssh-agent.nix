@@ -8,7 +8,7 @@
   programs.ssh = {
     enable = true;
 
-    addKeysToAgent = "yes";
+    settings."*".AddKeysToAgent = "yes";
 
     matchBlocks."192.168.1.*" = {
       identityFile = "~/.ssh/nixlab_deploy";

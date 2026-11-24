@@ -1,9 +1,5 @@
+{ ... }:
 {
-  pkgs,
-  ...
-}:
-
-pkgs.testers.runNixOSTest {
   name = "nix-gc-policy";
 
   nodes = {

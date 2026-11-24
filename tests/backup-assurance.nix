@@ -84,13 +84,7 @@ pkgs.runCommand "backup-assurance-config-check"
   ''
     ${pkgs.jq}/bin/jq -e '.uid == "backup-assurance" and .title == "Backup Assurance"' "$dashboardFile" >/dev/null
 
-    for metric in \\
-      nixlab_restic_backup_last_result \\
-      nixlab_restic_backup_last_success_timestamp_seconds \\
-      nixlab_restic_verify_last_result \\
-      nixlab_restic_verify_last_success_timestamp_seconds \\
-      nixlab_restic_restore_test_last_result \\
-      nixlab_restic_restore_test_last_success_timestamp_seconds; do
+    for metric in nixlab_restic_backup_last_result nixlab_restic_backup_last_success_timestamp_seconds nixlab_restic_verify_last_result nixlab_restic_verify_last_success_timestamp_seconds nixlab_restic_restore_test_last_result nixlab_restic_restore_test_last_success_timestamp_seconds; do
       grep -q "$metric" "$dashboardFile" || {
         echo "Dashboard is missing metric: $metric" >&2
         exit 1

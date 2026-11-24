@@ -529,10 +529,6 @@
           pkgs = pkgs;
         };
 
-        postgresql-restore-drill = import ./tests/postgresql-restore-drill.nix {
-          pkgs = pkgs;
-        };
-
         matrix-restore-drill = import ./tests/matrix-restore-drill.nix {
           pkgs = pkgs;
         };

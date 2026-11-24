@@ -61,13 +61,6 @@
         identityFile = "~/.ssh/id_ed25519";
         identitiesOnly = true;
       };
-
-      deploy-hosts = {
-        host = "navi oryx r820 r730 r730xd";
-        user = "deploy";
-        identityFile = "~/.ssh/nixlab_deploy";
-        identitiesOnly = true;
-      };
     };
   };
 

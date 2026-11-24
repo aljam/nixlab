@@ -173,8 +173,7 @@ let
         if lib.hasPrefix "/" job.repository then
           ''
             if [[ ! -f ${lib.escapeShellArg job.repository}/config ]]; then
-              runuser -u ${backupUser} -- restic init \\
-                ${commonArgs}
+              runuser -u ${backupUser} -- restic init ${commonArgs}
             fi
           ''
         else

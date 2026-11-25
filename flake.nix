@@ -323,7 +323,9 @@
 
             usage() {
               echo "Usage: deploy-status [--json] [--quiet] [HOST...]" >&2
-              echo "Hosts: ${lib.concatStringsSep " " deployHosts}" >&2
+              echo "Revision: $rev"
+              echo
+              printf '%-12s %-12s %s\\n' "Host" "Status" "Running revision"
             }
 
             output="human"
@@ -351,13 +353,12 @@
               printf '{"revision":"%s","hosts":[' "$rev"
             elif [[ "$output" == "human" ]]; then
               echo "==> Deployment status"
-              echo "Revision: $rev"
               echo
               printf '%-12s %-12s %s\\n' "Host" "Status" "Running revision"
             fi
 
             first=1
-            for host in "''${hosts[@]}"; do
+            for host in "$@"; do
               if running="$(ssh -i "$deployKey" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=10 "deploy@''${host}" "nixos-version --configuration-revision" 2>/dev/null)"; then
                 if [[ "$running" == "$rev" ]]; then
                   status="up-to-date"
@@ -382,7 +383,7 @@
                   first=0
                   ;;
                 human)
-                  printf '%-12s %-12s %s\\n' "Host" "Status" "Running revision"
+                  printf '%-12s %-12s %s\\n' "$host" "$status" "$running"
                   ;;
               esac
             done
@@ -577,6 +578,8 @@
         };
 
         drift-detection = pkgs.testers.runNixOSTest ./tests/drift-detection.nix;
+
+        storage-capacity = pkgs.testers.runNixOSTest ./tests/storage-capacity.nix;
       };
 
       nixosConfigurations = hostConfigurations;

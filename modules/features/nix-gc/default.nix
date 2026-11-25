@@ -30,7 +30,7 @@ let
     metrics_tmp="$metrics_dir/.nix-gc.prom.$$"
 
     minimum_generations="${toString cfg.retention.generations}"
-    retention_age="${lib.escapeShellArg cfg.retention.age}"
+    retention_age="${cfg.retention.age}"
 
     started_at="$(date +%s)"
     previous_success=0

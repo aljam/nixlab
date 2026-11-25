@@ -9,6 +9,7 @@ let
   cfg = config.modules.features.drift-monitoring;
 
   expectedRevision = cfg.expectedRevision;
+  revisionCommand = cfg.revisionCommand;
 
   driftScript = pkgs.writeShellScript "nixlab-drift-metrics" ''
     set -euo pipefail
@@ -19,7 +20,7 @@ let
     mkdir -p "$(dirname "$output")"
     : > "$tmp"
 
-    current_revision="$(eval "''${revisionCommand}" 2>/dev/null || true)"
+    current_revision="$(eval "${revisionCommand}" 2>/dev/null || true)"
 
     if [[ -z "$current_revision" ]]; then
       echo 'nixlab_deployment_revision_unknown 1' >> "$tmp"
@@ -118,7 +119,6 @@ in
         ExecStart = driftScript;
         Environment = [
           "NODE_EXPORTER_TEXTFILE_DIR=/var/lib/node-exporter/textfile"
-          "revisionCommand=${cfg.revisionCommand}"
           "criticalUnits=${lib.concatStringsSep " " cfg.criticalUnits}"
           "allowedTcpPorts=${lib.concatMapStringsSep " " toString cfg.allowedTcpPorts}"
           "allowedUdpPorts=${lib.concatMapStringsSep " " toString cfg.allowedUdpPorts}"

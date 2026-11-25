@@ -41,7 +41,6 @@
 
     hyprland = {
       url = "github:hyprwm/Hyprland";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     nur = {
@@ -403,6 +402,8 @@
 
       checks.${system} = {
         nix-gc-policy = pkgs.testers.runNixOSTest ./tests/nix-gc-policy.nix;
+
+        deployment-freshness = pkgs.testers.runNixOSTest ./tests/deployment-freshness.nix;
 
         alert-routing = import ./tests/alert-routing.nix {
           pkgs = pkgs;

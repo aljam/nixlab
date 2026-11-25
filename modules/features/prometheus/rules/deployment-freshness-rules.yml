@@ -1,0 +1,20 @@
+groups:
+  - name: deployment-freshness
+    rules:
+      - alert: DeploymentStale
+        expr: nixlab_deployment_age_seconds > 604800
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Deployment is stale on {{ $labels.instance }}"
+          description: "The active NixOS generation has been running for more than 7 days."
+
+      - alert: DeploymentVeryStale
+        expr: nixlab_deployment_age_seconds > 2592000
+        for: 1h
+        labels:
+          severity: critical
+        annotations:
+          summary: "Deployment is very stale on {{ $labels.instance }}"
+          description: "The active NixOS generation has been running for more than 30 days."

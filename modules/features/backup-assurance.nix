@@ -132,7 +132,7 @@ in
         metric = "nixlab_restic_restore_test_last_success_timestamp_seconds";
         maxAge = cfg.restoreTestMaxAge;
         severity = "warning";
-        summary = "Restic restore test is stale";
+        summary = "Restic isolated restore test is stale";
         description = "The isolated Restic restore test for job {{ $labels.job }} has not succeeded within the configured threshold.";
       })
     ];

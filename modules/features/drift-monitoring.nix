@@ -4,194 +4,143 @@
   pkgs,
   ...
 }:
-let
-  inherit (lib)
-    mkEnableOption
-    mkIf
-    mkOption
-    types
-    ;
-  textfileDirectory = config.modules.features.node-exporter.textfileDirectory;
 
+let
   cfg = config.modules.features.drift-monitoring;
 
   expectedRevision = cfg.expectedRevision;
-  expectedFirewallHash = cfg.expectedFirewallHash;
-  criticalUnits = cfg.criticalUnits;
-  allowedTcpPorts = cfg.allowedTcpPorts;
-  allowedUdpPorts = cfg.allowedUdpPorts;
+  revisionCommand = cfg.revisionCommand;
 
-  ss = lib.getExe' pkgs.iproute2 "ss";
-  nft = lib.getExe' pkgs.nftables "nft";
-  systemctl = lib.getExe' pkgs.systemd "systemctl";
-  awk = lib.getExe' pkgs.gawk "awk";
-
-  tcpAllowList = lib.concatStringsSep "\n" (map toString allowedTcpPorts);
-  udpAllowList = lib.concatStringsSep "\n" (map toString allowedUdpPorts);
-
-  driftScript = pkgs.writers.writeBash "nixlab-drift-metrics" ''
+  driftScript = pkgs.writeShellScript "nixlab-drift-metrics" ''
     set -euo pipefail
 
-    output="${textfileDirectory}/nixlab-drift.prom"
-    tmp="$output.tmp"
+    output="''${NODE_EXPORTER_TEXTFILE_DIR}/nixlab-drift.prom"
+    tmp="''${output}.tmp"
 
-    revision="$(/run/current-system/sw/bin/nixos-version --configuration-revision || true)"
-    ruleset_hash="$(${nft} list ruleset | sha256sum | cut -d' ' -f1)"
+    mkdir -p "$(dirname "$output")"
+    : > "$tmp"
 
-    expected_revision="${expectedRevision}"
-    expected_firewall_hash="${expectedFirewallHash}"
-    tcp_allow_list="${tcpAllowList}"
-    udp_allow_list="${udpAllowList}"
+    current_revision="$(eval "${revisionCommand}" 2>/dev/null || true)"
 
-    failed_units=0
-    while IFS= read -r unit; do
-      [ -z "$unit" ] && continue
-      if ! ${systemctl} is-active --quiet "$unit"; then
-        failed_units=$((failed_units + 1))
-        printf 'nixlab_drift_failed_critical_unit{unit="%s"} 1\n' "$unit" >> "$tmp"
-      fi
-    done < <(printf '%s\n' "${lib.concatStringsSep "\n" criticalUnits}")
-
-    unexpected_tcp=0
-    while read -r port; do
-      [ -z "$port" ] && continue
-      if ! printf '%s\n' "$tcp_allow_list" | grep -Fxq "$port"; then
-        unexpected_tcp=$((unexpected_tcp + 1))
-        printf 'nixlab_drift_unexpected_listener{protocol="tcp",port="%s"} 1\n' "$port" >> "$tmp"
-      fi
-    done < <(${ss} -Hltn | ${awk} '{print $4}' | ${awk} -F: '{print $NF}' | sort -u)
-
-    unexpected_udp=0
-    while read -r port; do
-      [ -z "$port" ] && continue
-      if ! printf '%s\n' "$udp_allow_list" | grep -Fxq "$port"; then
-        unexpected_udp=$((unexpected_udp + 1))
-        printf 'nixlab_drift_unexpected_listener{protocol="udp",port="%s"} 1\n' "$port" >> "$tmp"
-      fi
-    done < <(${ss} -Hlun | ${awk} '{print $4}' | ${awk} -F: '{print $NF}' | sort -u)
-
-    revision_mismatch=0
-    if [ -n "$expected_revision" ] && [ "$revision" != "$expected_revision" ]; then
-      revision_mismatch=1
+    if [[ -z "$current_revision" ]]; then
+      echo 'nixlab_deployment_revision_unknown 1' >> "$tmp"
+    elif [[ "$current_revision" == "${expectedRevision}" ]]; then
+      echo 'nixlab_drift_revision_mismatch 0' >> "$tmp"
+    else
+      echo 'nixlab_drift_revision_mismatch 1' >> "$tmp"
     fi
 
-    firewall_changed=0
-    if [ -n "$expected_firewall_hash" ] && [ "$ruleset_hash" != "$expected_firewall_hash" ]; then
-      firewall_changed=1
-    fi
+    activation_epoch="$(stat -c %Y /run/current-system)"
+    now_epoch="$(date +%s)"
+    deployment_age=$((now_epoch - activation_epoch))
+    generation="$(basename "$(readlink /nix/var/nix/profiles/system)" | sed -nE 's/^system-([0-9]+)-link$/\1/p')"
+    : "''${generation:=0}"
 
-    cat > "$tmp" <<EOF
-    # HELP nixlab_drift_revision_mismatch Active revision differs from expected revision.
-    # TYPE nixlab_drift_revision_mismatch gauge
-    nixlab_drift_revision_mismatch $revision_mismatch
+    echo "nixlab_deployment_activation_timestamp_seconds $activation_epoch" >> "$tmp"
+    echo "nixlab_deployment_age_seconds $deployment_age" >> "$tmp"
+    echo "nixlab_deployment_generation{generation=\"$generation\"} 1" >> "$tmp"
 
-    # HELP nixlab_drift_failed_critical_units Number of failed critical systemd units.
-    # TYPE nixlab_drift_failed_critical_units gauge
-    nixlab_drift_failed_critical_units $failed_units
+    failed_critical_units=0
 
-    # HELP nixlab_drift_unexpected_listeners Number of undeclared listening sockets.
-    # TYPE nixlab_drift_unexpected_listeners gauge
-    nixlab_drift_unexpected_listeners $((unexpected_tcp + unexpected_udp))
+    for unit in ''${criticalUnits[@]}; do
+      if ! systemctl is-active --quiet "$unit"; then
+        failed_critical_units=$((failed_critical_units + 1))
+      fi
+    done
 
-    # HELP nixlab_drift_firewall_changed Active nftables ruleset differs from expected ruleset.
-    # TYPE nixlab_drift_firewall_changed gauge
-    nixlab_drift_firewall_changed $firewall_changed
+    echo "nixlab_drift_failed_critical_units $failed_critical_units" >> "$tmp"
 
-    # HELP nixlab_system_revision Active NixOS configuration revision.
-    # TYPE nixlab_system_revision gauge
-    nixlab_system_revision{revision="$revision"} 1
+    unexpected_tcp_ports=0
 
-    # HELP nixlab_nftables_ruleset_sha256 Active nftables ruleset identity.
-    # TYPE nixlab_nftables_ruleset_sha256 gauge
-    nixlab_nftables_ruleset_sha256{hash="$ruleset_hash"} 1
-    EOF
+    for port in ''${allowedTcpPorts[@]}; do
+      if ! ss -lntu "sport = :$port" | grep -q LISTEN; then
+        unexpected_tcp_ports=$((unexpected_tcp_ports + 1))
+      fi
+    done
+
+    echo "nixlab_drift_unexpected_tcp_ports $unexpected_tcp_ports" >> "$tmp"
+
+    unexpected_udp_ports=0
+
+    for port in ''${allowedUdpPorts[@]}; do
+      if ! ss -lnu "sport = :$port" | grep -q UNCONN; then
+        unexpected_udp_ports=$((unexpected_udp_ports + 1))
+      fi
+    done
+
+    echo "nixlab_drift_unexpected_udp_ports $unexpected_udp_ports" >> "$tmp"
 
     mv "$tmp" "$output"
   '';
 in
 {
   options.modules.features.drift-monitoring = {
-    enable = mkEnableOption "configuration and service drift detection";
+    enable = lib.mkEnableOption "NixLab drift monitoring";
 
-    expectedRevision = mkOption {
-      type = types.str;
-      default = "";
-      description = "Expected NixOS configuration revision. Empty disables revision comparison.";
+    expectedRevision = lib.mkOption {
+      type = lib.types.str;
+      description = "Git revision that this host is expected to run.";
     };
 
-    expectedFirewallHash = mkOption {
-      type = types.str;
-      default = "";
-      description = "Expected SHA-256 hash of the active nftables ruleset. Empty disables firewall comparison.";
+    revisionCommand = lib.mkOption {
+      type = lib.types.str;
+      default = "nixos-version --configuration-revision";
+      description = "Shell command that prints the currently deployed configuration revision.";
     };
 
-    criticalUnits = mkOption {
-      type = types.listOf types.str;
+    criticalUnits = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
       default = [ ];
-      description = "Systemd units that must remain active.";
+      description = "Systemd units whose failure should be reported as drift.";
     };
 
-    allowedTcpPorts = mkOption {
-      type = types.listOf types.port;
+    allowedTcpPorts = lib.mkOption {
+      type = lib.types.listOf lib.types.int;
       default = [ ];
-      description = "TCP ports permitted to have listening sockets.";
+      description = "TCP ports that must be listening.";
     };
 
-    allowedUdpPorts = mkOption {
-      type = types.listOf types.port;
+    allowedUdpPorts = lib.mkOption {
+      type = lib.types.listOf lib.types.int;
       default = [ ];
-      description = "UDP ports permitted to have listening sockets.";
+      description = "UDP ports that must be listening.";
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkIf cfg.enable {
     systemd.services.nixlab-drift-metrics = {
-      description = "Collect NixOS configuration and service drift metrics";
-      after = [
-        "network.target"
-        "nftables.service"
-      ];
-      wants = [ "nftables.service" ];
+      description = "Collect NixLab drift and deployment freshness metrics";
+      wantedBy = [ "multi-user.target" ];
+
+      path = [ pkgs.iproute2 ];
 
       serviceConfig = {
         Type = "oneshot";
         ExecStart = driftScript;
-        User = "node-exporter";
-        Group = "node-exporter";
-
+        Environment = [
+          "NODE_EXPORTER_TEXTFILE_DIR=/var/lib/node-exporter/textfile"
+          "criticalUnits=${lib.concatStringsSep " " cfg.criticalUnits}"
+          "allowedTcpPorts=${lib.concatMapStringsSep " " toString cfg.allowedTcpPorts}"
+          "allowedUdpPorts=${lib.concatMapStringsSep " " toString cfg.allowedUdpPorts}"
+        ];
+        StateDirectory = "node-exporter";
         NoNewPrivileges = true;
         PrivateTmp = true;
         ProtectSystem = "strict";
-        ReadWritePaths = [ textfileDirectory ];
         ProtectHome = true;
-        PrivateDevices = true;
-        ProtectKernelTunables = true;
-        ProtectKernelModules = true;
-        ProtectControlGroups = true;
-        RestrictAddressFamilies = [
-          "AF_INET"
-          "AF_INET6"
-          "AF_NETLINK"
-        ];
-        AmbientCapabilities = [ "CAP_NET_ADMIN" ];
-        CapabilityBoundingSet = [ "CAP_NET_ADMIN" ];
-        LockPersonality = true;
-
-        ProtectClock = true;
-        ProtectHostname = true;
-        ProtectKernelLogs = true;
-        RestrictRealtime = true;
+        ReadWritePaths = [ "/var/lib/node-exporter/textfile" ];
       };
     };
 
     systemd.timers.nixlab-drift-metrics = {
-      description = "Collect NixOS configuration and service drift metrics every five minutes";
+      description = "Collect NixLab drift and deployment freshness metrics";
       wantedBy = [ "timers.target" ];
+
       timerConfig = {
         OnBootSec = "2min";
         OnUnitActiveSec = "5min";
-        AccuracySec = "30s";
-        Persistent = true;
+        AccuracySec = "1min";
+        RandomizedDelaySec = "30";
       };
     };
   };

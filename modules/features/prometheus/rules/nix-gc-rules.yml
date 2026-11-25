@@ -1,0 +1,39 @@
+groups:
+  - name: nix-gc
+    rules:
+      - alert: NixGarbageCollectionFailed
+        expr: nixlab_gc_success == 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: Nix garbage collection failed
+          description: Inspect GC service logs on {{ $labels.instance }}; confirm a successful run before resolving.
+          runbook_url: https://github.com/Aljam/nixlab/blob/main/docs/runbooks/nix-store-hygiene.md
+      - alert: NixGarbageCollectionStale
+        expr: time() - nixlab_gc_last_success_timestamp_seconds > 604800
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: Nix garbage collection is stale
+          description: No successful GC in seven days on {{ $labels.instance }}; inspect the configured schedule and service logs.
+          runbook_url: https://github.com/Aljam/nixlab/blob/main/docs/runbooks/nix-store-hygiene.md
+      - alert: NixStoreLowSpace
+        expr: nixlab_store_available_bytes < 10737418240
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: Nix store filesystem has less than 10 GiB available
+          description: Inspect space usage on {{ $labels.instance }} and review GC retention before removing generations.
+          runbook_url: https://github.com/Aljam/nixlab/blob/main/docs/runbooks/nix-store-hygiene.md
+      - alert: NixStoreCriticalSpace
+        expr: nixlab_store_available_bytes < 5368709120
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: Nix store filesystem has less than 5 GiB available
+          description: Investigate {{ $labels.instance }} immediately; preserve the current generation and retention floor when recovering space.
+          runbook_url: https://github.com/Aljam/nixlab/blob/main/docs/runbooks/nix-store-hygiene.md

@@ -1,1 +1,32 @@
-FULL_STORAGE_CAPACITY_RULES
+groups:
+  - name: storage-capacity
+    rules:
+      - alert: StorageCapacityCritical
+        expr: |
+          (
+            node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs|nsfs|ramfs"}
+            / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs|nsfs|ramfs"}
+          ) < 0.10
+          and
+          node_filesystem_readonly == 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Filesystem {{ $labels.instance }}:{{ $labels.mountpoint }} below 10% free"
+          description: "Only {{ $value | humanizePercentage }} free space remains."
+
+      - alert: StorageCapacityForecastExhaustion
+        expr: |
+          predict_linear(
+            node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs|nsfs|ramfs"}[6h],
+            14 * 24 * 3600
+          ) < 0
+          and
+          node_filesystem_readonly == 0
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Filesystem {{ $labels.instance }}:{{ $labels.mountpoint }} projected to run out within 14 days"
+          description: "A linear forecast over the last 6 hours predicts exhaustion within 14 days."

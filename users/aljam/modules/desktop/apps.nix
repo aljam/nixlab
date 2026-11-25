@@ -13,7 +13,7 @@
     telegram-desktop
     mpv
     obsidian
-    librewolf
+    firefox
     gimp
     krita
     blender

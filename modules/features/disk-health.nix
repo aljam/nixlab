@@ -156,6 +156,8 @@ in
       after = [ "multi-user.target" ];
       requires = [ "prometheus-node-exporter.service" ];
 
+      path = [ pkgs.zfs ];
+
       serviceConfig = {
         Type = "oneshot";
         ExecStart = "${diskHealthExporter}";

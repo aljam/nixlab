@@ -22,7 +22,7 @@
     machine.wait_for_unit("prometheus.service")
     machine.wait_for_open_port(9090)
 
-    rules = machine.succeed(
+    rules = machine.wait_until_succeeds(
       "curl -fsS http://127.0.0.1:9090/api/v1/rules"
       " | jq -r '.data.groups[].rules[].name'"
     )

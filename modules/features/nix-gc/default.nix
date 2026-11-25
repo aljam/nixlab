@@ -39,6 +39,7 @@ let
     install -d -m 0755 "$metrics_dir"
     touch "$lock_file"
     chmod 0600 "$lock_file"
+    exec 9>"$lock_file"
 
     if [[ -f "$metrics_file" ]]; then
       previous_success="$(

@@ -19,7 +19,7 @@ let
     mkdir -p "$(dirname "$output")"
     : > "$tmp"
 
-    current_revision="$(nixos-version --configuration-revision 2>/dev/null || true)"
+    current_revision="$(eval "''${revisionCommand}" 2>/dev/null || true)"
 
     if [[ -z "$current_revision" ]]; then
       echo 'nixlab_deployment_revision_unknown 1' >> "$tmp"
@@ -81,6 +81,12 @@ in
       description = "Git revision that this host is expected to run.";
     };
 
+    revisionCommand = lib.mkOption {
+      type = lib.types.str;
+      default = "nixos-version --configuration-revision";
+      description = "Shell command that prints the currently deployed configuration revision.";
+    };
+
     criticalUnits = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
@@ -112,6 +118,7 @@ in
         ExecStart = driftScript;
         Environment = [
           "NODE_EXPORTER_TEXTFILE_DIR=/var/lib/node-exporter/textfile"
+          "revisionCommand=${cfg.revisionCommand}"
           "criticalUnits=${lib.concatStringsSep " " cfg.criticalUnits}"
           "allowedTcpPorts=${lib.concatMapStringsSep " " toString cfg.allowedTcpPorts}"
           "allowedUdpPorts=${lib.concatMapStringsSep " " toString cfg.allowedUdpPorts}"

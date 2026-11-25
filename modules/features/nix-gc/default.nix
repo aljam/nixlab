@@ -238,9 +238,10 @@ in
         RestrictRealtime = true;
         SystemCallArchitectures = "native";
 
+        StateDirectory = "node_exporter/textfile_collector";
+
         ReadWritePaths = [
           "/nix/var/nix"
-          "/var/lib/node_exporter/textfile_collector"
         ];
       };
     };

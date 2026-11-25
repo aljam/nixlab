@@ -1,0 +1,38 @@
+groups:
+  - name: upstream-network
+    rules:
+      - alert: UpstreamDNSUnavailable
+        expr: min by (resolver) (probe_success{job="blackbox-upstream-dns"}) == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Upstream DNS resolver {{ $labels.resolver }} is unavailable"
+          description: "The Blackbox DNS probe for upstream resolver {{ $labels.resolver }} has failed for 5 minutes."
+
+      - alert: UpstreamDNSLatencyHigh
+        expr: max by (resolver) (probe_duration_seconds{job="blackbox-upstream-dns"}) > 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Upstream DNS resolver {{ $labels.resolver }} is slow"
+          description: "DNS probe latency for {{ $labels.resolver }} has exceeded 1 second for 10 minutes."
+
+      - alert: DHCPServiceUnavailable
+        expr: nixlab_dhcp_service_up == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "DHCP service is unavailable"
+          description: "The DHCP service availability metric has been zero for 5 minutes."
+
+      - alert: DHCPLeasePoolExhaustion
+        expr: (nixlab_dhcp_leases_used / nixlab_dhcp_leases_total) > 0.9
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "DHCP lease pool is nearly exhausted"
+          description: "More than 90% of configured DHCP leases have been in use for 10 minutes."

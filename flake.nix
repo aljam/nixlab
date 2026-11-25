@@ -580,6 +580,8 @@
         drift-detection = pkgs.testers.runNixOSTest ./tests/drift-detection.nix;
 
         storage-capacity = pkgs.testers.runNixOSTest ./tests/storage-capacity.nix;
+
+        upstream-network = pkgs.testers.runNixOSTest ./tests/upstream-network.nix;
       };
 
       nixosConfigurations = hostConfigurations;

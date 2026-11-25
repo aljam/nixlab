@@ -118,7 +118,7 @@ let
 
     for (( index = ''${#generations[@]} - 1; index >= 0; index-- )); do
       generation="''${generations[index]}"
-      generation_path="$(readlink -f "$profile/$generation-link" 2>/dev/null || true)"
+      generation_path="$(readlink -f "$profile-$generation-link" 2>/dev/null || true)"
 
       if [[ -z "$generation_path" ]]; then
         continue
@@ -133,7 +133,7 @@ let
         continue
       fi
 
-      generation_mtime="$(stat -L -c %Y "$profile/$generation-link")"
+      generation_mtime="$(stat -L -c %Y "$profile-$generation-link")"
 
       if (( generation_mtime <= cutoff_time )); then
         eligible_generations+=("$generation")

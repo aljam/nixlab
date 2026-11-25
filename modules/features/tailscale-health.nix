@@ -92,7 +92,7 @@ in
         Type = "oneshot";
         ExecStart = "${tailscaleHealthExporter}";
         Environment = [
-          "OUTPUT_FILE=/var/lib/node-exporter/textfile/tailscale-health.prom"
+          "OUTPUT_FILE=/var/lib/node_exporter/textfile_collector/tailscale-health.prom"
           "TAILSCALE_BIN=${pkgs.tailscale}/bin/tailscale"
         ];
         User = "node-exporter";
@@ -101,6 +101,10 @@ in
         PrivateTmp = true;
         ProtectSystem = "strict";
         ProtectHome = true;
+        StateDirectory = "node_exporter/textfile_collector";
+        ReadWritePaths = [
+          "/var/lib/node_exporter/textfile_collector"
+        ];
       };
     };
 

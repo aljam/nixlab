@@ -149,7 +149,7 @@ let
     fi
 
     nix-env --profile "$profile" \
-      --delete-generations "''${eligible_generations[*]}"
+      --delete-generations "''${eligible_generations[@]}"
 
     remaining_generations="$(
       find /nix/var/nix/profiles -maxdepth 1 -type l \

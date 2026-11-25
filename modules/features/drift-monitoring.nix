@@ -105,6 +105,8 @@ in
       description = "Collect NixLab drift and deployment freshness metrics";
       wantedBy = [ "multi-user.target" ];
 
+      path = [ pkgs.iproute2 ];
+
       serviceConfig = {
         Type = "oneshot";
         ExecStart = driftScript;

@@ -221,7 +221,7 @@ in
 
       serviceConfig = {
         Type = "oneshot";
-        ExecStart = "${wrapper}/bin/nixlab-gc";
+        ExecStart = "${wrapper}";
         User = "root";
         Group = "root";
 

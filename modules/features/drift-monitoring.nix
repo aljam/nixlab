@@ -32,11 +32,12 @@ let
     activation_epoch="$(stat -c %Y /run/current-system)"
     now_epoch="$(date +%s)"
     deployment_age=$((now_epoch - activation_epoch))
-    generation="$(basename "$(readlink -f /run/current-system)" | sed 's/^system-//')"
+    generation="$(basename "$(readlink /nix/var/nix/profiles/system)" | sed -nE 's/^system-([0-9]+)-link$/\1/p')"
+    : "''${generation:=0}"
 
     echo "nixlab_deployment_activation_timestamp_seconds $activation_epoch" >> "$tmp"
     echo "nixlab_deployment_age_seconds $deployment_age" >> "$tmp"
-    echo 'nixlab_deployment_generation{generation="'"$generation"'"} 1' >> "$tmp"
+    echo "nixlab_deployment_generation{generation=\"$generation\"} 1" >> "$tmp"
 
     failed_critical_units=0
 

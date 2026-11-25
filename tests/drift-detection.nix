@@ -11,6 +11,8 @@
         ../modules/features/node-exporter.nix
       ];
 
+      system.nixos.revision = "expected-revision";
+
       modules.features.drift-monitoring = {
         enable = true;
         expectedRevision = "expected-revision";

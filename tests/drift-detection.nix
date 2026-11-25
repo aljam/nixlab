@@ -11,11 +11,10 @@
         ../modules/features/node-exporter.nix
       ];
 
-      system.nixos.revision = "expected-revision";
-
       modules.features.drift-monitoring = {
         enable = true;
         expectedRevision = "expected-revision";
+        revisionCommand = "echo actual-revision";
         criticalUnits = [ "sshd.service" ];
         allowedTcpPorts = [ 22 ];
         allowedUdpPorts = [ ];

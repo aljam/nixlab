@@ -1,8 +1,3 @@
-# Local Restic backups.
-#
-# Each job runs as root because it may need to read protected application data
-# and create consistent dumps. It writes only to its dedicated state tree, lock
-# file, and node-exporter metrics directory.
 {
   lib,
   config,
@@ -11,7 +6,12 @@
   ...
 }:
 
-let
+# Local Restic backups.
+#
+# Each job runs as root because it may need to read protected application data
+# and create consistent dumps. It writes only to its dedicated state tree, lock
+# file, and node-exporter metrics directory.
+{
   cfg = config.modules.features.restic-backup;
   backupUser = "restic-backup";
   backupGroup = "restic-backup";
@@ -105,7 +105,7 @@ let
       after = lib.mkOption {
         type = with lib.types; listOf str;
         default = [ ];
-        description = "systemd units this backup job starts after.";
+        description = "systemd units required by this backup job.";
       };
 
       retention = {
@@ -185,13 +185,14 @@ let
         pkgs.restic
         pkgs.util-linux
         pkgs.coreutils
+        pkgs.gawk
       ]
       ++ job.runtimePackages;
       text = resultMetricHelpers "backup" name 0 + ''
         set -euo pipefail
 
         metric_file=${lib.escapeShellArg metricFile}
-        metric_tmp="${metricFile}.tmp"
+        metric_tmp="$(mktemp)"
         success_timestamp=0
         start_time=$(date +%s)
 
@@ -236,12 +237,13 @@ let
         pkgs.restic
         pkgs.util-linux
         pkgs.coreutils
+        pkgs.gawk
       ];
       text = resultMetricHelpers "verify" name 0 + ''
         set -euo pipefail
 
         metric_file=${lib.escapeShellArg metricFile}
-        metric_tmp="${metricFile}.tmp"
+        metric_tmp="$(mktemp)"
         success_timestamp=0
         start_time=$(date +%s)
 
@@ -287,12 +289,13 @@ let
         pkgs.restic
         pkgs.util-linux
         pkgs.coreutils
+        pkgs.gawk
       ];
       text = resultMetricHelpers "restore_test" name 0 + ''
         set -euo pipefail
 
         metric_file=${lib.escapeShellArg metricFile}
-        metric_tmp="${metricFile}.tmp"
+        metric_tmp="$(mktemp)"
         success_timestamp=0
         start_time=$(date +%s)
 
@@ -390,6 +393,7 @@ in
           serviceConfig = {
             Type = "oneshot";
             User = "root";
+            SupplementaryGroups = [ "node-exporter" ];
             ExecStart = lib.getExe (backupScript name job);
             # Pre-backup scripts may use `runuser` to execute application dumps
             # as another user. `runuser` requires a privileged UID transition,
@@ -417,6 +421,7 @@ in
           serviceConfig = {
             Type = "oneshot";
             User = "root";
+            SupplementaryGroups = [ "node-exporter" ];
             ExecStart = lib.getExe (verifyScript name job);
             ReadWritePaths = [
               "/var/lib/restic-backup"
@@ -438,6 +443,7 @@ in
           serviceConfig = {
             Type = "oneshot";
             User = "root";
+            SupplementaryGroups = [ "node-exporter" ];
             ExecStart = lib.getExe (restoreTestScript name job);
             ReadWritePaths = [
               "/var/lib/restic-backup"

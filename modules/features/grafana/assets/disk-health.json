@@ -339,8 +339,8 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (instance) (disk_health_smart_status)",
-          "legendFormat": "{{instance}} healthy disks",
+          "expr": "count by (instance) (disk_health_smart_status == 0)",
+          "legendFormat": "{{instance}} unhealthy disks",
           "refId": "A"
         },
         {
@@ -348,7 +348,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (instance) (disk_health_zfs_pool_state > 0)",
+          "expr": "count by (instance) (disk_health_zfs_pool_state > 0)",
           "legendFormat": "{{instance}} unhealthy pools",
           "refId": "B"
         }
@@ -417,7 +417,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "100 - (100 * (node_filesystem_avail_bytes{fstype!~\"tmpfs|squashfs|overlay\"} / node_filesystem_size_bytes{fstype!~\"tmpfs|squashfs|overlay\"}))",
+          "expr": "100 - (100 * (node_filesystem_avail_bytes{fstype!=\"tmpfs|squashfs|overlay\"} / node_filesystem_size_bytes{fstype!=\"tmpfs|squashfs|overlay\"}))",
           "format": "table",
           "instant": true,
           "legendFormat": "{{instance}} {{mountpoint}}",
@@ -446,6 +446,6 @@
   "timezone": "browser",
   "title": "Disk Health",
   "uid": "disk-health",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }

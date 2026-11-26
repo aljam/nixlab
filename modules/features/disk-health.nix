@@ -13,7 +13,7 @@ let
   jq = lib.getExe pkgs.jq;
 
   diskHealthExporter = pkgs.writers.writeBash "disk-health-exporter" ''
-    set -euo pipefail
+    set -uo pipefail
 
     output="${textfileDirectory}/disk-health.prom"
     tmp="$output.tmp"
@@ -33,7 +33,8 @@ let
         type_args="-d $device_type"
       fi
 
-      if ${smartctl} --health --json $type_args "$device_path" | ${jq} -e '.smart_status.passed == true' >/dev/null; then
+      if ${smartctl} --health --json $type_args "$device_path" \
+        | ${jq} -e '.smart_status.passed == true' >/dev/null; then
         smart_status=1
       else
         smart_status=0
@@ -45,7 +46,8 @@ let
         device_label="$device_path"
       fi
 
-      add_metric disk_health_smart_status "{device=\\\"$device_label\\\"}" "$smart_status"
+      add_metric disk_health_smart_status \
+        "{device=\\\"$device_label\\\"}" "$smart_status"
     done < <(printf '%s\\n' "$DEVICES")
 
     while IFS=$'\\t' read -r pool health; do
@@ -56,15 +58,18 @@ let
         *) pool_state=3 ;;
       esac
 
-      add_metric disk_health_zfs_pool_state "{pool=\\\"$pool\\\"}" "$pool_state"
+      add_metric disk_health_zfs_pool_state \
+        "{pool=\\\"$pool\\\"}" "$pool_state"
 
-      if zpool status "$pool" | grep -q 'No known data errors'; then
+      if zpool status "$pool" \
+        | grep -q 'No known data errors'; then
         scrub_errors=0
       else
         scrub_errors=1
       fi
 
-      add_metric disk_health_zfs_scrub_errors "{pool=\\\"$pool\\\"}" "$scrub_errors"
+      add_metric disk_health_zfs_scrub_errors \
+        "{pool=\\\"$pool\\\"}" "$scrub_errors"
     done < <(zpool list -H -o name,health)
 
     mv "$tmp" "$output"
@@ -182,9 +187,9 @@ in
       description = "Refresh SMART and ZFS disk-health metrics";
       wantedBy = [ "timers.target" ];
       timerConfig = {
-        OnBootSec = "5min";
+        OnBootSec = "1min";
         OnUnitActiveSec = cfg.scrapeInterval;
-        RandomizedDelaySec = "5m";
+        RandomizedDelaySec = "30s";
         Persistent = true;
       };
     };

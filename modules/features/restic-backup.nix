@@ -146,7 +146,7 @@ let
     nixlab_restic_${prefix}_duration_seconds{job="${name}"} "$duration"
     EOF
 
-      install -o node-exporter -g node-exporter -m 0644 \\
+      install -o node-exporter -g node-exporter -m 0644 \
         "$metric_tmp" "$metric_file"
       rm -f "$metric_tmp"
     }
@@ -192,7 +192,7 @@ let
 
         if [[ -s "$metric_file" ]]; then
           success_timestamp="$(
-            awk '$1 == "nixlab_restic_backup_last_success_timestamp_seconds{job=\"${name}\"}" { print $2; exit }' \\
+            awk '$1 == "nixlab_restic_backup_last_success_timestamp_seconds{job=\"${name}\"}" { print $2; exit }' \
               "$metric_file"
           )"
         fi
@@ -243,7 +243,7 @@ let
 
         if [[ -s "$metric_file" ]]; then
           success_timestamp="$(
-            awk '$1 == "nixlab_restic_verify_last_success_timestamp_seconds{job=\"${name}\"}" { print $2; exit }' \\
+            awk '$1 == "nixlab_restic_verify_last_success_timestamp_seconds{job=\"${name}\"}" { print $2; exit }' \
               "$metric_file"
           )"
         fi
@@ -295,7 +295,7 @@ let
 
         if [[ -s "$metric_file" ]]; then
           success_timestamp="$(
-            awk '$1 == "nixlab_restic_restore_test_last_success_timestamp_seconds{job=\"${name}\"}" { print $2; exit }' \\
+            awk '$1 == "nixlab_restic_restore_test_last_success_timestamp_seconds{job=\"${name}\"}" { print $2; exit }' \
               "$metric_file"
           )"
         fi

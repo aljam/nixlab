@@ -7,7 +7,7 @@
   "refresh": "1m",
   "time": {"from": "now-6h", "to": "now"},
   "timezone": "browser",
-  "templating": {"list": [{"name": "DS_PROMETHEUS", "label": "Prometheus", "type": "datasource", "query": "prometheus"}]},
+  "templating": {"list": [{"name": "DS_PROMETHEUS", "label": "Prometheus", "type": "datasource", "query": "prometheus", "current": {"selected": false, "text": "Prometheus", "value": "prometheus"}, "options": [{"selected": true, "text": "Prometheus", "value": "prometheus"}], "refresh": 1}]},
   "panels": [
     {"id":1,"title":"Node exporter targets online","description":"Targets whose instance label ends in :9100. Counts exporter endpoints, not deduplicated physical hosts.","type":"stat","datasource":{"type":"prometheus","uid":"${DS_PROMETHEUS}"},"gridPos":{"x":0,"y":0,"w":8,"h":4},"targets":[{"refId":"A","expr":"sum(up{instance=~\".*:9100\"} == bool 1)","instant":true}]},
     {"id":2,"title":"Node exporter targets offline","description":"Zero means all currently discovered targets respond. Removed targets are not counted; no data is not a healthy fleet.","type":"stat","datasource":{"type":"prometheus","uid":"${DS_PROMETHEUS}"},"gridPos":{"x":8,"y":0,"w":8,"h":4},"targets":[{"refId":"A","expr":"sum(up{instance=~\".*:9100\"} == bool 0)","instant":true}]},

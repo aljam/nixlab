@@ -23,9 +23,11 @@ let
   fleet = {
     navi = {
       ip = "100.105.143.108";
+      lanIp = "192.168.2.252";
     };
     oryx = {
       ip = "100.83.220.18";
+      lanIp = "192.168.2.253";
     };
     r820 = {
       ip = "${subnets.lan}.4";
@@ -87,6 +89,12 @@ in
               description = "Static service address for the host, if any.";
             };
 
+            lanIp = lib.mkOption {
+              type = lib.types.nullOr lib.types.str;
+              default = null;
+              description = "Static LAN address for the host, if any. Use this for services that must remain reachable without relying on Tailscale routing.";
+            };
+
             zpool = lib.mkOption {
               type = lib.types.nullOr lib.types.str;
               default = null;
@@ -146,7 +154,7 @@ in
     }
     {
       assertion = invalidIps == [ ];
-      message = "Fleet host IPs must belong to an allowed subnet (${lib.concatStringsSep ", " allowedIpPrefixes}). Invalid: ${lib.concatStringsSep ", " invalidIps}";
+      message = "Fleet host IPs must belong to an allowed subnet (${lib.concatStringsSep ", " invalidIps})";
     }
     {
       assertion = exposedInternalPorts == [ ];

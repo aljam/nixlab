@@ -12,6 +12,12 @@ let
   smartctl = lib.getExe pkgs.smartmontools;
   jq = lib.getExe pkgs.jq;
 
+  deviceList = pkgs.writeText "disk-health-devices" (
+    lib.concatMapStringsSep "\n" (
+      device: "${if device.type != null then device.type else "-"}\t${device.path}"
+    ) cfg.devices
+  );
+
   diskHealthExporter = pkgs.writers.writeBash "disk-health-exporter" ''
     set -uo pipefail
 
@@ -48,7 +54,7 @@ let
 
       add_metric disk_health_smart_status \
         "{device=\"$device_label\"}" "$smart_status"
-    done < <(printf '%s\n' "$DEVICES")
+    done < "$DEVICES_FILE"
 
     while IFS=$'\t' read -r pool health; do
       case "$health" in
@@ -85,12 +91,8 @@ let
       fi
 
       ${smartctl} -t short $type_args "$device_path"
-    done < <(printf '%s\n' "$DEVICES")
+    done < "$DEVICES_FILE"
   '';
-
-  deviceEnvironment = lib.concatMapStringsSep "\n" (
-    device: "${if device.type != null then device.type else "-"}\t${device.path}"
-  ) cfg.devices;
 in
 {
   imports = [
@@ -171,7 +173,7 @@ in
         Group = "root";
 
         Environment = [
-          "DEVICES=${deviceEnvironment}"
+          "DEVICES_FILE=${deviceList}"
         ];
 
         NoNewPrivileges = true;
@@ -201,7 +203,7 @@ in
         ExecStart = "${smartSelfTest}";
 
         Environment = [
-          "DEVICES=${deviceEnvironment}"
+          "DEVICES_FILE=${deviceList}"
         ];
 
         NoNewPrivileges = true;

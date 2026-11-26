@@ -14,6 +14,7 @@
     mpv
     obsidian
     firefox
+    chromium
     gimp
     krita
     blender

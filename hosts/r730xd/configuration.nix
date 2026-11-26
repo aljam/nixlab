@@ -62,7 +62,7 @@
 
     jobs.vaultwarden-data = {
       repository = "/var/lib/restic-backup/repo";
-      paths = [ "/var/lib/vaultwarden-data" ];
+      paths = [ "/var/lib/vaultwarden" ];
       schedule = "*-*-* 02:30:00";
       randomizedDelay = "15m";
     };

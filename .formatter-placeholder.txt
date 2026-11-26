@@ -1,0 +1,20 @@
+See modules/features/prometheus-server.nix at commit 2a4230ada9e8e79d5207fb7a09707c9884e649e2.
+
+Replace the tailscaled target expression with a null-safe helper:
+
+```nix
+scrapeAddress =
+  host:
+  let
+    fleetHost = config.networking.fleet.${host};
+  in
+  if fleetHost.lanIp != null then fleetHost.lanIp else fleetHost.ip;
+```
+
+Then use:
+
+```nix
+targets = [ "${scrapeAddress host}:9100" ];
+```
+
+This avoids coercing `null` for fleet hosts that do not define `lanIp`.

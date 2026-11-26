@@ -5,13 +5,7 @@
   mkSecret,
   ...
 }:
-
-# Local Restic backups.
-#
-# Each job runs as root because it may need to read protected application data
-# and create consistent dumps. It writes only to its dedicated state tree, lock
-# file, and node-exporter metrics directory.
-{
+let
   cfg = config.modules.features.restic-backup;
   backupUser = "restic-backup";
   backupGroup = "restic-backup";
@@ -331,7 +325,6 @@
     };
 in
 {
-
   options.modules.features.restic-backup = {
     enable = lib.mkEnableOption "local Restic backups";
 

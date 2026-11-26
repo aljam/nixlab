@@ -7,6 +7,8 @@
 let
   cfg = config.modules.features.nix-gc;
 
+  textfileDirectory = config.modules.features.node-exporter.textfileDirectory;
+
   wrapper = pkgs.writeShellScript "nixlab-gc" ''
     set -euo pipefail
 
@@ -25,7 +27,7 @@ let
     lock_dir="/run/nixlab-gc"
     lock_file="$lock_dir/nix-gc.lock"
     maintenance_dir="/run/nixlab-maintenance"
-    metrics_dir="/var/lib/node_exporter/textfile_collector"
+    metrics_dir="${textfileDirectory}"
     metrics_file="$metrics_dir/nix-gc.prom"
     metrics_tmp="$metrics_dir/.nix-gc.prom.$$"
 
@@ -178,6 +180,10 @@ let
   '';
 in
 {
+  imports = [
+    ../node-exporter.nix
+  ];
+
   options.modules.features.nix-gc = {
     enable = lib.mkEnableOption "controlled Nix garbage collection";
 
@@ -239,9 +245,8 @@ in
         RestrictRealtime = true;
         SystemCallArchitectures = "native";
 
-        StateDirectory = "node_exporter/textfile_collector";
-
         ReadWritePaths = [
+          textfileDirectory
           "/nix/var/nix"
         ];
       };

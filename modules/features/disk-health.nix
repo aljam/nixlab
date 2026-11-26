@@ -24,10 +24,10 @@ let
       local metric="$1"
       local labels="$2"
       local value="$3"
-      printf '%s%s %s\\n' "$metric" "$labels" "$value" >> "$tmp"
+      printf '%s%s %s\n' "$metric" "$labels" "$value" >> "$tmp"
     }
 
-    while IFS=$'\\t' read -r device_type device_path; do
+    while IFS=$'\t' read -r device_type device_path; do
       type_args=""
       if [[ "$device_type" != "-" ]]; then
         type_args="-d $device_type"
@@ -47,10 +47,10 @@ let
       fi
 
       add_metric disk_health_smart_status \
-        "{device=\\\"$device_label\\\"}" "$smart_status"
-    done < <(printf '%s\\n' "$DEVICES")
+        "{device=\"$device_label\"}" "$smart_status"
+    done < <(printf '%s\n' "$DEVICES")
 
-    while IFS=$'\\t' read -r pool health; do
+    while IFS=$'\t' read -r pool health; do
       case "$health" in
         ONLINE) pool_state=0 ;;
         DEGRADED) pool_state=1 ;;
@@ -59,7 +59,7 @@ let
       esac
 
       add_metric disk_health_zfs_pool_state \
-        "{pool=\\\"$pool\\\"}" "$pool_state"
+        "{pool=\"$pool\"}" "$pool_state"
 
       if zpool status "$pool" \
         | grep -q 'No known data errors'; then
@@ -69,7 +69,7 @@ let
       fi
 
       add_metric disk_health_zfs_scrub_errors \
-        "{pool=\\\"$pool\\\"}" "$scrub_errors"
+        "{pool=\"$pool\"}" "$scrub_errors"
     done < <(zpool list -H -o name,health)
 
     mv "$tmp" "$output"
@@ -78,18 +78,18 @@ let
   smartSelfTest = pkgs.writers.writeBash "smart-self-test" ''
     set -euo pipefail
 
-    while IFS=$'\\t' read -r device_type device_path; do
+    while IFS=$'\t' read -r device_type device_path; do
       type_args=""
       if [[ "$device_type" != "-" ]]; then
         type_args="-d $device_type"
       fi
 
       ${smartctl} -t short $type_args "$device_path"
-    done < <(printf '%s\\n' "$DEVICES")
+    done < <(printf '%s\n' "$DEVICES")
   '';
 
-  deviceEnvironment = lib.concatMapStringsSep "\\n" (
-    device: "${if device.type != null then device.type else "-"}\\t${device.path}"
+  deviceEnvironment = lib.concatMapStringsSep "\n" (
+    device: "${if device.type != null then device.type else "-"}\t${device.path}"
   ) cfg.devices;
 in
 {

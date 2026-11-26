@@ -1,3 +1,0 @@
-See repository file modules/features/prometheus-server.nix at commit a84a46bf57cde9ab3b5aa4be2080b40d811fa7db; apply formatter-required one-line interpolation:
-
-"${(config.networking.fleet.${host}.lanIp or config.networking.fleet.${host}.ip)}:9100"

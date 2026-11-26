@@ -24,7 +24,10 @@
     disabled =
       { ... }:
       {
-        imports = [ ../modules/features/nix-gc ];
+        imports = [
+          ../modules/features/nix-gc
+          ../modules/features/systemd-hardening.nix
+        ];
       };
   };
 

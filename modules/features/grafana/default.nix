@@ -26,8 +26,6 @@ let
     builtins.readFile ./assets/server-inventory.json
   );
 
-  tailscaleDashboard = pkgs.writeTextDir "tailscale.json" (builtins.readFile ./assets/tailscale.json);
-
   fleetCurrencyDashboard = pkgs.writeTextDir "fleet-currency.json" (
     builtins.readFile ./assets/fleet-currency.json
   );
@@ -151,14 +149,6 @@ in
             name = "NixLab server inventory";
             options = {
               path = serverInventoryDashboard;
-              foldersFromFilesStructure = false;
-            };
-          }
-
-          {
-            name = "NixLab Tailscale";
-            options = {
-              path = tailscaleDashboard;
               foldersFromFilesStructure = false;
             };
           }

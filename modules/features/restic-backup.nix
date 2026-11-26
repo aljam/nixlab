@@ -135,15 +135,15 @@ let
       cat > "$metric_tmp" <<EOF
     # HELP nixlab_restic_${prefix}_last_success_timestamp_seconds Unix time of the last successful Restic ${prefix}.
     # TYPE nixlab_restic_${prefix}_last_success_timestamp_seconds gauge
-    nixlab_restic_${prefix}_last_success_timestamp_seconds{job="${name}"} "$success_timestamp"
+    nixlab_restic_${prefix}_last_success_timestamp_seconds{job="${name}"} $success_timestamp
 
     # HELP nixlab_restic_${prefix}_last_result Result of the latest Restic ${prefix}.
     # TYPE nixlab_restic_${prefix}_last_result gauge
-    nixlab_restic_${prefix}_last_result{job="${name}"} "$result"
+    nixlab_restic_${prefix}_last_result{job="${name}"} $result
 
     # HELP nixlab_restic_${prefix}_duration_seconds Duration of the latest Restic ${prefix}.
     # TYPE nixlab_restic_${prefix}_duration_seconds gauge
-    nixlab_restic_${prefix}_duration_seconds{job="${name}"} "$duration"
+    nixlab_restic_${prefix}_duration_seconds{job="${name}"} $duration
     EOF
 
       install -o node-exporter -g node-exporter -m 0644 \

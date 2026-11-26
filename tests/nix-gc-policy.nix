@@ -6,7 +6,10 @@
     configured =
       { ... }:
       {
-        imports = [ ../modules/features/nix-gc ];
+        imports = [
+          ../modules/features/nix-gc
+          ../modules/features/systemd-hardening.nix
+        ];
 
         modules.features.nix-gc = {
           enable = true;

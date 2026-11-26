@@ -285,7 +285,12 @@ in
           job_name = "tailscaled";
 
           static_configs = map (host: {
-            targets = [ "${config.networking.fleet.${host}.ip}:9100" ];
+            targets = [
+              "${
+                (config.networking.fleet.${host}.lanIp
+                  or config.networking.fleet.${host}.ip)
+              }:9100"
+            ];
             labels = {
               instance = host;
               host = host;

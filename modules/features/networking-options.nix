@@ -23,11 +23,11 @@ let
   fleet = {
     navi = {
       ip = "100.105.143.108";
-      lanIp = "${subnets.lan}.33";
+      lanIp = "192.168.2.14";
     };
     oryx = {
       ip = "100.83.220.18";
-      lanIp = "${subnets.lan}.34";
+      lanIp = "192.168.2.42";
     };
     r820 = {
       ip = "${subnets.lan}.4";

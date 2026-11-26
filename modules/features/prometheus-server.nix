@@ -25,6 +25,13 @@ let
     "oryx"
   ];
 
+  scrapeAddress =
+    host:
+    let
+      fleetHost = config.networking.fleet.${host};
+    in
+    if fleetHost.lanIp != null then fleetHost.lanIp else fleetHost.ip;
+
   # Every Blackbox probe sends the original target to the loopback exporter
   # and preserves it as the Prometheus instance label.
   blackboxRelabelConfigs = [
@@ -285,9 +292,7 @@ in
           job_name = "tailscaled";
 
           static_configs = map (host: {
-            targets = [
-              "${(config.networking.fleet.${host}.lanIp or config.networking.fleet.${host}.ip)}:9100"
-            ];
+            targets = [ "${scrapeAddress host}:9100" ];
             labels = {
               instance = host;
               host = host;

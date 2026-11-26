@@ -7,6 +7,8 @@
 let
   cfg = config.modules.features.tailscale-health;
 
+  textfileDirectory = config.modules.features.node-exporter.textfileDirectory;
+
   tailscaleHealthExporter = pkgs.writers.writePython3 "tailscale-health-exporter" { } ''
     import json
     import os
@@ -92,7 +94,7 @@ in
         Type = "oneshot";
         ExecStart = "${tailscaleHealthExporter}";
         Environment = [
-          "OUTPUT_FILE=/var/lib/node_exporter/textfile_collector/tailscale-health.prom"
+          "OUTPUT_FILE=${textfileDirectory}/tailscale-health.prom"
           "TAILSCALE_BIN=${pkgs.tailscale}/bin/tailscale"
         ];
         User = "node-exporter";
@@ -101,10 +103,7 @@ in
         PrivateTmp = true;
         ProtectSystem = "strict";
         ProtectHome = true;
-        StateDirectory = "node_exporter/textfile_collector";
-        ReadWritePaths = [
-          "/var/lib/node_exporter/textfile_collector"
-        ];
+        ReadWritePaths = [ textfileDirectory ];
       };
     };
 

@@ -4,7 +4,6 @@
   pkgs,
   ...
 }:
-
 let
   cfg = config.modules.features.drift-monitoring;
 
@@ -22,12 +21,14 @@ let
 
     current_revision="$(eval "${revisionCommand}" 2>/dev/null || true)"
 
-    if [[ -z "$current_revision" ]]; then
-      echo 'nixlab_deployment_revision_unknown 1' >> "$tmp"
-    elif [[ "$current_revision" == "${expectedRevision}" ]]; then
-      echo 'nixlab_drift_revision_mismatch 0' >> "$tmp"
-    else
-      echo 'nixlab_drift_revision_mismatch 1' >> "$tmp"
+    if [[ -n "${expectedRevision}" ]]; then
+      if [[ -z "$current_revision" ]]; then
+        echo 'nixlab_deployment_revision_unknown 1' >> "$tmp"
+      elif [[ "$current_revision" == "${expectedRevision}" ]]; then
+        echo 'nixlab_drift_revision_mismatch 0' >> "$tmp"
+      else
+        echo 'nixlab_drift_revision_mismatch 1' >> "$tmp"
+      fi
     fi
 
     activation_epoch="$(stat -c %Y /run/current-system)"
@@ -79,7 +80,8 @@ in
 
     expectedRevision = lib.mkOption {
       type = lib.types.str;
-      description = "Git revision that this host is expected to run.";
+      default = "";
+      description = "Git revision that this host is expected to run. Leave empty to export deployment freshness without revision drift checking.";
     };
 
     revisionCommand = lib.mkOption {

@@ -35,6 +35,8 @@
 
   modules.features.prometheus-server.haproxyScrapeTarget = "192.168.1.1:8404";
 
+  modules.features.drift-monitoring.enable = true;
+
   modules.features.static-site.enable = true;
   modules.features.radio.enable = true;
   modules.features.radio-visualizer.enable = true;

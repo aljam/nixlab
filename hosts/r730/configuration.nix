@@ -13,8 +13,8 @@
     ../../modules/roles/storage-node.nix
     ../../modules/features/nvidia-headless.nix
     ../../modules/features/disk-health.nix
-    ../../modules/features/huggingface-cli.nix
     ../../modules/features/qwen-inference.nix
+    ../../users/pervitiner/nixos.nix
   ];
 
   networking.hostId = "acccc16e"; # Required for ZFS
@@ -22,6 +22,8 @@
   environment.systemPackages = with pkgs; [
     cudatoolkit
   ];
+
+  home-manager.users.pervitiner = import ../../users/pervitiner/home.nix;
 
   modules.features.disk-health = {
     enable = true;
@@ -37,8 +39,6 @@
       { path = "/dev/disk/by-id/wwn-0x5000c5008f0517e3"; }
     ];
   };
-
-  modules.features.huggingfaceCli.enable = true;
 
   modules.features.qwenInference = {
     enable = true;

@@ -15,15 +15,15 @@ let
   };
 
   startScript = pkgs.writeShellScript "qwen-inference-start" ''
-    exec ${lib.getExe cfg.package} \\
-      --host ${lib.escapeShellArg cfg.host} \\
-      --port ${toString cfg.port} \\
-      --model ${lib.escapeShellArg cfg.modelPath} \\
-      --ctx-size ${toString cfg.contextLength} \\
-      --n-gpu-layers ${toString cfg.gpuLayers} \\
-      --split-mode layer \\
-      --tensor-split ${lib.escapeShellArg cfg.tensorSplit} \\
-      ${lib.optionalString (cfg.apiKeyFile != null) ''--api-key "$QWEN_API_KEY"''} \\
+    exec ${cfg.package}/bin/llama-server \
+      --host ${lib.escapeShellArg cfg.host} \
+      --port ${toString cfg.port} \
+      --model ${lib.escapeShellArg cfg.modelPath} \
+      --ctx-size ${toString cfg.contextLength} \
+      --n-gpu-layers ${toString cfg.gpuLayers} \
+      --split-mode layer \
+      --tensor-split ${lib.escapeShellArg cfg.tensorSplit} \
+      ${lib.optionalString (cfg.apiKeyFile != null) ''--api-key "$QWEN_API_KEY"''} \
       ${lib.escapeShellArgs cfg.extraArgs}
   '';
 in

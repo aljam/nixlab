@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.modules.features.tailscale-health;
   textfileDirectory = config.modules.features.node-exporter.textfileDirectory;

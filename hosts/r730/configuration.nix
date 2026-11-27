@@ -13,6 +13,7 @@
     ../../modules/roles/storage-node.nix
     ../../modules/features/nvidia-headless.nix
     ../../modules/features/disk-health.nix
+    ../../modules/features/qwen-inference.nix
   ];
 
   networking.hostId = "acccc16e"; # Required for ZFS
@@ -34,5 +35,11 @@
       { path = "/dev/disk/by-id/wwn-0x5000c5008f0364e3"; }
       { path = "/dev/disk/by-id/wwn-0x5000c5008f0517e3"; }
     ];
+  };
+
+  modules.features.qwenInference = {
+    enable = true;
+    modelPath = "/var/lib/qwen-inference/Qwen3-Coder-30B-A3B-Instruct-Q4_K_M.gguf";
+    contextLength = 16384;
   };
 }

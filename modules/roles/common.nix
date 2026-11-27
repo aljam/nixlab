@@ -63,12 +63,14 @@
     # unit names depend on configured backup jobs. A rotated password takes
     # effect on the next job invocation.
     #
-    # `perplexity_api_key` is read by user-launched OpenCode CLI and Desktop
-    # processes; it is not owned by a long-running system service.
+    # `perplexity_api_key` and `github_mcp_token` are read by user-launched
+    # OpenCode CLI and Desktop processes; they are not owned by long-running
+    # system services.
     roles.security.sopsRestartExemptions = [
       "aljam_password"
       "restic-backup-password"
       "perplexity_api_key"
+      "github_mcp_token"
     ];
 
     roles.security.systemdHardenedServices = [
@@ -89,12 +91,14 @@
     time.timeZone = lib.mkDefault "America/Toronto";
     i18n.defaultLocale = lib.mkDefault "en_CA.UTF-8";
     i18n.extraLocaleSettings = {
-      LC_ADDRESS = "en_CA.UTF-8";
-      LC_IDENTIFICATION = "en_CA.UTF-8";
-      LC_MEASUREMENT = "en_CA.UTF-8";
-      LC_NAME = "en_CA.UTF-8";
-      LC_NUMERIC = "en_CA.UTF-8";
-      LC_PAPER = "en_CA.UTF-8";
+      LC_ADDRESS = "en_CA";
+      LC_IDENTIFICATION = "en_CA";
+      LC_MEASUREMENT = "en_CA";
+      LC_NAME = "en_CA";
+      LC_NUMERIC = "en_CA";
+      LC_PAPER = "en_CA";
+      LC_TELEPHONE = "en_CA";
+      LC_TIME = "en_CA";
     };
 
     nix.settings.experimental-features = [

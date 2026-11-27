@@ -23,13 +23,15 @@ let
     ];
   });
 
-  cacheArgs = lib.optionals (cfg.cacheTypeK != "f16") [
-    "--cache-type-k"
-    cfg.cacheTypeK
-  ] ++ lib.optionals (cfg.cacheTypeV != "f16") [
-    "--cache-type-v"
-    cfg.cacheTypeV
-  ];
+  cacheArgs =
+    lib.optionals (cfg.cacheTypeK != "f16") [
+      "--cache-type-k"
+      cfg.cacheTypeK
+    ]
+    ++ lib.optionals (cfg.cacheTypeV != "f16") [
+      "--cache-type-v"
+      cfg.cacheTypeV
+    ];
 
   startScript = pkgs.writeShellScript "qwen-inference-start" ''
     exec ${cfg.package}/bin/llama-server \

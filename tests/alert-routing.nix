@@ -58,8 +58,6 @@ let
   ++ severityChecks
   ++ routingPolicyChecks;
 in
-pkgs.runCommand "alert-routing-check"
-  { }
-  ''
-    touch $out
-  ''
+pkgs.runCommand "alert-routing-check" { } ''
+  touch $out
+''

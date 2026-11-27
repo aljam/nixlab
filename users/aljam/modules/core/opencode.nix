@@ -100,6 +100,19 @@ let
           };
         };
       };
+
+      "qwen-local" = {
+        npm = "@ai-sdk/openai-compatible";
+        name = "Qwen Local";
+        options = {
+          baseURL = "http://192.168.1.3:8001/v1";
+        };
+        models = {
+          "qwen3-coder-30b-a3b" = {
+            name = "Qwen3 Coder 30B A3B (local)";
+          };
+        };
+      };
     };
 
     mcp = {

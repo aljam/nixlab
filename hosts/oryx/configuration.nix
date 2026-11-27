@@ -18,7 +18,6 @@
   nix.settings.extra-sandbox-paths = [ "/dev/kvm" ];
 
   modules.features.power-profiles.enable = true;
-  modules.features.tailscale-health.enable = true;
   services.power-profiles-daemon.enable = lib.mkForce true;
 
   networking.firewall.extraInputRules = ''

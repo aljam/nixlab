@@ -24,7 +24,6 @@
     ../../modules/features/fonts.nix
     ../../modules/features/gen1recomp.nix
     ../../modules/features/desktop-portals.nix
-    ../../modules/features/tailscale-health.nix
     ../../modules/features/reverse-proxy-backends.nix
     ../../modules/features/node-exporter.nix
     ../../modules/features/restic-backup.nix
@@ -48,9 +47,6 @@
     useRoutingFeatures = "both";
     extraUpFlags = [ "--accept-routes=true" ];
   };
-
-  # navi and oryx run tailscaled directly and consume the pfSense subnet route.
-  modules.features.tailscale-health.enable = true;
 
   modules.features.restic-backup.enable = true;
   modules.features.restic-backup.jobs.home-directories = {

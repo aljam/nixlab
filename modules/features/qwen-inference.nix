@@ -113,7 +113,7 @@ in
           "${pkgs.coreutils}/bin/test -f ${lib.escapeShellArg cfg.modelPath}"
         ];
 
-        ExecStart = "${startScript}/bin/qwen-inference-start";
+        ExecStart = "${startScript}";
 
         Restart = "on-failure";
         RestartSec = "5s";

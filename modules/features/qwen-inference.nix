@@ -23,6 +23,14 @@ let
     ];
   });
 
+  cacheArgs = lib.optionals (cfg.cacheTypeK != "f16") [
+    "--cache-type-k"
+    cfg.cacheTypeK
+  ] ++ lib.optionals (cfg.cacheTypeV != "f16") [
+    "--cache-type-v"
+    cfg.cacheTypeV
+  ];
+
   startScript = pkgs.writeShellScript "qwen-inference-start" ''
     exec ${cfg.package}/bin/llama-server \
       --host ${lib.escapeShellArg cfg.host} \
@@ -32,6 +40,7 @@ let
       --n-gpu-layers ${toString cfg.gpuLayers} \
       --split-mode layer \
       --tensor-split ${lib.escapeShellArg cfg.tensorSplit} \
+      ${lib.escapeShellArgs cacheArgs} \
       ${lib.optionalString (cfg.apiKeyFile != null) ''--api-key "$QWEN_API_KEY"''} \
       ${lib.escapeShellArgs cfg.extraArgs}
   '';
@@ -68,6 +77,20 @@ in
       type = lib.types.int;
       default = 65536;
       description = "Context window size in tokens.";
+    };
+
+    cacheTypeK = lib.mkOption {
+      type = lib.types.str;
+      default = "f16";
+      example = "q8_0";
+      description = "llama.cpp KV cache data type for keys.";
+    };
+
+    cacheTypeV = lib.mkOption {
+      type = lib.types.str;
+      default = "f16";
+      example = "q8_0";
+      description = "llama.cpp KV cache data type for values. Quantized values require Flash Attention.";
     };
 
     gpuLayers = lib.mkOption {

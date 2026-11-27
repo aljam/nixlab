@@ -47,6 +47,5 @@
   modules.features.qwenInference = {
     enable = true;
     modelPath = "/var/lib/qwen-inference/Qwen3-Coder-30B-A3B-Instruct-Q4_K_M.gguf";
-    contextLength = 16384;
   };
 }

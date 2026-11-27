@@ -92,6 +92,7 @@ in
     users.users.qwen-inference = {
       isSystemUser = true;
       group = "qwen-inference";
+      extraGroups = [ "video" ];
       description = "Qwen llama.cpp inference service";
     };
 

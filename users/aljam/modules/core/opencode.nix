@@ -31,5 +31,5 @@ in
 
   xdg.configFile."opencode/opencode.json".source =
     (pkgs.formats.json { }).generate "opencode.json"
-    settings;
+  settings;
 }

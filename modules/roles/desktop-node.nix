@@ -28,6 +28,7 @@
     ../../modules/features/node-exporter.nix
     ../../modules/features/restic-backup.nix
     ../../modules/features/backup-assurance.nix
+    ../../modules/features/tailscale-health.nix
   ];
 
   boot.kernelPackages = pkgs.cachyosKernels."linuxPackages-cachyos-latest";
@@ -48,6 +49,8 @@
     extraUpFlags = [ "--accept-routes=true" ];
   };
 
+  modules.features.tailscale-health.enable = true;
+
   modules.features.restic-backup.enable = true;
   modules.features.restic-backup.jobs.home-directories = {
     repository = "/var/lib/restic-backup/repo";
@@ -63,7 +66,7 @@
 
     # Verified with:
     # nix store prefetch-file --json \
-    #   'https://github.com/bryanthaboi/gen1recomp/releases/download/v0.2.57/gen1recomp-0.2.57.love'
+    #   'https://github.com/bryanthaboi/gen1recomp/releases/download/v0.2.57/gen1recomp.love'
     hash = "sha256-lj9oPiWmrNPvNyYb+GbEmrdfqn00jzwxQfbXVoTg+40=";
   };
 

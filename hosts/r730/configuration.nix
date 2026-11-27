@@ -15,6 +15,7 @@
     ../../modules/features/disk-health.nix
     ../../modules/features/qwen-inference.nix
     ../../modules/features/huggingface-cli.nix
+    ../../modules/features/gpu-fan-control.nix
     ../../users/pervitiner/nixos.nix
   ];
 
@@ -43,6 +44,8 @@
   };
 
   modules.features.huggingfaceCli.enable = true;
+
+  modules.features.gpuFanControl.enable = true;
 
   modules.features.qwenInference = {
     enable = true;

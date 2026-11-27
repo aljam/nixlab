@@ -30,5 +30,6 @@ in
   home.packages = [ (lib.hiPrio opencode) ];
 
   xdg.configFile."opencode/opencode.json".source =
-    (pkgs.formats.json { }).generate "opencode.json" settings;
+    (pkgs.formats.json { }).generate "opencode.json"
+    settings;
 }

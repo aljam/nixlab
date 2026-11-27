@@ -165,7 +165,7 @@
             enable = true;
             binfmt = true;
             package = pkgs.appimage-run.override {
-              extraPkgs = pkgs.libxcrypt-legacy;
+              extraPkgs = pkgs: [ pkgs.libxcrypt-legacy ];
             };
           };
 

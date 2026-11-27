@@ -154,6 +154,13 @@
         {
           features.streamdeck.enable = true;
 
+          modules.features.nix-gc = {
+            retention = {
+              generations = 8;
+              age = "30 days";
+            };
+          };
+
           home-manager.sharedModules = [
             plasma-manager.homeModules.plasma-manager
           ];

@@ -1,10 +1,4 @@
-{
-  config,
-  pkgs,
-  lib,
-  inputs,
-  ...
-}:
+{ config, pkgs, lib, inputs, ... }:
 
 {
   imports = [
@@ -29,6 +23,7 @@
     ../../modules/features/restic-backup.nix
     ../../modules/features/backup-assurance.nix
     ../../modules/features/tailscale-health.nix
+    ../../modules/features/opencode-secret.nix
   ];
 
   boot.kernelPackages = pkgs.cachyosKernels."linuxPackages-cachyos-latest";
@@ -60,6 +55,8 @@
   programs.kdeconnect.enable = true;
 
   modules.features.power-profiles.enable = true;
+
+  modules.features.opencodeSecret.enable = true;
 
   programs.gen1recomp = {
     enable = true;

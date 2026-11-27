@@ -101,12 +101,19 @@ in
       # pnpm and Node are required for plugin management; bash and coreutils
       # ensure plugin lifecycle helpers can locate standard commands even when
       # dependency scripts are ignored.
-      path = with pkgs; [
-        pnpm
-        nodejs
-        openssl
-        bash
-        coreutils
+      #
+      # ffmpeg-full is placed first so it shadows the module's default
+      # ffmpeg-headless; it provides the NVENC encoders used by a hardware
+      # transcoding profile plugin.
+      path = lib.mkMerge [
+        (lib.mkBefore [ pkgs.ffmpeg-full ])
+        (with pkgs; [
+          pnpm
+          nodejs
+          openssl
+          bash
+          coreutils
+        ])
       ];
 
       serviceConfig = {

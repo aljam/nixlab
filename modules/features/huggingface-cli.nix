@@ -11,6 +11,8 @@
   };
 
   config = lib.mkIf config.modules.features.huggingfaceCli.enable {
-    environment.systemPackages = [ pkgs.hf ];
+    environment.systemPackages = [
+      pkgs.python3Packages.huggingface-hub
+    ];
   };
 }

@@ -9,6 +9,7 @@
     ./modules/core/git.nix
     ./modules/core/shell.nix
     ./modules/core/nvim.nix
+    ./modules/core/opencode.nix
     ./modules/core/packages.nix
     ./modules/core/ssh-agent.nix
   ];

@@ -30,6 +30,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    plasma-manager = {
+      url = "github:nix-community/plasma-manager";
+      inputs.home-manager.follows = "home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     disko = {
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -54,6 +60,7 @@
       nixpkgs,
       nixpkgs-stable,
       home-manager,
+      plasma-manager,
       disko,
       sops-nix,
       nix-cachyos-kernel,
@@ -141,17 +148,17 @@
 
       desktopModules = [
         ./modules/features/baloo-portal-compat.nix
-        ./modules/features/desktop-sync-monitoring.nix
         ./modules/features/streamdeck.nix
         ./modules/features/hyprland.nix
 
         {
           features.streamdeck.enable = true;
 
-          nixlab.desktopSyncMonitoring = {
-            enable = true;
-            syncthingUser = "aljam";
-          };
+          home-manager.sharedModules = [
+            plasma-manager.homeModules.plasma-manager
+          ];
+
+          home-manager.users.aljam.programs.plasma.enable = true;
 
           programs.appimage = {
             enable = true;

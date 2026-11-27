@@ -10,19 +10,18 @@ let
 
   # Tesla P40 is Pascal (compute capability 6.1). CUDA 12.9 supports it when
   # paired with the NVIDIA 580 legacy driver branch.
-  #
+  llamaCppCudaBase = pkgs.llama-cpp.override {
+    cudaSupport = true;
+    cudaPackages = pkgs.cudaPackages_12_9;
+  };
+
   # Explicitly target sm_61: the global cudaCapabilities setting did not reach
   # the llama.cpp CUDA build, leaving it without executable P40 kernels.
-  llamaCppCuda =
-    (pkgs.llama-cpp.override {
-      cudaSupport = true;
-      cudaPackages = pkgs.cudaPackages_12_9;
-    }).overrideAttrs
-    (old: {
-      cmakeFlags = (old.cmakeFlags or [ ]) ++ [
-        "-DCMAKE_CUDA_ARCHITECTURES=61"
-      ];
-    });
+  llamaCppCuda = llamaCppCudaBase.overrideAttrs (old: {
+    cmakeFlags = (old.cmakeFlags or [ ]) ++ [
+      "-DCMAKE_CUDA_ARCHITECTURES=61"
+    ];
+  });
 
   startScript = pkgs.writeShellScript "qwen-inference-start" ''
     exec ${cfg.package}/bin/llama-server \

@@ -38,6 +38,8 @@
 
   environment.systemPackages = with pkgs; [
     mangohud
+    protonup-qt
+    lutris
   ];
 
   programs.gamemode.settings.general.renice = 10;

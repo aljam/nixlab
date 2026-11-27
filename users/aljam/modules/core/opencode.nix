@@ -62,7 +62,7 @@ let
           "@perplexity-ai/mcp-server"
         ];
         environment.PERPLEXITY_API_KEY = "{env:PERPLEXITY_API_KEY}";
-        enabled = true;
+        enabled = false;
       };
     };
   };

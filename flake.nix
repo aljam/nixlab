@@ -141,11 +141,17 @@
 
       desktopModules = [
         ./modules/features/baloo-portal-compat.nix
+        ./modules/features/desktop-sync-monitoring.nix
         ./modules/features/streamdeck.nix
         ./modules/features/hyprland.nix
 
         {
           features.streamdeck.enable = true;
+
+          nixlab.desktopSyncMonitoring = {
+            enable = true;
+            syncthingUser = "aljam";
+          };
 
           programs.appimage = {
             enable = true;

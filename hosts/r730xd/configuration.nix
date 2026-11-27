@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }:
@@ -42,6 +43,37 @@
   modules.features.radio-visualizer.enable = true;
   modules.features.vaultwarden.enable = true;
   modules.features.peertube.enable = true;
+
+  # Tesla P40 hardware encoding for Jellyfin (NVENC/NVDEC).
+  services.jellyfin.hardwareAcceleration = {
+    enable = true;
+    type = "nvenc";
+    device = "/dev/dri/renderD128";
+  };
+
+  # GPU device access for the media services. Group membership is declared on
+  # the groups so this host never redefines users owned by upstream modules.
+  users.groups.video.members = [
+    "jellyfin"
+    "peertube"
+  ];
+  users.groups.render.members = [
+    "jellyfin"
+    "peertube"
+  ];
+
+  # PeerTube runs as a hardened service; allow it to reach the NVIDIA device
+  # nodes so ffmpeg can use NVENC.
+  systemd.services.peertube.serviceConfig = {
+    PrivateDevices = lib.mkForce false;
+    DeviceAllow = [
+      "char-nvidia rw"
+      "char-nvidiactl rw"
+      "char-nvidia-uvm rw"
+      "char-nvidia-caps rw"
+      "char-drm rw"
+    ];
+  };
 
   modules.features.restic-backup = {
     enable = true;

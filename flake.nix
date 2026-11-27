@@ -48,7 +48,7 @@
     };
 
     opencode-desktop = {
-      url = "github:tomsch/opencode-desktop-nix";
+      url = "github:anomalyco/opencode";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };

@@ -10,6 +10,7 @@
     ../../modules/roles/desktop-node.nix
     ../../modules/hardware/navi-desktop.nix
     ../../modules/features/power-profiles.nix
+    ../../modules/features/huggingface-cli.nix
     ../../users/aljam/modules/features/deploy-keychain.nix
   ];
 
@@ -20,6 +21,7 @@
   nix.settings.extra-sandbox-paths = [ "/dev/kvm" ];
 
   modules.features.power-profiles.enable = true;
+  modules.features.huggingfaceCli.enable = true;
   services.power-profiles-daemon.enable = true;
 
   networking.firewall.extraInputRules = ''

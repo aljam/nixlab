@@ -33,7 +33,7 @@ let
     exec ${lib.getExe pkgs.opencode} "$@"
   '';
 
-  desktopPackage = inputs.opencode-desktop.packages.x86_64-linux.default;
+  desktopPackage = inputs.opencode-desktop.packages.x86_64-linux.opencode-desktop;
 
   opencodeDesktop = pkgs.writeShellScriptBin "opencode-desktop" ''
     ${loadKey}

@@ -89,6 +89,11 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    # Build CUDA kernels for the Tesla P40 (Pascal, compute capability 6.1).
+    # The standalone cudatoolkit package is removed from r730 because its
+    # CUDA 13.5 package set rejects this older capability.
+    nixpkgs.config.cudaCapabilities = [ "6.1" ];
+
     users.users.qwen-inference = {
       isSystemUser = true;
       group = "qwen-inference";

@@ -89,8 +89,6 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    nixpkgs.config.cudaCapabilities = [ "6.1" ];
-
     users.users.qwen-inference = {
       isSystemUser = true;
       group = "qwen-inference";

@@ -154,6 +154,13 @@
         {
           features.streamdeck.enable = true;
 
+          modules.features.nix-gc = {
+            retention = {
+              generations = 8;
+              age = "30 days";
+            };
+          };
+
           home-manager.sharedModules = [
             plasma-manager.homeModules.plasma-manager
           ];
@@ -416,6 +423,8 @@
 
       checks.${system} = {
         nix-gc-policy = pkgs.testers.runNixOSTest ./tests/nix-gc-policy.nix;
+
+        tailscale-health = pkgs.testers.runNixOSTest ./tests/tailscale-health.nix;
 
         deployment-freshness = pkgs.testers.runNixOSTest ./tests/deployment-freshness.nix;
 

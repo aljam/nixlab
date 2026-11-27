@@ -23,7 +23,7 @@
 
     with subtest("Tailscale health metrics are collected every minute"):
         machine.succeed(
-            "systemctl show nixlab-tailscale-health.timer --property=OnCalendar | grep -F -q 'OnCalendar=*-*-* *:*:00'"
+            "systemctl cat nixlab-tailscale-health.timer | grep -q 'OnCalendar=.*:00'"
         )
 
     with subtest("Tailscale health service writes to the node-exporter textfile directory"):

@@ -13,6 +13,19 @@ let
   llamaCppCuda = pkgs.llama-cpp.override {
     cudaSupport = true;
   };
+
+  startScript = pkgs.writeShellScript "qwen-inference-start" ''
+    exec ${lib.getExe cfg.package} \
+      --host ${lib.escapeShellArg cfg.host} \
+      --port ${toString cfg.port} \
+      --model ${lib.escapeShellArg cfg.modelPath} \
+      --ctx-size ${toString cfg.contextLength} \
+      --n-gpu-layers ${toString cfg.gpuLayers} \
+      --split-mode layer \
+      --tensor-split ${lib.escapeShellArg cfg.tensorSplit} \
+      ${lib.optionalString (cfg.apiKeyFile != null) ''--api-key "$QWEN_API_KEY"''} \
+      ${lib.escapeShellArgs cfg.extraArgs}
+  '';
 in
 {
   options.modules.features.qwenInference = {
@@ -60,6 +73,13 @@ in
       description = "Relative VRAM allocation across CUDA devices.";
     };
 
+    apiKeyFile = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      example = "/run/secrets/qwen_api_key";
+      description = "Path to an environment file containing QWEN_API_KEY for llama-server API authentication.";
+    };
+
     extraArgs = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
@@ -87,30 +107,13 @@ in
         Group = "qwen-inference";
         StateDirectory = "qwen-inference";
 
+        EnvironmentFile = lib.mkIf (cfg.apiKeyFile != null) [ cfg.apiKeyFile ];
+
         ExecStartPre = [
           "${pkgs.coreutils}/bin/test -f ${lib.escapeShellArg cfg.modelPath}"
         ];
 
-        ExecStart = lib.escapeShellArgs (
-          [
-            "${lib.getExe cfg.package}"
-            "--host"
-            cfg.host
-            "--port"
-            (toString cfg.port)
-            "--model"
-            cfg.modelPath
-            "--ctx-size"
-            (toString cfg.contextLength)
-            "--n-gpu-layers"
-            (toString cfg.gpuLayers)
-            "--split-mode"
-            "layer"
-            "--tensor-split"
-            cfg.tensorSplit
-          ]
-          ++ cfg.extraArgs
-        );
+        ExecStart = "${startScript}/bin/qwen-inference-start";
 
         Restart = "on-failure";
         RestartSec = "5s";

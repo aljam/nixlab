@@ -66,7 +66,7 @@ in
 
     contextLength = lib.mkOption {
       type = lib.types.int;
-      default = 16384;
+      default = 65536;
       description = "Context window size in tokens.";
     };
 
@@ -91,7 +91,10 @@ in
 
     extraArgs = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ ];
+      default = [
+        "--parallel"
+        "1"
+      ];
       description = "Additional llama-server arguments.";
     };
   };

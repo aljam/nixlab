@@ -8,10 +8,11 @@
 let
   cfg = config.modules.features.qwenInference;
 
-  # Tesla P40 is Pascal (compute capability 6.1) and requires the legacy
-  # proprietary NVIDIA driver configured by `modules/features/nvidia-headless.nix`.
+  # Tesla P40 is Pascal (compute capability 6.1). CUDA 12.9 supports it when
+  # paired with the NVIDIA 580 legacy driver branch.
   llamaCppCuda = pkgs.llama-cpp.override {
     cudaSupport = true;
+    cudaPackages = pkgs.cudaPackages_12_9;
   };
 
   startScript = pkgs.writeShellScript "qwen-inference-start" ''
@@ -88,6 +89,8 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    nixpkgs.config.cudaCapabilities = [ "6.1" ];
+
     users.users.qwen-inference = {
       isSystemUser = true;
       group = "qwen-inference";

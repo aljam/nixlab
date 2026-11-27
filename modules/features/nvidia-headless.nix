@@ -17,8 +17,9 @@
   };
 
   hardware.nvidia = {
-    # Tesla P40 (Pascal) requires the legacy proprietary driver.
-    package = config.boot.kernelPackages.nvidiaPackages.legacy_535;
+    # Tesla P40 (Pascal) is supported by the 580 legacy driver branch, which
+    # also provides the CUDA 12.9 driver interface required by Qwen.
+    package = config.boot.kernelPackages.nvidiaPackages.legacy_580;
     open = false;
     nvidiaSettings = false;
 

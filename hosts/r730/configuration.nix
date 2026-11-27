@@ -25,10 +25,6 @@
     ip saddr 192.168.1.0/24 tcp dport 8001 accept
   '';
 
-  environment.systemPackages = with pkgs; [
-    cudatoolkit
-  ];
-
   home-manager.users.pervitiner = import ../../users/pervitiner/home.nix;
 
   modules.features.disk-health = {

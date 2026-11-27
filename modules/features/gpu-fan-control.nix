@@ -30,7 +30,7 @@ let
     trap restore_automatic EXIT
 
     while true; do
-      if ! temps=$(${pkgs.nvidia-binaries}/bin/nvidia-smi \
+      if ! temps=$(${config.hardware.nvidia.package}/bin/nvidia-smi \
         --query-gpu=temperature.gpu \
         --format=csv,noheader,nounits 2>/dev/null); then
         echo "Unable to read NVIDIA GPU temperatures; restoring automatic fan control" >&2

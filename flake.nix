@@ -46,6 +46,11 @@
     nur = {
       url = "github:nix-community/NUR";
     };
+
+    opencode-desktop = {
+      url = "github:tomsch/opencode-desktop-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -332,42 +337,34 @@
             deployKey="''${NIXLAB_DEPLOY_KEY:-$HOME/.ssh/nixlab_deploy}"
             known_hosts=(${lib.concatStringsSep " " deployHosts})
 
-            usage() {
-              echo "Usage: deploy-status [--json] [--quiet] [HOST...]" >&2
-              exit 2
-            }
-
-            output="human"
-            hosts=()
-
-            for arg in "$@"; do
-              case "$arg" in
-                --json)
-                  output="json"
-                  ;;
-                --quiet)
-                  output="quiet"
-                  ;;
-                -h|--help)
-                  usage
-                  ;;
-                --*)
-                  hosts+=("$arg")
-                  ;;
-              esac
-            done
-
-            if [[ "$output" == "json" ]]; then
-              printf '{"revision":"%s","hosts":[' "$rev"
-            elif [[ "$output" == "human" ]]; then
-              echo "==> Deployment status"
-              echo
-              printf '%-12s %-12s %s\\n' "Host" "Status" "Running revision"
+            if [[ -n "$(git status --porcelain)" ]]; then
+              echo "Refusing to deploy: Git working tree is dirty." >&2
+              echo "Commit or stash changes, then retry." >&2
+              exit 1
             fi
 
-            first=1
+            rev="$(git rev-parse HEAD)"
 
-            for host in "$@"; do
+            if [[ ! "$rev" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "Refusing to deploy: unable to resolve a full commit SHA." >&2
+              exit 1
+            fi
+
+            git fetch --quiet origin
+            if [[ "$rev" != "$(git rev-parse origin/main)" ]]; then
+              echo "Refusing to deploy: HEAD ($rev) is not the tip of origin/main" >&2
+              exit 1
+            fi
+
+            echo "==> Running flake checks"
+            nix --extra-experimental-features 'nix-command flakes' flake check --show-trace
+
+            hosts=("$@")
+            if (( ''${#hosts[@]} == 0 )); then
+              hosts=("''${known_hosts[@]}")
+            fi
+
+            for host in "''${hosts[@]}"; do
               if running="$(ssh -i "$deployKey" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=10 "deploy@''${host}" "nixos-version --configuration-revision" 2>/dev/null)"; then
                 if [[ "$running" == "$rev" ]]; then
                   status="up-to-date"
@@ -392,8 +389,8 @@
                   first=0
                   ;;
                 human)
-                  printf '%-12s %-12s %s\\n' "$host" "$status" "$running"
-                  ;;
+                  printf '%-12s %-12s %s\\n' "Host" "Status" "Running revision"
+                fi
               esac
             done
 

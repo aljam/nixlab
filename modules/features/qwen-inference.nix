@@ -11,7 +11,7 @@ let
   # Tesla P40 is Pascal (compute capability 6.1) and requires the legacy
   # proprietary NVIDIA driver configured by `modules/features/nvidia-headless.nix`.
   # CUDA 12.2 matches the maximum CUDA version supported by the legacy 535
-  # driver branch.
+  # driver branch and includes support for the P40 architecture.
   llamaCppCuda = pkgs.llama-cpp.override {
     cudaSupport = true;
     cudaPackages = pkgs.cudaPackages_12_2;
@@ -91,8 +91,6 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    nixpkgs.config.cudaCapabilities = [ "6.1" ];
-
     users.users.qwen-inference = {
       isSystemUser = true;
       group = "qwen-inference";

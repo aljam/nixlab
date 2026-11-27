@@ -7,6 +7,12 @@
 
 let
   cfg = config.modules.features.qwenInference;
+
+  # Tesla P40 is Pascal (compute capability 6.1) and requires the legacy
+  # proprietary NVIDIA driver configured by `modules/features/nvidia-headless.nix`.
+  llamaCppCuda = pkgs.llama-cpp.override {
+    cudaSupport = true;
+  };
 in
 {
   options.modules.features.qwenInference = {
@@ -14,8 +20,8 @@ in
 
     package = lib.mkOption {
       type = lib.types.package;
-      default = pkgs.llama-cpp;
-      description = "llama.cpp package used to provide llama-server.";
+      default = llamaCppCuda;
+      description = "CUDA-enabled llama.cpp package used to provide llama-server.";
     };
 
     modelPath = lib.mkOption {

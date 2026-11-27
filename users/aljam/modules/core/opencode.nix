@@ -6,13 +6,19 @@
 }:
 
 let
-  # Key is read at launch from a root-managed sops file; never enters the Nix store.
+  # Keys are read at launch from root-managed sops files; never enter the Nix store.
   keyFile = "/run/secrets/perplexity_api_key";
+  githubKeyFile = "/run/secrets/github_mcp_token";
 
   loadKey = ''
     if [ -z "''${PERPLEXITY_API_KEY:-}" ] && [ -r ${keyFile} ]; then
       PERPLEXITY_API_KEY="$(< ${keyFile})"
       export PERPLEXITY_API_KEY
+    fi
+
+    if [ -z "''${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ] && [ -r ${githubKeyFile} ]; then
+      GITHUB_PERSONAL_ACCESS_TOKEN="$(< ${githubKeyFile})"
+      export GITHUB_PERSONAL_ACCESS_TOKEN
     fi
   '';
 
@@ -97,6 +103,16 @@ let
     };
 
     mcp = {
+      github = {
+        type = "remote";
+        url = "https://api.githubcopilot.com/mcp/";
+        enabled = true;
+        oauth = false;
+        headers = {
+          "Authorization" = "Bearer {env:GITHUB_PERSONAL_ACCESS_TOKEN}";
+        };
+      };
+
       perplexity = {
         type = "local";
         command = [

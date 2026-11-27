@@ -706,16 +706,36 @@
         "nixpkgs": "nixpkgs_7"
       },
       "locked": {
-        "lastModified": 1795753859,
-        "narHash": "sha256-AoSTSU9BKgFLRa+xvZwvXATxULmgjAB6hqOfjuAx9f4=",
+        "lastModified": 1795777661,
+        "narHash": "sha256-daM7WpyCfpNL6lZV0RDOPYoAcIkWIpLSjBRUjeaD05c=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "cce31aac0bf0b42ce1061c7cfa757cb338fe1b80",
+        "rev": "786937b99eb0cde5b3a02247389dd2adf1d001a4",
         "type": "github"
       },
       "original": {
         "owner": "nix-community",
         "repo": "NUR",
+        "type": "github"
+      }
+    },
+    "opencode-desktop": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1794929511,
+        "narHash": "sha256-yDQujGwWoPTSrtbQS7/TLHCcaf82bInOkEAEZeQEI8M=",
+        "owner": "tomsch",
+        "repo": "opencode-desktop-nix",
+        "rev": "8a6377be20bc3a6c0621779a1f920ed83bb7ac2e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tomsch",
+        "repo": "opencode-desktop-nix",
         "type": "github"
       }
     },
@@ -774,6 +794,7 @@
         "nixpkgs": "nixpkgs_6",
         "nixpkgs-stable": "nixpkgs-stable",
         "nur": "nur",
+        "opencode-desktop": "opencode-desktop",
         "plasma-manager": "plasma-manager",
         "sops-nix": "sops-nix"
       }

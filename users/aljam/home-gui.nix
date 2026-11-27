@@ -6,6 +6,7 @@
 
 {
   imports = [
+    ./modules/core/opencode.nix
     ./modules/desktop/apps.nix
     ./modules/desktop/hyprland.nix
     ./modules/desktop/kitty.nix

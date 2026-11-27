@@ -13,14 +13,16 @@ let
   #
   # Explicitly target sm_61: the global cudaCapabilities setting did not reach
   # the llama.cpp CUDA build, leaving it without executable P40 kernels.
-  llamaCppCuda = (pkgs.llama-cpp.override {
-    cudaSupport = true;
-    cudaPackages = pkgs.cudaPackages_12_9;
-  }).overrideAttrs (old: {
-    cmakeFlags = (old.cmakeFlags or [ ]) ++ [
-      "-DCMAKE_CUDA_ARCHITECTURES=61"
-    ];
-  });
+  llamaCppCuda =
+    (pkgs.llama-cpp.override {
+      cudaSupport = true;
+      cudaPackages = pkgs.cudaPackages_12_9;
+    }).overrideAttrs
+    (old: {
+      cmakeFlags = (old.cmakeFlags or [ ]) ++ [
+        "-DCMAKE_CUDA_ARCHITECTURES=61"
+      ];
+    });
 
   startScript = pkgs.writeShellScript "qwen-inference-start" ''
     exec ${cfg.package}/bin/llama-server \

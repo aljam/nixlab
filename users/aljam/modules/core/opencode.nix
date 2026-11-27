@@ -33,6 +33,49 @@ let
 
     model = "perplexity-agent/anthropic/claude-sonnet-5-5";
 
+    permissions = [
+      {
+        action = "shell";
+        resource = "*";
+        effect = "ask";
+      }
+      {
+        action = "shell";
+        resource = "git status*";
+        effect = "allow";
+      }
+      {
+        action = "shell";
+        resource = "git diff*";
+        effect = "allow";
+      }
+      {
+        action = "shell";
+        resource = "nix fmt*";
+        effect = "allow";
+      }
+      {
+        action = "shell";
+        resource = "nix flake check*";
+        effect = "ask";
+      }
+      {
+        action = "shell";
+        resource = "nixos-rebuild*";
+        effect = "ask";
+      }
+      {
+        action = "shell";
+        resource = "git commit*";
+        effect = "ask";
+      }
+      {
+        action = "shell";
+        resource = "git push*";
+        effect = "deny";
+      }
+    ];
+
     provider = {
       "perplexity-agent" = {
         npm = "@ai-sdk/open-responses";

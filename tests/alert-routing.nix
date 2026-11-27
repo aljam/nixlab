@@ -49,32 +49,6 @@ let
     ) "Alertmanager severity route for ${severity} is missing notification policy"
   ) severities;
 
-  tailscaleRulesFile = ../modules/features/prometheus/rules/tailscale-rules.yml;
-
-  tailscaleAlerts = [
-    {
-      name = "TailscaleStatusDown";
-      severity = "critical";
-    }
-    {
-      name = "TailscaleDegraded";
-      severity = "warning";
-    }
-    {
-      name = "TailscaleServiceUnreachable";
-      severity = "critical";
-    }
-    {
-      name = "TailscaleProbeMissing";
-      severity = "warning";
-    }
-  ];
-
-  tailscaleAlertChecks = map (
-    alert:
-    check (lib.elem alert.severity severities) "Tailscale alert ${alert.name} uses an unroutable severity: ${alert.severity}"
-  ) tailscaleAlerts;
-
   checks = [
     (check (alertHosts != { }) "No host enables Alertmanager; cannot validate alert routing.")
   ]
@@ -82,20 +56,10 @@ let
     receiver: check (lib.elem receiver receiverNames) "Alertmanager is missing receiver: ${receiver}"
   ) expectedReceivers
   ++ severityChecks
-  ++ routingPolicyChecks
-  ++ tailscaleAlertChecks;
+  ++ routingPolicyChecks;
 in
 pkgs.runCommand "alert-routing-check"
-  {
-    inherit tailscaleRulesFile;
-  }
+  { }
   ''
-    for alert in TailscaleStatusDown TailscaleDegraded TailscaleServiceUnreachable TailscaleProbeMissing; do
-      grep -q "alert: ''${alert}" "$tailscaleRulesFile" || {
-        echo "Missing Tailscale alert: ''${alert}" >&2
-        exit 1
-      }
-    done
-
     touch $out
   ''

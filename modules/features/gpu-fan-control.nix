@@ -77,7 +77,7 @@ let
       fi
 
       if [ "$target_duty" -ne "$last_duty" ]; then
-        echo "GPU temperature \${max_temp}C; setting fans to \${target_duty}%"
+        echo "GPU temperature ''${max_temp}C; setting fans to ''${target_duty}%"
         set_fans "$target_duty"
       fi
 

@@ -114,6 +114,26 @@ in
         ];
 
         ExecStart = "${startScript}/bin/qwen-inference-start";
+        ExecStart = lib.escapeShellArgs (
+          [
+            "${lib.getExe cfg.package}"
+            "--host"
+            cfg.host
+            "--port"
+            (toString cfg.port)
+            "--model"
+            cfg.modelPath
+            "--ctx-size"
+            (toString cfg.contextLength)
+            "--n-gpu-layers"
+            (toString cfg.gpuLayers)
+            "--split-mode"
+            "layer"
+            "--tensor-split"
+            cfg.tensorSplit
+          ]
+          ++ cfg.extraArgs
+        );
 
         Restart = "on-failure";
         RestartSec = "5s";

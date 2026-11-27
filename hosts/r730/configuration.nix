@@ -13,6 +13,7 @@
     ../../modules/roles/storage-node.nix
     ../../modules/features/nvidia-headless.nix
     ../../modules/features/disk-health.nix
+    ../../modules/features/huggingface-cli.nix
     ../../modules/features/qwen-inference.nix
   ];
 

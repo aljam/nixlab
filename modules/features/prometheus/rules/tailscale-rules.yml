@@ -1,0 +1,11 @@
+groups:
+  - name: tailscale
+    rules:
+      - alert: TailscaleHealthDegraded
+        expr: tailscaled_health_messages > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Tailscale reports a health condition
+          description: Tailscale on {{ $labels.instance }} has reported a health condition of type {{ $labels.type }} for five minutes; inspect `tailscale status` and daemon logs.

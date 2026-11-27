@@ -148,17 +148,11 @@
 
       desktopModules = [
         ./modules/features/baloo-portal-compat.nix
-        ./modules/features/desktop-sync-monitoring.nix
         ./modules/features/streamdeck.nix
         ./modules/features/hyprland.nix
 
         {
           features.streamdeck.enable = true;
-
-          nixlab.desktopSyncMonitoring = {
-            enable = true;
-            syncthingUser = "aljam";
-          };
 
           home-manager.sharedModules = [
             plasma-manager.homeModules.plasma-manager
@@ -267,9 +261,12 @@
 
             git fetch --quiet origin
             if [[ "$rev" != "$(git rev-parse origin/main)" ]]; then
-              echo "==> Running flake checks"
-              nix --extra-experimental-features 'nix-command flakes' flake check --show-trace
+              echo "Refusing to deploy: HEAD ($rev) is not the tip of origin/main" >&2
+              exit 1
             fi
+
+            echo "==> Running flake checks"
+            nix --extra-experimental-features 'nix-command flakes' flake check --show-trace
 
             hosts=("$@")
             if (( ''${#hosts[@]} == 0 )); then
@@ -306,9 +303,12 @@
 
             git fetch --quiet origin
             if [[ "$rev" != "$(git rev-parse origin/main)" ]]; then
-              echo "==> Running flake checks"
-              nix --extra-experimental-features 'nix-command flakes' flake check --show-trace
+              echo "Refusing to deploy: HEAD ($rev) is not the tip of origin/main" >&2
+              exit 1
             fi
+
+            echo "==> Running flake checks"
+            nix --extra-experimental-features 'nix-command flakes' flake check --show-trace
 
             hosts=("$@")
             if (( ''${#hosts[@]} == 0 )); then
@@ -354,6 +354,7 @@
                   ;;
                 -h|--help)
                   usage
+                  exit 0
                   ;;
                 --*)
                   hosts+=("$arg")
@@ -362,7 +363,7 @@
             done
 
             if [[ "$output" == "json" ]]; then
-              output="json"
+              printf '{"revision":"%s","hosts":[' "$rev"
             elif [[ "$output" == "human" ]]; then
               echo "==> Deployment status"
               echo
@@ -400,11 +401,11 @@
               esac
             done
 
-            if (( unreachable > 0 )); then
+            if [[ "$unreachable" > 0 ]]; then
               exit 2
             fi
 
-            if (( out_of_date > 0 )); then
+            if [[ "$out_of_date" > 0 ]]; then
               exit 1
             fi
 

@@ -20,6 +20,11 @@
 
   networking.hostId = "acccc16e"; # Required for ZFS
 
+  networking.firewall.extraInputRules = ''
+    # Allow LAN clients to reach the local Qwen inference API.
+    ip saddr 192.168.1.0/24 tcp dport 8001 accept
+  '';
+
   environment.systemPackages = with pkgs; [
     cudatoolkit
   ];

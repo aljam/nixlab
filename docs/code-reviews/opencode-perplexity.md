@@ -1,10 +1,10 @@
 # Code review: OpenCode + Perplexity MCP
 
 ## Scope
-Adds nixpkgs `opencode` (CLI) to the shared Home Manager profile so every host gets it, plus a declarative `opencode.json` with the Perplexity MCP server.
+Adds nixpkgs `opencode` (CLI) to the desktop-only Home Manager profile (`home-gui.nix`), so only `navi` and `oryx` receive it. Server hosts do not install OpenCode or run the Perplexity MCP server.
 
 ## KISS / DRY
-- One module, imported once in `home.nix`; no per-host duplication.
+- One module, imported once in `home-gui.nix`; no per-host duplication.
 - Config generated with `pkgs.formats.json`.
 
 ## Security
@@ -17,4 +17,4 @@ Adds nixpkgs `opencode` (CLI) to the shared Home Manager profile so every host g
 - sops secret declaration (draft PR).
 
 ## Test
-`nixos-rebuild build --flake .#navi` and `.#oryx`, then `opencode mcp list`.
+`nixos-rebuild build --flake .#navi` and `.#oryx`; server hosts should not evaluate the module.

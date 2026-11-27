@@ -33,7 +33,7 @@ in
     host = lib.mkOption {
       type = lib.types.str;
       default = "192.168.1.3";
-      description = "Tailscale address for llama-server to listen on.";
+      description = "LAN address for llama-server to listen on.";
     };
 
     port = lib.mkOption {
@@ -71,11 +71,7 @@ in
     systemd.services.qwen-inference = {
       description = "Qwen local inference server";
       wantedBy = [ "multi-user.target" ];
-      after = [
-        "network.target"
-        "tailscaled.service"
-      ];
-      wants = [ "tailscaled.service" ];
+      after = [ "network.target" ];
 
       serviceConfig = {
         Type = "simple";

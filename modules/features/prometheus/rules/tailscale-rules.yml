@@ -9,3 +9,4 @@ groups:
         annotations:
           summary: Tailscale reports a health condition
           description: Tailscale on {{ $labels.instance }} has reported a health condition of type {{ $labels.type }} for five minutes; inspect `tailscale status` and daemon logs.
+          runbook_url: https://github.com/Aljam/nixlab/blob/main/docs/runbooks/tailscale.md

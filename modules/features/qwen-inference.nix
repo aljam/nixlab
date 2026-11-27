@@ -68,6 +68,14 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    users.users.qwen-inference = {
+      isSystemUser = true;
+      group = "qwen-inference";
+      description = "Qwen llama.cpp inference service";
+    };
+
+    users.groups.qwen-inference = { };
+
     systemd.services.qwen-inference = {
       description = "Qwen local inference server";
       wantedBy = [ "multi-user.target" ];
@@ -75,8 +83,14 @@ in
 
       serviceConfig = {
         Type = "simple";
-        DynamicUser = true;
+        User = "qwen-inference";
+        Group = "qwen-inference";
         StateDirectory = "qwen-inference";
+
+        ExecStartPre = [
+          "${pkgs.coreutils}/bin/test -f ${lib.escapeShellArg cfg.modelPath}"
+        ];
+
         ExecStart = lib.escapeShellArgs (
           [
             "${lib.getExe cfg.package}"
@@ -97,8 +111,10 @@ in
           ]
           ++ cfg.extraArgs
         );
+
         Restart = "on-failure";
         RestartSec = "5s";
+        TimeoutStartSec = "15min";
 
         NoNewPrivileges = true;
         PrivateTmp = true;
@@ -106,6 +122,11 @@ in
         ProtectSystem = "strict";
         ProtectHome = true;
         ReadWritePaths = [ "/var/lib/qwen-inference" ];
+
+        DeviceAllow = [
+          "char-nvidia-uvm rw"
+          "char-nvidia rw"
+        ];
       };
     };
   };

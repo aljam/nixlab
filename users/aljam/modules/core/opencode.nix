@@ -9,6 +9,7 @@ let
   # Keys are read at launch from root-managed sops files; never enter the Nix store.
   keyFile = "/run/secrets/perplexity_api_key";
   githubKeyFile = "/run/secrets/github_mcp_token";
+  qwenKeyFile = "/run/secrets/QWEN_API_KEY";
 
   loadKey = ''
     if [ -z "''${PERPLEXITY_API_KEY:-}" ] && [ -r ${keyFile} ]; then
@@ -19,6 +20,11 @@ let
     if [ -z "''${GITHUB_PERSONAL_ACCESS_TOKEN:-}" ] && [ -r ${githubKeyFile} ]; then
       GITHUB_PERSONAL_ACCESS_TOKEN="$(< ${githubKeyFile})"
       export GITHUB_PERSONAL_ACCESS_TOKEN
+    fi
+
+    if [ -z "''${QWEN_API_KEY:-}" ] && [ -r ${qwenKeyFile} ]; then
+      QWEN_API_KEY="$(< ${qwenKeyFile})"
+      export QWEN_API_KEY
     fi
   '';
 
@@ -106,6 +112,7 @@ let
         name = "Qwen Local";
         options = {
           baseURL = "http://192.168.1.3:8001/v1";
+          apiKey = "{env:QWEN_API_KEY}";
         };
         models = {
           "qwen3-coder-30b-a3b" = {

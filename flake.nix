@@ -1,21 +1,9 @@
-{
-  description = "Aljam's Unified Homelab Flake";
-
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-25.11";
 
-    nix-cachyos-kernel = {
-      url = "github:xddxdd/nix-cachyos-kernel/release";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     nixos-hardware = {
       url = "github:NixOS/nixos-hardware/master";
-    };
-
-    artcraft = {
-      url = "github:Hy4ri/artcraft-flake";
     };
 
     sops-nix = {
@@ -62,7 +50,6 @@
       plasma-manager,
       disko,
       sops-nix,
-      nix-cachyos-kernel,
       nur,
       artcraft,
       nix-flatpak,
@@ -153,13 +140,6 @@
         {
           features.streamdeck.enable = true;
 
-          modules.features.nix-gc = {
-            retention = {
-              generations = lib.mkForce 8;
-              age = lib.mkForce "30 days";
-            };
-          };
-
           home-manager.sharedModules = [
             plasma-manager.homeModules.plasma-manager
           ];
@@ -175,7 +155,6 @@
           };
 
           nixpkgs.overlays = [
-            nix-cachyos-kernel.overlays.default
             artcraft.overlays.default
           ];
 
@@ -245,7 +224,7 @@
           program = "${pkgs.writeShellScript "deploy-all" ''
             set -euo pipefail
 
-            deployKey="''${NIXLAB_DEPLOY_KEY:-$HOME/.ssh/nixlab_deploy}"
+            deployKey="${NIXLAB_DEPLOY_KEY:-$HOME/.ssh/nixlab_deploy}"
             known_hosts=(${lib.concatStringsSep " " deployHosts})
 
             if [[ -n "$(git status --porcelain)" ]]; then
@@ -271,13 +250,13 @@
             nix --extra-experimental-features 'nix-command flakes' flake check --show-trace
 
             hosts=("$@")
-            if (( ''${#hosts[@]} == 0 )); then
-              hosts=("''${known_hosts[@]}")
+            if (( ${#hosts[@]} == 0 )); then
+              hosts=("${known_hosts[@]}")
             fi
 
-            for host in "''${hosts[@]}"; do
-              echo "==> Deploying ''${host} @ ''${rev}"
-              ssh -i "$deployKey" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=10 "deploy@''${host}" "deploy-rebuild switch ''${rev}"
+            for host in "${hosts[@]}"; do
+              echo "==> Deploying ${host} @ ${rev}"
+              ssh -i "$deployKey" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=10 "deploy@${host}" "deploy-rebuild switch ${rev}"
             done
           ''}";
         };
@@ -288,7 +267,7 @@
           program = "${pkgs.writeShellScript "deploy-plan" ''
             set -euo pipefail
 
-            deployKey="''${NIXLAB_DEPLOY_KEY:-$HOME/.ssh/nixlab_deploy}"
+            deployKey="${NIXLAB_DEPLOY_KEY:-$HOME/.ssh/nixlab_deploy}"
             known_hosts=(${lib.concatStringsSep " " deployHosts})
 
             if [[ -n "$(git status --porcelain)" ]]; then
@@ -314,11 +293,11 @@
             nix --extra-experimental-features 'nix-command flakes' flake check --show-trace
 
             hosts=("$@")
-            if (( ''${#hosts[@]} == 0 )); then
-              hosts=("''${known_hosts[@]}")
+            if (( ${#hosts[@]} == 0 )); then
+              hosts=("${known_hosts[@]}")
             fi
 
-            for host in "''${hosts[@]}"; do
+            for host in "${hosts[@]}"; do
               echo "==> Deployment plan"
               echo "Revision: $rev"
               echo "Hosts:"
@@ -334,7 +313,7 @@
           program = "${pkgs.writeShellScript "deploy-status" ''
             set -euo pipefail
 
-            deployKey="''${NIXLAB_DEPLOY_KEY:-$HOME/.ssh/nixlab_deploy}"
+            deployKey="${NIXLAB_DEPLOY_KEY:-$HOME/.ssh/nixlab_deploy}"
             known_hosts=(${lib.concatStringsSep " " deployHosts})
 
             if [[ -n "$(git status --porcelain)" ]]; then
@@ -360,12 +339,12 @@
             nix --extra-experimental-features 'nix-command flakes' flake check --show-trace
 
             hosts=("$@")
-            if (( ''${#hosts[@]} == 0 )); then
-              hosts=("''${known_hosts[@]}")
+            if (( ${#hosts[@]} == 0 )); then
+              hosts=("${known_hosts[@]}")
             fi
 
-            for host in "''${hosts[@]}"; do
-              if running="$(ssh -i "$deployKey" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=10 "deploy@''${host}" "nixos-version --configuration-revision" 2>/dev/null)"; then
+            for host in "${hosts[@]}"; do
+              if running="$(ssh -i "$deployKey" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=10 "deploy@${host}" "nixos-version --configuration-revision" 2>/dev/null)"; then
                 if [[ "$running" == "$rev" ]]; then
                   status="up-to-date"
                   up_to_date=$((up_to_date + 1))
@@ -382,14 +361,14 @@
               case "$output" in
                 json)
                   if (( first == 0 )); then
-                    printf ','
+                    printf ',"
                   fi
-                  printf '{"host":"%s","status":"%s","runningRevision":"%s"}' \\
+                  printf '{"host":"%s","status":"%s","runningRevision":"%s"}' \
                     "$host" "$status" "$running"
                   first=0
                   ;;
                 human)
-                  printf '%-12s %-12s %s\\n' "Host" "Status" "Running revision"
+                  printf '%-12s %-12s %s\n' "Host" "Status" "Running revision"
                 fi
               esac
             done
@@ -600,4 +579,3 @@
 
       nixosConfigurations = hostConfigurations;
     };
-}

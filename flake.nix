@@ -12,33 +12,27 @@
 
     nixos-hardware = {
       url = "github:NixOS/nixos-hardware/master";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     artcraft = {
       url = "github:Hy4ri/artcraft-flake";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     sops-nix = {
       url = "github:Mic92/sops-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     home-manager = {
       url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     plasma-manager = {
       url = "github:nix-community/plasma-manager";
       inputs.home-manager.follows = "home-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     disko = {
       url = "github:nix-community/disko";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     nix-flatpak = {
@@ -156,8 +150,8 @@
 
           modules.features.nix-gc = {
             retention = {
-              generations = 8;
-              age = "30 days";
+              generations = lib.mkForce 8;
+              age = lib.mkForce "30 days";
             };
           };
 
@@ -171,11 +165,7 @@
             enable = true;
             binfmt = true;
             package = pkgs.appimage-run.override {
-              extraPkgs = pkgs: [
-                pkgs.libxcrypt-legacy
-                pkgs.libffi
-                pkgs.libyaml
-              ];
+              extraPkgs = pkgs: [ pkgs.libxcrypt-legacy ];
             };
           };
 
@@ -185,7 +175,6 @@
           ];
 
           home-manager.users.aljam.imports = [
-            ./users/aljam/home-gui.nix
             ./users/aljam/modules/desktop/hyprland.nix
           ];
         }
@@ -326,7 +315,7 @@
             echo "Revision: $rev"
             echo "Hosts:"
             for host in "''${hosts[@]}"; do
-              echo "  - $host"
+              echo "==> Deploying ''${host} @ ''${rev}"
             done
             echo "No hosts were connected to or switched."
           ''}";
@@ -378,6 +367,7 @@
             fi
 
             first=1
+
             for host in "$@"; do
               if running="$(ssh -i "$deployKey" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=10 "deploy@''${host}" "nixos-version --configuration-revision" 2>/dev/null)"; then
                 if [[ "$running" == "$rev" ]]; then
@@ -403,7 +393,7 @@
                   first=0
                   ;;
                 human)
-                  printf '%-12s %-12s %s\\n' "$host" "$status" "$running"
+                  printf '%-12s %-12s %s\\n' "Host" "Status" "Running revision"
                   ;;
               esac
             done
@@ -423,6 +413,8 @@
 
       checks.${system} = {
         nix-gc-policy = pkgs.testers.runNixOSTest ./tests/nix-gc-policy.nix;
+
+        tailscale-health = pkgs.testers.runNixOSTest ./tests/tailscale-health.nix;
 
         deployment-freshness = pkgs.testers.runNixOSTest ./tests/deployment-freshness.nix;
 
@@ -485,6 +477,12 @@
         };
 
         nix-gc-observability = pkgs.testers.runNixOSTest ./tests/nix-gc-observability.nix;
+
+        tailscale-observability = import ./tests/tailscale-observability.nix {
+          inherit pkgs;
+        };
+
+        tailscale-observability-vm = pkgs.testers.runNixOSTest ./tests/tailscale-observability-vm.nix;
 
         postgresql-auth = import ./tests/runtime-isolation.nix {
           pkgs = pkgs;

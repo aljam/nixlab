@@ -181,6 +181,7 @@ in
         ./prometheus/rules/nix-gc-rules.yml
         ./prometheus/rules/storage-capacity-rules.yml
         ./prometheus/rules/upstream-network-rules.yml
+        ./prometheus/rules/tailscale-rules.yml
       ];
 
       # Alertmanager comes from ./prometheus-alerts.nix, which must be imported

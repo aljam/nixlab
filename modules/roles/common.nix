@@ -62,9 +62,13 @@
     # `restic-backup-password` is read by scheduled Restic oneshot jobs, whose
     # unit names depend on configured backup jobs. A rotated password takes
     # effect on the next job invocation.
+    #
+    # `perplexity_api_key` is read by user-launched OpenCode CLI and Desktop
+    # processes; it is not owned by a long-running system service.
     roles.security.sopsRestartExemptions = [
       "aljam_password"
       "restic-backup-password"
+      "perplexity_api_key"
     ];
 
     roles.security.systemdHardenedServices = [

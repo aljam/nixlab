@@ -91,14 +91,14 @@
     time.timeZone = lib.mkDefault "America/Toronto";
     i18n.defaultLocale = lib.mkDefault "en_CA.UTF-8";
     i18n.extraLocaleSettings = {
-      LC_ADDRESS = "en_CA";
-      LC_IDENTIFICATION = "en_CA";
-      LC_MEASUREMENT = "en_CA";
-      LC_NAME = "en_CA";
-      LC_NUMERIC = "en_CA";
-      LC_PAPER = "en_CA";
-      LC_TELEPHONE = "en_CA";
-      LC_TIME = "en_CA";
+      LC_ADDRESS = "en_CA.UTF-8";
+      LC_IDENTIFICATION = "en_CA.UTF-8";
+      LC_MEASUREMENT = "en_CA.UTF-8";
+      LC_NAME = "en_CA.UTF-8";
+      LC_NUMERIC = "en_CA.UTF-8";
+      LC_PAPER = "en_CA.UTF-8";
+      LC_TELEPHONE = "en_CA.UTF-8";
+      LC_TIME = "en_CA.UTF-8";
     };
 
     nix.settings.experimental-features = [

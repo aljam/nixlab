@@ -14,6 +14,7 @@
     ../../modules/features/nvidia-headless.nix
     ../../modules/features/disk-health.nix
     ../../modules/features/qwen-inference.nix
+    ../../modules/features/huggingface-cli.nix
     ../../users/pervitiner/nixos.nix
   ];
 
@@ -39,6 +40,8 @@
       { path = "/dev/disk/by-id/wwn-0x5000c5008f0517e3"; }
     ];
   };
+
+  modules.features.huggingfaceCli.enable = true;
 
   modules.features.qwenInference = {
     enable = true;

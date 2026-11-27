@@ -175,6 +175,7 @@
           ];
 
           home-manager.users.aljam.imports = [
+            ./users/aljam/home-gui.nix
             ./users/aljam/modules/desktop/hyprland.nix
           ];
         }
@@ -282,6 +283,7 @@
           program = "${pkgs.writeShellScript "deploy-plan" ''
             set -euo pipefail
 
+            deployKey="''${NIXLAB_DEPLOY_KEY:-$HOME/.ssh/nixlab_deploy}"
             known_hosts=(${lib.concatStringsSep " " deployHosts})
 
             if [[ -n "$(git status --porcelain)" ]]; then
@@ -311,11 +313,11 @@
               hosts=("''${known_hosts[@]}")
             fi
 
-            echo "==> Deployment plan"
-            echo "Revision: $rev"
-            echo "Hosts:"
             for host in "''${hosts[@]}"; do
-              echo "==> Deploying ''${host} @ ''${rev}"
+              echo "==> Deployment plan"
+              echo "Revision: $rev"
+              echo "Hosts:"
+              echo "  $host"
             done
             echo "No hosts were connected to or switched."
           ''}";
@@ -332,9 +334,7 @@
 
             usage() {
               echo "Usage: deploy-status [--json] [--quiet] [HOST...]" >&2
-              echo "Revision: $rev"
-              echo
-              printf '%-12s %-12s %s\\n' "Host" "Status" "Running revision"
+              exit 2
             }
 
             output="human"
@@ -350,7 +350,6 @@
                   ;;
                 -h|--help)
                   usage
-                  exit 0
                   ;;
                 --*)
                   hosts+=("$arg")
@@ -393,7 +392,7 @@
                   first=0
                   ;;
                 human)
-                  printf '%-12s %-12s %s\\n' "Host" "Status" "Running revision"
+                  printf '%-12s %-12s %s\\n' "$host" "$status" "$running"
                   ;;
               esac
             done

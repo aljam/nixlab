@@ -17,6 +17,16 @@ let
     "r820"
   ];
 
+  # Prefer a host's directly routable LAN address for node-exporter scraping.
+  # Tailscale addresses can be reached through a subnet router, but the return
+  # path may not preserve the original TCP connection.
+  scrapeAddress =
+    host:
+    let
+      hostFleet = config.networking.fleet.${host};
+    in
+    if hostFleet.lanIp != null then hostFleet.lanIp else hostFleet.ip;
+
   # Every Blackbox probe sends the original target to the loopback exporter
   # and preserves it as the Prometheus instance label.
   blackboxRelabelConfigs = [
@@ -217,7 +227,7 @@ in
           job_name = "node";
 
           static_configs = map (host: {
-            targets = [ "${config.networking.fleet.${host}.ip}:9100" ];
+            targets = [ "${scrapeAddress host}:9100" ];
             labels = {
               instance = host;
               host = host;
@@ -252,7 +262,7 @@ in
           job_name = "blackbox-postgres-tls";
           metrics_path = "/probe";
           params = {
-            module = [ "tls_postgres" ];
+            module = [ "tcp_postgres" ];
           };
 
           static_configs = [

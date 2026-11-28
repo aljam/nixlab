@@ -11,7 +11,7 @@
 ## Workflow
 - Make one concern per branch and PR.
 - Never change more than one host's behavior per PR.
-- Run `nix flake check` and `nix build .#nixosConfigurations.<host>.config.system.build.toplevel` before proposing a PR.
+- Run `nix flake check`, `nix build .#nixosConfigurations.<host>.config.system.build.toplevel` and `nix fmt` before proposing a PR.
 - Write findings to docs/code-review.md before editing code.
 
 ## Hard limits

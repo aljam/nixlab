@@ -21,11 +21,6 @@
 
   networking.hostId = "acccc16e"; # Required for ZFS
 
-  networking.firewall.extraInputRules = ''
-    # Allow LAN clients to reach the local Qwen inference API.
-    ip saddr 192.168.1.0/24 tcp dport 8001 accept
-  '';
-
   home-manager.users.pervitiner = import ../../users/pervitiner/home.nix;
 
   modules.features.disk-health = {
@@ -47,8 +42,10 @@
 
   modules.features.gpuFanControl.enable = true;
 
+  # Qwen inference is disabled for now. The module and model configuration are
+  # retained so it can be re-enabled without reconstructing the service settings.
   modules.features.qwenInference = {
-    enable = true;
+    enable = false;
     modelPath = "/var/lib/qwen-inference/Qwen3-Coder-30B-A3B-Instruct-Q4_K_M.gguf";
     contextLength = 262144;
     cacheTypeK = "q8_0";

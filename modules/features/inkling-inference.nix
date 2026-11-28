@@ -90,13 +90,13 @@ in
       description = "TCP port for llama-server to listen on.";
     };
 
-    # Use 80K context. At 96K, llama.cpp attempted to reserve a 20.25 GiB CUDA
-    # compute buffer on device 0, which exceeded the remaining VRAM after the
-    # Q4_K_M model weights were loaded. 80K should leave enough room for the
-    # model weights and CUDA overhead while retaining a large context window.
+    # Use 48K context. The 18 GiB Q4_K_M GGUF is split across two 24 GiB
+    # Tesla P40s, leaving roughly 15 GiB per GPU for compute buffers after
+    # model weights. 64K and larger exceed that budget; 48K provides a
+    # meaningful safety margin for CUDA overhead and KV-cache allocation.
     contextLength = lib.mkOption {
       type = lib.types.int;
-      default = 81920;
+      default = 49152;
       description = "Context window size in tokens.";
     };
 

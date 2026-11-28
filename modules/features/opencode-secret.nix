@@ -1,4 +1,8 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  ...
+}:
 
 let
   cfg = config.modules.features.opencodeSecret;
@@ -24,6 +28,16 @@ in
       format = "yaml";
       key = "github_mcp_token";
       path = "/run/secrets/github_mcp_token";
+      owner = config.users.users.aljam.name;
+      group = config.users.users.aljam.group;
+      mode = "0400";
+    };
+
+    sops.secrets."inkling_api_key" = {
+      sopsFile = ../../secrets/common.yaml;
+      format = "yaml";
+      key = "inkling_api_key";
+      path = "/run/secrets/inkling_api_key";
       owner = config.users.users.aljam.name;
       group = config.users.users.aljam.group;
       mode = "0400";

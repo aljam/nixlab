@@ -23,7 +23,7 @@ let
   # Replace it with an empty output and remove the copy step; the Inkling
   # service needs only the headless llama-server endpoint.
   llamaCppCuda = llamaCppCudaBase.overrideAttrs (old: {
-    webui = pkgs.runCommand "llama-cpp-empty-webui" { } "mkdir -p $out";
+    webui = pkgs.runCommand "inkling-cpp-empty-webui" { } "mkdir -p $out";
     postPatch = "";
 
     # llama.cpp's CUDA backend includes NVML directly. Add the CUDA 12.9 NVML
@@ -61,6 +61,10 @@ let
       ${lib.optionalString (cfg.apiKeyFile != null) ''--api-key-file ${lib.escapeShellArg cfg.apiKeyFile}''} \
       ${lib.escapeShellArgs cfg.extraArgs}
   '';
+
+  clientRule = ip: ''
+    ip saddr ${ip} tcp dport ${toString cfg.port} accept comment "Inkling inference client"
+  '';
 in
 {
   options.modules.features.inklingInference = {
@@ -88,6 +92,12 @@ in
       type = lib.types.port;
       default = 8002;
       description = "TCP port for llama-server to listen on.";
+    };
+
+    allowedClients = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = "Source IP addresses allowed to reach the Inkling inference API.";
     };
 
     # Use 56K context. The 48K configuration is stable with the rebalanced
@@ -146,6 +156,8 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    networking.firewall.extraInputRules = lib.concatMapStrings clientRule cfg.allowedClients;
+
     users.users.inkling-inference = {
       isSystemUser = true;
       group = "inkling-inference";

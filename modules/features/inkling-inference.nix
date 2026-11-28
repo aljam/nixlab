@@ -90,12 +90,12 @@ in
       description = "TCP port for llama-server to listen on.";
     };
 
-    # Start with a context that fits the dual P40 VRAM budget. The 256K
-    # context requires more than 42 GiB of compute/KV buffer allocation on a
-    # single CUDA device and exceeds a P40's 24 GiB capacity.
+    # Use half of the original 256K target. The 256K context requests more
+    # than 42 GiB of CUDA compute/KV buffer allocation on one device, which
+    # exceeds a Tesla P40's 24 GiB VRAM. Validate 128K before increasing it.
     contextLength = lib.mkOption {
       type = lib.types.int;
-      default = 32768;
+      default = 131072;
       description = "Context window size in tokens.";
     };
 

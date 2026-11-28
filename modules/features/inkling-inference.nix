@@ -58,7 +58,7 @@ let
       --split-mode layer \
       --tensor-split ${lib.escapeShellArg cfg.tensorSplit} \
       ${lib.escapeShellArgs cacheArgs} \
-      ${lib.optionalString (cfg.apiKeyFile != null) ''--api-key "$INKLING_API_KEY"''} \
+      ${lib.optionalString (cfg.apiKeyFile != null) ''--api-key-file ${lib.escapeShellArg cfg.apiKeyFile}''} \
       ${lib.escapeShellArgs cfg.extraArgs}
   '';
 in
@@ -90,13 +90,13 @@ in
       description = "TCP port for llama-server to listen on.";
     };
 
-    # Use 80K context. At 96K, llama.cpp attempted to reserve a 20.25 GiB CUDA
-    # compute buffer on device 0, which exceeded the remaining VRAM after the
-    # Q4_K_M model weights were loaded. 80K should leave enough room for the
-    # model weights and CUDA overhead while retaining a large context window.
+    # Use 48K context. The 18 GiB Q4_K_M GGUF is split across two 24 GiB
+    # Tesla P40s, leaving roughly 15 GiB per GPU for compute buffers after
+    # model weights. 64K and larger exceed that budget; 48K provides a
+    # meaningful safety margin for CUDA overhead and KV-cache allocation.
     contextLength = lib.mkOption {
       type = lib.types.int;
-      default = 81920;
+      default = 49152;
       description = "Context window size in tokens.";
     };
 
@@ -129,7 +129,7 @@ in
     apiKeyFile = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       default = "/run/secrets/inkling_api_key";
-      description = "Path to an environment file containing INKLING_API_KEY for llama-server API authentication.";
+      description = "Path to a file containing the llama-server API key. llama.cpp reads the key directly from this file.";
     };
 
     extraArgs = lib.mkOption {
@@ -172,8 +172,6 @@ in
         User = "inkling-inference";
         Group = "inkling-inference";
         StateDirectory = "inkling-inference";
-
-        EnvironmentFile = lib.mkIf (cfg.apiKeyFile != null) [ cfg.apiKeyFile ];
 
         ExecStartPre = [
           "${pkgs.coreutils}/bin/test -f ${lib.escapeShellArg cfg.modelPath}"

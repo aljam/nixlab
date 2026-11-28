@@ -130,6 +130,16 @@ in
 
     users.groups.inkling-inference = { };
 
+    sops.secrets.inkling_api_key = lib.mkIf (cfg.apiKeyFile != null) {
+      sopsFile = ../../secrets/common.yaml;
+      format = "yaml";
+      key = "inkling_api_key";
+      path = cfg.apiKeyFile;
+      owner = "inkling-inference";
+      group = "inkling-inference";
+      restartUnits = [ "inkling-inference.service" ];
+    };
+
     systemd.services.inkling-inference = {
       description = "Inkling local inference server";
       wantedBy = [ "multi-user.target" ];

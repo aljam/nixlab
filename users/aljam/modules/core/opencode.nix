@@ -10,6 +10,7 @@ let
   keyFile = "/run/secrets/perplexity_api_key";
   githubKeyFile = "/run/secrets/github_mcp_token";
   qwenKeyFile = "/run/secrets/QWEN_API_KEY";
+  inklingKeyFile = "/run/secrets/inkling_api_key";
 
   loadKey = ''
     if [ -z "''${PERPLEXITY_API_KEY:-}" ] && [ -r ${keyFile} ]; then
@@ -25,6 +26,11 @@ let
     if [ -z "''${QWEN_API_KEY:-}" ] && [ -r ${qwenKeyFile} ]; then
       QWEN_API_KEY="$(< ${qwenKeyFile})"
       export QWEN_API_KEY
+    fi
+
+    if [ -z "''${INKLING_API_KEY:-}" ] && [ -r ${inklingKeyFile} ]; then
+      INKLING_API_KEY="$(< ${inklingKeyFile})"
+      export INKLING_API_KEY
     fi
   '';
 
@@ -88,6 +94,20 @@ let
         models = {
           "qwen3-coder-30b-a3b" = {
             name = "Qwen3 Coder 30B A3B (local)";
+          };
+        };
+      };
+
+      "inkling-local" = {
+        npm = "@ai-sdk/openai-compatible";
+        name = "Inkling Local";
+        options = {
+          baseURL = "http://192.168.1.3:8002/v1";
+          apiKey = "{env:INKLING_API_KEY}";
+        };
+        models = {
+          "inkling" = {
+            name = "Inkling 2 Mini (local)";
           };
         };
       };

@@ -74,21 +74,21 @@ in
 
     contextLength = lib.mkOption {
       type = lib.types.int;
-      default = 32768;
+      default = 262144;
       description = "Context window size in tokens.";
     };
 
     cacheTypeK = lib.mkOption {
       type = lib.types.str;
-      default = "f16";
-      example = "q8_0";
+      default = "q8_0";
+      example = "f16";
       description = "llama.cpp KV cache data type for keys.";
     };
 
     cacheTypeV = lib.mkOption {
       type = lib.types.str;
-      default = "f16";
-      example = "q8_0";
+      default = "q8_0";
+      example = "f16";
       description = "llama.cpp KV cache data type for values.";
     };
 

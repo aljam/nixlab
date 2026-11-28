@@ -34,7 +34,7 @@
   # modules.features.prometheus-server.postgresCaFile =
   #   config.sops.secrets.pfsense-root-ca-prometheus.path;
 
-  modules.features.prometheus-server.haproxyScrapeTarget = "192.168.1.1:8404";
+  modules.features.prometheus-server.haproxyScrapeTarget = "${config.networking.fleet.proxy.ip}:8404";
 
   modules.features.drift-monitoring.enable = true;
 
@@ -133,8 +133,8 @@
       { path = "/dev/disk/by-id/wwn-0x5000cca0720c2ee8"; }
       { path = "/dev/disk/by-id/wwn-0x5000cca0720ceedc"; }
       { path = "/dev/disk/by-id/wwn-0x5000cca0720dc4cc"; }
-      { path = "/dev/disk/by-id/wwn-0x5000cca0720ddd40"; }
-      { path = "/dev/disk/by-id/wwn-0x5000cca0720dde80"; }
+      { path = "/dev/disk-by-id/wwn-0x5000cca0720ddd40"; }
+      { path = "/dev/disk-by-id/wwn-0x5000cca0720dde80"; }
     ];
   };
 }

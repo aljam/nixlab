@@ -11,7 +11,11 @@ let
 
   # Inkling 2 Mini uses the `inkling2_loop` architecture, which requires
   # llama.cpp b12600 or newer. Pin the upstream flake to a compatible release.
-  llamaCppCudaBase = inputs.llama-cpp.packages.x86_64-linux.cuda;
+  # The upstream default CUDA 13 toolchain no longer supports the P40's Pascal
+  # compute capability 6.1, so use CUDA 12.4.
+  llamaCppCudaBase = inputs.llama-cpp.packages.x86_64-linux.cuda.override {
+    cudaPackages = pkgs.cudaPackages_12_4;
+  };
 
   # The upstream package always builds its bundled web UI, even when
   # `useWebUi` is disabled. Its PWA asset generator attempts to copy a

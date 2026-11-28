@@ -90,12 +90,12 @@ in
       description = "TCP port for llama-server to listen on.";
     };
 
-    # Use half of the original 256K target. The Q5_K_M model at 128K context
-    # still requested more CUDA compute/KV buffer allocation than a single
-    # Tesla P40 could provide. Q4_K_M reduces model weight VRAM usage.
+    # Use 96K context as a midpoint between 64K and 128K. At 128K, llama.cpp
+    # attempted to reserve a 24.79 GiB CUDA compute buffer on device 0, which
+    # exceeded a Tesla P40's 24 GiB VRAM once model weights were loaded.
     contextLength = lib.mkOption {
       type = lib.types.int;
-      default = 131072;
+      default = 98304;
       description = "Context window size in tokens.";
     };
 

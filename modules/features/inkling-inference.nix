@@ -120,9 +120,12 @@ in
       description = "Number of model layers to offload to GPU.";
     };
 
+    # Favor GPU 1, which was nearly empty with an even split. This assigns
+    # roughly 25% of the model to GPU 0 and 75% to GPU 1, reducing pressure
+    # on GPU 0 while using the second P40 more effectively.
     tensorSplit = lib.mkOption {
       type = lib.types.str;
-      default = "1,1";
+      default = "1,3";
       description = "Relative VRAM allocation across CUDA devices.";
     };
 

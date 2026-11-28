@@ -16,6 +16,7 @@
     ../../modules/features/qwen-inference.nix
     ../../modules/features/huggingface-cli.nix
     ../../modules/features/gpu-fan-control.nix
+    ../../modules/features/inkling-inference.nix
     ../../users/pervitiner/nixos.nix
   ];
 
@@ -43,11 +44,15 @@
   modules.features.gpuFanControl.enable = true;
 
   # Qwen inference is disabled for now. The module and model configuration are
-  # retained so it can be re-enabled without reconstructing the service settings.
+  # retained so it can be re-enabled later without reconstructing its settings.
   modules.features.qwenInference = {
     enable = false;
     modelPath = "/var/lib/qwen-inference/Qwen3-Coder-30B-A3B-Instruct-Q4_K_M.gguf";
     contextLength = 262144;
     cacheTypeK = "q8_0";
+  };
+
+  modules.features.inklingInference = {
+    enable = true;
   };
 }

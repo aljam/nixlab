@@ -90,12 +90,13 @@ in
       description = "TCP port for llama-server to listen on.";
     };
 
-    # Use 96K context as a midpoint between 64K and 128K. At 128K, llama.cpp
-    # attempted to reserve a 24.79 GiB CUDA compute buffer on device 0, which
-    # exceeded a Tesla P40's 24 GiB VRAM once model weights were loaded.
+    # Use 80K context. At 96K, llama.cpp attempted to reserve a 20.25 GiB CUDA
+    # compute buffer on device 0, which exceeded the remaining VRAM after the
+    # Q4_K_M model weights were loaded. 80K should leave enough room for the
+    # model weights and CUDA overhead while retaining a large context window.
     contextLength = lib.mkOption {
       type = lib.types.int;
-      default = 98304;
+      default = 81920;
       description = "Context window size in tokens.";
     };
 

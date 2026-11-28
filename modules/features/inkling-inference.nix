@@ -11,14 +11,18 @@ let
 
   # Inkling 2 Mini uses the `inkling2_loop` architecture, which requires
   # llama.cpp b12600 or newer. Pin the upstream flake to a compatible release.
-  # The bundled web UI is unnecessary for a headless inference server and its
-  # PWA asset generation fails in the Nix sandbox.
-  llamaCppCudaBase = inputs.llama-cpp.packages.x86_64-linux.cuda.override {
-    useWebUi = false;
-  };
+  llamaCppCudaBase = inputs.llama-cpp.packages.x86_64-linux.cuda;
 
-  # Target the dual Tesla P40 GPUs (Pascal, compute capability 6.1).
+  # The upstream package always builds its bundled web UI, even when
+  # `useWebUi` is disabled. Its PWA asset generator attempts to copy a
+  # read-only Nix store asset into the build tree and fails in the sandbox.
+  # Replace it with an empty output and remove the copy step; the Inkling
+  # service needs only the headless llama-server endpoint.
   llamaCppCuda = llamaCppCudaBase.overrideAttrs (old: {
+    webui = pkgs.runCommand "llama-cpp-empty-webui" { } "mkdir -p $out";
+    postPatch = "";
+
+    # Target the dual Tesla P40 GPUs (Pascal, compute capability 6.1).
     cmakeFlags = (old.cmakeFlags or [ ]) ++ [
       "-DCMAKE_CUDA_ARCHITECTURES=61"
     ];

@@ -56,7 +56,7 @@ in
 
     modelPath = lib.mkOption {
       type = lib.types.str;
-      default = "/var/lib/inkling-inference/Inkling-2-Mini-Unbound-v3-Q4_K_M.gguf";
+      default = "/var/lib/inkling-inference/Inkling-2-Mini-Unbound-v3-Q5_K_M.gguf";
       description = "Absolute path to the Inkling GGUF model file.";
     };
 

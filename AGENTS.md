@@ -1,5 +1,23 @@
 # nixlab agent instructions
 
+# Homelab flake rules
+
+## Review lens (apply in this order)
+1. Security: no secrets in the Nix store or argv; least-privilege systemd units;
+   no world-readable secret paths; explicit CORS/listen addresses.
+2. KISS: prefer the smallest change that works; no new abstractions for one use.
+3. DRY: extract a shared module only when 3+ hosts repeat the same block.
+
+## Workflow
+- Make one concern per branch and PR.
+- Never change more than one host's behavior per PR.
+- Run `nix flake check` and `nix build .#nixosConfigurations.<host>.config.system.build.toplevel` before proposing a PR.
+- Write findings to docs/code-review.md before editing code.
+
+## Hard limits
+- Do not run deploy commands.
+- Do not read /run/secrets or sops-decrypted values.
+
 ## Scope
 
 This repository manages multiple NixOS hosts with a shared flake.

@@ -56,11 +56,6 @@
         address = "${config.networking.fleet.r730xd.ip}/32";
       }
     ];
-    
-    # Add explicit TLS configuration for remote connections
-    ssl = true;
-    sslCertFile = "/var/lib/postgresql/server.crt";
-    sslKeyFile = "/var/lib/postgresql/server.key";
   };
 
   # PeerTube (r730xd) needs these extensions in its database. The role

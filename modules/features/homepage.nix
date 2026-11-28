@@ -1,98 +1,46 @@
-{
-  config,
-  lib,
-  ...
-}:
+{ config, lib, pkgs, ... }:
+
 let
   cfg = config.modules.features.homepage;
-
-  mkLink = name: service: description: icon: {
-    ${name} = {
-      inherit description icon;
-      href = "https://${service}.derezzed.info";
-    };
-  };
 in
 {
-  options.modules.features.homepage.enable = lib.mkEnableOption "Homepage dashboard";
+  options.modules.features.homepage = {
+    enable = lib.mkEnableOption "homepage dashboard";
+
+    # The homepage is served by the NixOS host `navi` to maintain a consistent
+    # service address across deployments.
+    listenAddress = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = ''
+        The address on which the homepage server listens. When null, the
+        service binds to the host's configured servicesBindAddress.
+      '';
+    };
+
+    # The homepage must be reachable from the local LAN to support
+    # local network device discovery.
+    allowedHosts = lib.mkOption {
+      type = lib.types.str;
+      default = "home.derezzed.info,${config.networking.fleet.navi.ip}:8082";
+      description = ''
+        Comma-separated list of hostnames and addresses that are permitted to
+        access the homepage.
+      '';
+    };
+  };
 
   config = lib.mkIf cfg.enable {
-    # Allow the pfSense HAProxy gateway to reach the dashboard backend.
-    networking.proxyBackendPorts = [ 8082 ];
+    roles.security.systemdHardenedServices = [ "homepage" ];
 
-    services.homepage-dashboard = {
+    services.homepage = {
       enable = true;
-
-      # Homepage rejects requests with an unlisted Host header. Allow the
-      # public HAProxy hostname and the direct LAN backend address.
-      allowedHosts = "home.derezzed.info,192.168.1.2:8082";
-
-      settings = {
-        title = "Derezzed";
-        theme = "dark";
-        color = "slate";
-        headerStyle = "clean";
-        layout = {
-          "Media & Requests" = {
-            style = "row";
-            columns = 4;
-          };
-
-          "Downloads" = {
-            style = "row";
-            columns = 4;
-          };
-
-          "Identity / communication" = {
-            style = "row";
-            columns = 3;
-          };
-
-          "Monitoring" = {
-            style = "row";
-            columns = 3;
-          };
-        };
-      };
-
-      # The NixOS Homepage module expects a list of service groups. Each
-      # service must be keyed by its display name.
-      services = [
-        {
-          "Media & Requests" = [
-            (mkLink "Jellyfin" "jellyfin" "Media Streaming" "jellyfin.png")
-            (mkLink "Seerr" "seerr" "Media Requests" "seerr.png")
-            (mkLink "PeerTube" "peertube" "Self-hosted Video" "peertube.png")
-            (mkLink "Radio" "radio" "Internet Radio" "radio.png")
-          ];
-        }
-
-        {
-          "Downloads" = [
-            (mkLink "Sonarr" "sonarr" "TV Automation" "sonarr.png")
-            (mkLink "Radarr" "radarr" "Movie Automation" "radarr.png")
-            (mkLink "Prowlarr" "prowlarr" "Indexer Management" "prowlarr.png")
-            (mkLink "Bazarr" "bazarr" "Bazarr Subtitles" "bazarr.png")
-            (mkLink "Lidarr" "lidarr" "Music Automation" "lidarr.png")
-            (mkLink "Autobrr" "autobrr" "Release Automation" "autobrr.png")
-            (mkLink "Recyclarr" "recyclarr" "Sonarr/Radarr Quality Profiles" "recyclarr.png")
-          ];
-        }
-
-        {
-          "Identity / communication" = [
-            (mkLink "Vaultwarden" "vault" "Password Manager" "vaultwarden.png")
-            (mkLink "Matrix" "matrix" "Chat" "matrix.png")
-            (mkLink "Matrix RTC" "rtc" "Voice & Video" "matrix.png")
-          ];
-        }
-
-        {
-          "Monitoring" = [
-            (mkLink "Grafana" "grafana" "Dashboards" "grafana.png")
-          ];
-        }
-      ];
+      listenAddress = lib.mkIf (cfg.listenAddress != null) cfg.listenAddress;
+      allowedHosts = cfg.allowedHosts;
     };
+
+    networking.firewall.extraInputRules = [
+      "ip saddr ${config.networking.fleet.navi.ip} tcp dport 8082 accept"
+    ];
   };
 }

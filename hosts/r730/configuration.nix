@@ -54,9 +54,6 @@
 
   modules.features.inklingInference = {
     enable = true;
-    allowedClients = [
-      config.networking.fleet.navi.ip
-      config.networking.fleet.oryx.ip
-    ];
+    allowedClients = [ "192.168.1.1" ];
   };
 }

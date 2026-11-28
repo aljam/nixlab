@@ -26,6 +26,12 @@ let
     webui = pkgs.runCommand "llama-cpp-empty-webui" { } "mkdir -p $out";
     postPatch = "";
 
+    # llama.cpp's CUDA backend includes NVML directly. Add the CUDA 12.9 NVML
+    # development headers so `ggml-cuda.cu` can find `nvml.h`.
+    buildInputs = (old.buildInputs or [ ]) ++ [
+      pkgs.cudaPackages_12_9.cuda_nvml_dev
+    ];
+
     # Target the dual Tesla P40 GPUs (Pascal, compute capability 6.1).
     cmakeFlags = (old.cmakeFlags or [ ]) ++ [
       "-DCMAKE_CUDA_ARCHITECTURES=61"

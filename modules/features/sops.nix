@@ -181,7 +181,7 @@ in
     # inheriting an unintended group or relying on an implicit default.
     {
       assertion = lib.all (secret: secret.group != null) sopsSecrets;
-      message = "Every sops secret must declare an explicit group.";
+      message = "SOPS secrets must use owner-only mode 0400.";
     }
 
     # Make permissions explicit and restrict every secret to its owning
@@ -215,7 +215,7 @@ in
       assertion = undeclaredSecretGroups == [ ];
       message =
         "SOPS secret owners must be declared system groups. Undeclared owners: "
-        + lib.concatStringsSep ", " (map (secret: secret.owner) undeclaredSecretGroups);
+        + lib.concatStringsSep ", " (map (secret: secret.owner) undeclaredSecretOwners);
     }
 
     # Ensure credential rotation reaches the service consuming the secret.

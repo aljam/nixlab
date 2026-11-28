@@ -110,8 +110,8 @@ in
       default = "https://github.com/Aljam/nixlab.git";
       description = ''
         Git remote (without revision) the deployment user is permitted to
-        rebuild from. The revision is supplied per deployment and must be
-        the current tip of the remote's main branch.
+        rebuild from. The revision is supplied per deployment and must be the
+        current tip of the remote's main branch.
       '';
     };
 
@@ -149,7 +149,7 @@ in
           {
             # Match the system-profile path, as resolved through sudo's secure_path.
             # Restrict the wildcard to the sole supported deployment action.
-            command = "/run/current-system/sw/bin/deploy-rebuild switch [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]";
+            command = "/run/current-system/sw/bin/deploy-rebuild switch [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]";
             options = [ "NOPASSWD" ];
           }
         ];

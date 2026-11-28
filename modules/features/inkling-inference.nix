@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   lib,
   pkgs,
   ...
@@ -8,12 +9,11 @@
 let
   cfg = config.modules.features.inklingInference;
 
-  # Reuse the P40-compatible llama.cpp build used by Qwen inference.
-  llamaCppCudaBase = pkgs.llama-cpp.override {
-    cudaSupport = true;
-    cudaPackages = pkgs.cudaPackages_12_9;
-  };
+  # Inkling 2 Mini uses the `inkling2_loop` architecture, which requires
+  # llama.cpp b12600 or newer. Pin the upstream flake to a compatible release.
+  llamaCppCudaBase = inputs.llama-cpp.packages.x86_64-linux.cuda;
 
+  # Target the dual Tesla P40 GPUs (Pascal, compute capability 6.1).
   llamaCppCuda = llamaCppCudaBase.overrideAttrs (old: {
     cmakeFlags = (old.cmakeFlags or [ ]) ++ [
       "-DCMAKE_CUDA_ARCHITECTURES=61"

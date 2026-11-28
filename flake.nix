@@ -51,6 +51,10 @@
       url = "github:tomsch/opencode-desktop-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    llama-cpp = {
+      url = "github:ggml-org/llama.cpp/b12611";
+    };
   };
 
   outputs =
@@ -67,6 +71,7 @@
       artcraft,
       nix-flatpak,
       nixos-hardware,
+      llama-cpp,
       ...
     }@inputs:
     let

@@ -50,7 +50,7 @@ let
   '';
 
   # Common staleness rule template
-  mkStalenessRule = 
+  mkStalenessRule =
     {
       name,
       metric,

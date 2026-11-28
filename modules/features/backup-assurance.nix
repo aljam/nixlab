@@ -7,29 +7,7 @@
 let
   cfg = config.modules.features.backup-assurance;
 
-  mkStalenessRule =
-    {
-      name,
-      metric,
-      maxAge,
-      severity,
-      summary,
-      description,
-    }:
-    ''
-      groups:
-        - name: backup-assurance
-          rules:
-            - alert: ${name}
-              expr: time() - ${metric} > ${toString maxAge}
-              for: 15m
-              labels:
-                severity: ${severity}
-              annotations:
-                summary: ${summary}
-                description: ${description}
-    '';
-
+  # Reusable backup rules for different jobs
   backupRules = ''
     groups:
       - name: backup-assurance
@@ -70,6 +48,30 @@ let
               summary: Restic restore test failed
               description: The latest isolated restore test for Restic job {{ $labels.job }} failed.
   '';
+
+  # Common staleness rule template
+  mkStalenessRule = 
+    {
+      name,
+      metric,
+      maxAge,
+      severity,
+      summary,
+      description,
+    }:
+    ''
+      groups:
+        - name: backup-assurance
+          rules:
+            - alert: ${name}
+              expr: time() - ${metric} > ${toString maxAge}
+              for: 15m
+              labels:
+                severity: ${severity}
+              annotations:
+                summary: ${summary}
+                description: ${description}
+    '';
 in
 {
   options.modules.features.backup-assurance = {

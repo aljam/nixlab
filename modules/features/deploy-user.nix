@@ -149,7 +149,7 @@ in
           {
             # Match the system-profile path, as resolved through sudo's secure_path.
             # Restrict the wildcard to the sole supported deployment action.
-            command = "/run/current-system/sw/bin/deploy-rebuild switch *";
+            command = "/run/current-system/sw/bin/deploy-rebuild switch [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]";
             options = [ "NOPASSWD" ];
           }
         ];

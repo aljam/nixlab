@@ -74,7 +74,7 @@ in
 
     modelPath = lib.mkOption {
       type = lib.types.str;
-      default = "/var/lib/inkling-inference/Inkling-2-Mini-Unbound-v3-Q5_K_M.gguf";
+      default = "/var/lib/inkling-inference/Inkling-2-Mini-Unbound-v3-Q4_K_M.gguf";
       description = "Absolute path to the Inkling GGUF model file.";
     };
 
@@ -90,9 +90,9 @@ in
       description = "TCP port for llama-server to listen on.";
     };
 
-    # Use half of the original 256K target. The 256K context requests more
-    # than 42 GiB of CUDA compute/KV buffer allocation on one device, which
-    # exceeds a Tesla P40's 24 GiB VRAM. Validate 128K before increasing it.
+    # Use half of the original 256K target. The Q5_K_M model at 128K context
+    # still requested more CUDA compute/KV buffer allocation than a single
+    # Tesla P40 could provide. Q4_K_M reduces model weight VRAM usage.
     contextLength = lib.mkOption {
       type = lib.types.int;
       default = 131072;

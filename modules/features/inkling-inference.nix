@@ -58,7 +58,9 @@ let
       --split-mode layer \
       --tensor-split ${lib.escapeShellArg cfg.tensorSplit} \
       ${lib.escapeShellArgs cacheArgs} \
-      ${lib.optionalString (cfg.apiKeyFile != null) ''--api-key-file ${lib.escapeShellArg cfg.apiKeyFile}''} \
+      ${
+        lib.optionalString (cfg.apiKeyFile != null) "--api-key-file ${lib.escapeShellArg cfg.apiKeyFile}"
+      } \
       ${lib.escapeShellArgs cfg.extraArgs}
   '';
 

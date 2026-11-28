@@ -63,14 +63,15 @@
     # unit names depend on configured backup jobs. A rotated password takes
     # effect on the next job invocation.
     #
-    # `perplexity_api_key` and `github_mcp_token` are read by user-launched
-    # OpenCode CLI and Desktop processes; they are not owned by long-running
-    # system services.
+    # `perplexity_api_key`, `github_mcp_token`, and `inkling_api_key` are read by
+    # user-launched OpenCode CLI and Desktop processes; they are not owned by
+    # long-running system services.
     roles.security.sopsRestartExemptions = [
       "aljam_password"
       "restic-backup-password"
       "perplexity_api_key"
       "github_mcp_token"
+      "inkling_api_key"
     ];
 
     roles.security.systemdHardenedServices = [

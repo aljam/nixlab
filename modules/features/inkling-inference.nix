@@ -58,7 +58,7 @@ let
       --split-mode layer \
       --tensor-split ${lib.escapeShellArg cfg.tensorSplit} \
       ${lib.escapeShellArgs cacheArgs} \
-      ${lib.optionalString (cfg.apiKeyFile != null) ''--api-key "$INKLING_API_KEY"''} \
+      ${lib.optionalString (cfg.apiKeyFile != null) ''--api-key-file ${lib.escapeShellArg cfg.apiKeyFile}''} \
       ${lib.escapeShellArgs cfg.extraArgs}
   '';
 in
@@ -129,7 +129,7 @@ in
     apiKeyFile = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       default = "/run/secrets/inkling_api_key";
-      description = "Path to an environment file containing INKLING_API_KEY for llama-server API authentication.";
+      description = "Path to a file containing the llama-server API key. llama.cpp reads the key directly from this file.";
     };
 
     extraArgs = lib.mkOption {
@@ -172,8 +172,6 @@ in
         User = "inkling-inference";
         Group = "inkling-inference";
         StateDirectory = "inkling-inference";
-
-        EnvironmentFile = lib.mkIf (cfg.apiKeyFile != null) [ cfg.apiKeyFile ];
 
         ExecStartPre = [
           "${pkgs.coreutils}/bin/test -f ${lib.escapeShellArg cfg.modelPath}"

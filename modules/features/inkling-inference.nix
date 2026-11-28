@@ -90,13 +90,13 @@ in
       description = "TCP port for llama-server to listen on.";
     };
 
-    # Use 48K context. The 18 GiB Q4_K_M GGUF is split across two 24 GiB
-    # Tesla P40s, leaving roughly 15 GiB per GPU for compute buffers after
-    # model weights. 64K and larger exceed that budget; 48K provides a
-    # meaningful safety margin for CUDA overhead and KV-cache allocation.
+    # Use 56K context. The 48K configuration is stable with the rebalanced
+    # 1,3 GPU split, leaving substantial VRAM headroom on both P40s. 56K is
+    # the next conservative increase and retains a safety margin for CUDA
+    # overhead and KV-cache allocation.
     contextLength = lib.mkOption {
       type = lib.types.int;
-      default = 49152;
+      default = 57344;
       description = "Context window size in tokens.";
     };
 
